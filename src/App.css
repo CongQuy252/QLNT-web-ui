@@ -1,0 +1,10 @@
+#root {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: clamp(11px, 1.2vw, 14px);
+}

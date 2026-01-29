@@ -1,0 +1,10 @@
+const useAuth = () => {
+  const user = { id: 1, name: 'John Doe', role: 'owner', email: 'john@example.com' }; // Example user
+  const logout = () => {
+    console.log('User logged out');
+  };
+
+  return { user, logout };
+};
+
+export default useAuth;
