@@ -5,9 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import useAuth from '@/hooks/useAuth';
+import { useMobile } from '@/hooks/useMobile';
 
 const Home = () => {
   const navigator = useNavigate();
+  const isMobile = useMobile();
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
@@ -110,9 +112,10 @@ const Home = () => {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-slate-500 mb-1">Vai trò</p>
-                <p className="text-lg font-semibold text-slate-900">
-                  {isOwner ? '👤 Chủ nhà' : '🚪 Người thuê'}
+                <p className={`text-lg font-semibold text-slate-900 ${isMobile ? 'mt-1' : ''}`}>
+                  {isOwner
+                    ? `👤 ${isMobile ? '' : 'Chủ nhà'}`
+                    : `🚪 ${isMobile ? '' : 'Người thuê'}`}
                 </p>
               </div>
             </div>
@@ -150,8 +153,33 @@ const Home = () => {
           </div>
         </div>
 
+        {/* Quick Stats */}
+        {isOwner && (
+          <div className="mt-12">
+            <h3 className="text-xl font-bold text-slate-900 mb-6">Tóm tắt tình hình</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="p-6 border-0">
+                <p className="text-sm text-slate-600 mb-2">Phòng trống</p>
+                <p className="text-3xl font-bold text-slate-900">12</p>
+              </Card>
+              <Card className="p-6 border-0">
+                <p className="text-sm text-slate-600 mb-2">Phòng cho thuê</p>
+                <p className="text-3xl font-bold text-green-600">172</p>
+              </Card>
+              <Card className="p-6 border-0">
+                <p className="text-sm text-slate-600 mb-2">Thanh toán chờ xử lý</p>
+                <p className="text-3xl font-bold text-orange-600">8</p>
+              </Card>
+              <Card className="p-6 border-0">
+                <p className="text-sm text-slate-600 mb-2">Doanh thu tháng này</p>
+                <p className="text-3xl font-bold text-blue-600">847.5M</p>
+              </Card>
+            </div>
+          </div>
+        )}
+
         {/* Navigation Cards */}
-        <div>
+        <div className="mt-12">
           <h3 className="text-xl font-bold text-slate-900 mb-6">
             {isOwner ? 'Chức năng quản lý' : 'Chức năng người thuê'}
           </h3>
@@ -186,35 +214,6 @@ const Home = () => {
             })}
           </div>
         </div>
-
-        {/* Quick Stats */}
-        {isOwner && (
-          <div className="mt-12">
-            <h3 className="text-xl font-bold text-slate-900 mb-6">Tóm tắt tình hình</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="p-6 border-0">
-                <p className="text-sm text-slate-600 mb-2">Phòng trống</p>
-                <p className="text-3xl font-bold text-slate-900">12</p>
-                <p className="text-xs text-slate-500 mt-2">6.5% tổng phòng</p>
-              </Card>
-              <Card className="p-6 border-0">
-                <p className="text-sm text-slate-600 mb-2">Phòng cho thuê</p>
-                <p className="text-3xl font-bold text-green-600">172</p>
-                <p className="text-xs text-slate-500 mt-2">92.5% tổng phòng</p>
-              </Card>
-              <Card className="p-6 border-0">
-                <p className="text-sm text-slate-600 mb-2">Thanh toán chờ xử lý</p>
-                <p className="text-3xl font-bold text-orange-600">8</p>
-                <p className="text-xs text-slate-500 mt-2">Tổng 24M VND</p>
-              </Card>
-              <Card className="p-6 border-0">
-                <p className="text-sm text-slate-600 mb-2">Doanh thu tháng này</p>
-                <p className="text-3xl font-bold text-blue-600">847.5M</p>
-                <p className="text-xs text-slate-500 mt-2">Tăng 12% so tháng trước</p>
-              </Card>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );
