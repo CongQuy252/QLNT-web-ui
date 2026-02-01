@@ -74,11 +74,9 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
   });
 
   const onSubmit: SubmitHandler<BuildingFormInput> = (data) => {
-    // data LÚC NÀY LÀ INPUT (unknown / string)
     const parsed = buildingSchema.parse(data);
 
-    // parsed LÀ OUTPUT (number)
-    console.log(parsed.totalFloors); // number ✅
+    console.log(parsed.totalFloors);
 
     handleSave();
   };
@@ -175,7 +173,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     />
                   </div>
 
-                  <div className="overflow-y-auto max-h-240">
+                  <div className="overflow-y-auto max-h-70">
                     <SelectGroup>
                       <SelectLabel>Quận/Huyện</SelectLabel>
 
