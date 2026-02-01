@@ -1,19 +1,10 @@
-import { Building2, Home, Mail, MapPin, Pencil, Phone, Plus, Trash2 } from 'lucide-react';
+import { Building2, Home, Mail, MapPin, Pencil, Phone, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
+import Breadcrumbs from '@/components/ui/breadcrumb/Breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import CreateOrUpdateBuildingDialog from '@/pages/dialogs/createOrUpdateBuildingDialog/CreateOrUpdateBuildingDialog';
 import type { Building } from '@/types/building';
 import type { Room } from '@/types/room';
 
@@ -22,8 +13,9 @@ const Buildings = () => {
     {
       id: 'building1',
       name: 'Tòa nhà A',
-      address: '123 Đường Nguyễn Huệ',
-      district: 'Quận 1',
+      address:
+        '123 Đường Nguyễn Huệ, Khu phố 3, phường bình hưng hoà, quận bình tân, thành phố hồ chí minh',
+      ward: 'Quận 1, phường Bình Hưng hoà  b quận bình tân\nsdfs\nsdfsdf',
       city: 'Thành phố Hồ Chí Minh',
       totalFloors: 5,
       totalRooms: 20,
@@ -31,14 +23,14 @@ const Buildings = () => {
       owner: 'owner1',
       phone: '0901234567',
       email: 'tonhaA@example.com',
-      description: 'Tòa nhà cho thuê phòng trọ hiện đại với đầy đủ tiện ích',
+      description: 'Tòa nhà cho thuê phòng trọ hiện đại với đầy đủ\n tiện ích',
       utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Giặt tự động'],
     },
     {
       id: 'building2',
       name: 'Tòa nhà B',
       address: '456 Đường Trần Hưng Đạo',
-      district: 'Quận 5',
+      ward: 'Quận 5',
       city: 'Thành phố Hồ Chí Minh',
       totalFloors: 3,
       totalRooms: 12,
@@ -53,7 +45,7 @@ const Buildings = () => {
       id: 'building3',
       name: 'Tòa nhà C',
       address: '789 Đường Pasteur',
-      district: 'Quận 3',
+      ward: 'Quận 3',
       city: 'Thành phố Hồ Chí Minh',
       totalFloors: 4,
       totalRooms: 16,
@@ -68,7 +60,7 @@ const Buildings = () => {
       id: 'building4',
       name: 'Tòa nhà D',
       address: '789 Đường Pasteur',
-      district: 'Quận 3',
+      ward: 'Quận 3',
       city: 'Thành phố Hồ Chí Minh',
       totalFloors: 4,
       totalRooms: 16,
@@ -83,7 +75,7 @@ const Buildings = () => {
       id: 'building5',
       name: 'Tòa nhà E',
       address: '101 Đường Lê Lợi',
-      district: 'Quận 2',
+      ward: 'Quận 2',
       city: 'Thành phố Hồ Chí Minh',
       totalFloors: 4,
       totalRooms: 16,
@@ -98,7 +90,7 @@ const Buildings = () => {
       id: 'building6',
       name: 'Tòa nhà F',
       address: '101 Đường Lê Lợi',
-      district: 'Quận 2',
+      ward: 'Quận 2',
       city: 'Thành phố Hồ Chí Minh',
       totalFloors: 4,
       totalRooms: 16,
@@ -113,7 +105,7 @@ const Buildings = () => {
       id: 'building7',
       name: 'Tòa nhà G',
       address: '101 Đường Lê Lợi',
-      district: 'Quận 2',
+      ward: 'Quận 2',
       city: 'Thành phố Hồ Chí Minh',
       totalFloors: 4,
       totalRooms: 16,
@@ -180,13 +172,14 @@ const Buildings = () => {
       description: 'Đang sửa chữa',
     },
   ];
+
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    district: '',
+    ward: '',
     city: '',
     totalFloors: '',
     totalRooms: '',
@@ -201,7 +194,7 @@ const Buildings = () => {
     setFormData({
       name: '',
       address: '',
-      district: '',
+      ward: '',
       city: '',
       totalFloors: '',
       totalRooms: '',
@@ -218,7 +211,7 @@ const Buildings = () => {
     setFormData({
       name: building.name,
       address: building.address,
-      district: building.district,
+      ward: building.ward,
       city: building.city,
       totalFloors: building.totalFloors.toString(),
       totalRooms: building.totalRooms.toString(),
@@ -232,7 +225,7 @@ const Buildings = () => {
 
   const handleSave = () => {
     setIsOpen(false);
-    // In a real app, this would save to database
+    console.log('Saved building:', formData);
   };
 
   const building = selectedBuilding ? buildings.find((b) => b.id === selectedBuilding) : null;
@@ -249,167 +242,19 @@ const Buildings = () => {
 
   return (
     <div className="h-full flex flex-col">
+      <Breadcrumbs />
       <div className="flex items-center justify-between">
         <div className="mb-4">
           <h1 className="text-3xl font-bold text-slate-900">Quản lý Tòa Nhà</h1>
           <p className="text-slate-600">Quản lý thông tin và thống kê tòa nhà</p>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={handleNewBuilding}
-              className="gap-2"
-              icon={<Plus className="h-4 w-4" />}
-            >
-              Thêm Tòa Nhà
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>{isEditMode ? 'Chỉnh sửa Tòa Nhà' : 'Thêm Tòa Nhà Mới'}</DialogTitle>
-              <DialogDescription>
-                {isEditMode
-                  ? 'Cập nhật thông tin tòa nhà'
-                  : 'Nhập thông tin chi tiết của tòa nhà mới'}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name" className="text-sm font-medium text-slate-700">
-                  Tên Tòa Nhà
-                </Label>
-                <Input
-                  id="name"
-                  placeholder="VD: Tòa nhà A"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="address" className="text-sm font-medium text-slate-700">
-                  Địa Chỉ
-                </Label>
-                <Input
-                  id="address"
-                  placeholder="Địa chỉ tòa nhà"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="district" className="text-sm font-medium text-slate-700">
-                    Quận/Huyện
-                  </Label>
-                  <Input
-                    id="district"
-                    placeholder="VD: Quận 1"
-                    value={formData.district}
-                    onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="city" className="text-sm font-medium text-slate-700">
-                    Thành Phố
-                  </Label>
-                  <Input
-                    id="city"
-                    placeholder="VD: TP HCM"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="floors" className="text-sm font-medium text-slate-700">
-                    Số Tầng
-                  </Label>
-                  <Input
-                    id="floors"
-                    type="number"
-                    placeholder="5"
-                    value={formData.totalFloors}
-                    onChange={(e) => setFormData({ ...formData, totalFloors: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="rooms" className="text-sm font-medium text-slate-700">
-                    Số Phòng
-                  </Label>
-                  <Input
-                    id="rooms"
-                    type="number"
-                    placeholder="20"
-                    value={formData.totalRooms}
-                    onChange={(e) => setFormData({ ...formData, totalRooms: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="year" className="text-sm font-medium text-slate-700">
-                    Năm Xây
-                  </Label>
-                  <Input
-                    id="year"
-                    type="number"
-                    placeholder="2020"
-                    value={formData.yearBuilt}
-                    onChange={(e) => setFormData({ ...formData, yearBuilt: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="phone" className="text-sm font-medium text-slate-700">
-                    Số Điện Thoại
-                  </Label>
-                  <Input
-                    id="phone"
-                    placeholder="0901234567"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="email@example.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="description" className="text-sm font-medium text-slate-700">
-                  Mô Tả
-                </Label>
-                <Textarea
-                  id="description"
-                  placeholder="Mô tả chi tiết về tòa nhà..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <Button onClick={handleSave} className="w-full">
-                {isEditMode ? 'Cập nhật' : 'Thêm Tòa Nhà'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <CreateOrUpdateBuildingDialog
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          isEditMode={isEditMode}
+          handleNewBuilding={handleNewBuilding}
+          handleSave={handleSave}
+        />
       </div>
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
@@ -424,14 +269,16 @@ const Buildings = () => {
                 <button
                   key={building.id}
                   onClick={() => setSelectedBuilding(building.id)}
-                  className={`w-full text-left p-3 rounded-lg transition-colors ${
+                  className={`w-full text-left p-3 rounded-lg transition-colors cursor-pointer ${
                     selectedBuilding === building.id
                       ? 'bg-blue-100 border-2 border-blue-500'
                       : 'bg-slate-50 border-2 border-slate-200 hover:bg-slate-100'
                   }`}
                 >
                   <div className="font-medium text-slate-900">{building.name}</div>
-                  <div className="text-sm text-slate-600">{building.district}</div>
+                  <div className="text-sm text-slate-600 whitespace-break-spaces">
+                    {building.ward}
+                  </div>
                 </button>
               ))}
             </CardContent>
@@ -483,8 +330,8 @@ const Buildings = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <div className="text-sm text-slate-600">Địa Chỉ</div>
-                      <div className="font-medium text-slate-900 flex items-center gap-2 mt-1">
-                        <MapPin className="h-4 w-4 text-slate-400" />
+                      <div className="font-medium text-slate-900 flex items-center gap-2 mt-1 whitespace-break-spaces">
+                        <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
                         {building.address}
                       </div>
                     </div>
@@ -510,7 +357,9 @@ const Buildings = () => {
                   {building.description && (
                     <div className="pt-4 border-t">
                       <div className="text-sm text-slate-600 mb-2">Mô Tả</div>
-                      <div className="text-slate-900">{building.description}</div>
+                      <div className="text-slate-900 whitespace-break-spaces">
+                        {building.description}
+                      </div>
                     </div>
                   )}
                 </CardContent>

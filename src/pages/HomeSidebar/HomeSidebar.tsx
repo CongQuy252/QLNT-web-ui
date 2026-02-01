@@ -1,17 +1,20 @@
-import { ArrowRight, LogOut } from 'lucide-react';
-import { useMemo } from 'react';
+import { ArrowRight, LogOut, Menu } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { FaHome } from 'react-icons/fa';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import useAuth from '@/hooks/useAuth';
+import { useMobile } from '@/hooks/useMobile';
 import { ownerIcon, ownerListFunctions, tenantListFunctions } from '@/pages/home/HomeContants';
 
 const HomeSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
+  const isMobile = useMobile();
   const { user, logout } = useAuth();
+
+  const [open, setOpen] = useState(false);
 
   const isOwner = user.role === 'owner';
   const navigationItems = isOwner ? ownerListFunctions : tenantListFunctions;
@@ -33,7 +36,14 @@ const HomeSidebar = () => {
   return (
     <div className="h-screen flex bg-slate-50 overflow-hidden">
       {/* SIDEBAR */}
-      <aside className="w-72 h-full bg-white border-r border-slate-200 flex flex-col">
+      <aside
+        className={`
+    fixed md:static z-50
+    w-72 h-full bg-white border-r border-slate-200 flex flex-col
+    transition-transform duration-300 ease-in-out
+    ${isMobile ? (open ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'}
+  `}
+      >
         {/* Logo */}
         <div className="p-6 border-b border-slate-200">
           <h1 className="text-xl font-bold text-slate-900">RoomHub</h1>
@@ -55,7 +65,10 @@ const HomeSidebar = () => {
               return (
                 <button
                   key={item.rowId}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => {
+                    navigate(item.path);
+                    if (isMobile) setOpen(false);
+                  }}
                   className={`cursor-pointer w-full flex items-center gap-3 p-3 rounded-lg text-left hover:bg-slate-300 transition ${isActive ? 'bg-slate-300' : 'hover:bg-slate-300'}`}
                 >
                   <div
@@ -86,8 +99,17 @@ const HomeSidebar = () => {
         </div>
       </aside>
 
+      {isMobile && open && (
+        <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setOpen(false)} />
+      )}
+
       {/* CONTENT */}
       <main className="flex-1 h-full p-6 overflow-y-auto overflow-x-hidden">
+        {isMobile && (
+          <Button variant="ghost" size="icon" className="mb-4" onClick={() => setOpen(true)}>
+            <Menu className="w-6 h-6" />
+          </Button>
+        )}
         <Outlet />
       </main>
     </div>

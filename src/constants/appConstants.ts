@@ -15,4 +15,15 @@ export enum AppConst {
   userid = 'UserId',
 }
 
-export enum QueriesKey {}
+export enum Breadcrumb {
+  home = 'Home',
+  buildings = 'Quản Lý Tòa Nhà',
+  rooms = 'Quản Lý Phòng',
+  tenants = 'Quản Lý Người Thuê',
+  payments = 'Quản Lý Thanh Toán',
+}
+
+export enum QueriesKey {
+  provinces = 'provinces',
+  wards = 'wards',
+}

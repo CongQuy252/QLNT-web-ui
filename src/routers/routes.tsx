@@ -41,3 +41,18 @@ export const routes: RouteObject[] = [
     element: <Navigate to="/" replace />,
   },
 ];
+
+export const breadcrumbRoutes = [
+  {
+    path: '/',
+    breadcrumb: 'Trang chủ',
+  },
+  {
+    path: `/${Path.buildings}`,
+    breadcrumb: 'Quản Lý Tòa Nhà',
+  },
+  {
+    path: `/${Path.rooms}`,
+    breadcrumb: 'Quản Lý Phòng',
+  },
+];

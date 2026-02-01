@@ -1,5 +1,14 @@
+import React from 'react';
+
+import Breadcrumbs from '@/components/ui/breadcrumb/Breadcrumb';
+
 const Rooms = () => {
-  return <div>Rooms Page</div>;
+  return (
+    <React.Fragment>
+      <Breadcrumbs />
+      <div>This is Room Page</div>
+    </React.Fragment>
+  );
 };
 
 export default Rooms;

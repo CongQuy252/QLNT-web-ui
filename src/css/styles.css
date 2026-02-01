@@ -162,3 +162,14 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+.scrollbar {
+  overflow: auto;
+  padding-right: 3px;
+  scrollbar-width: thin;
+  scrollbar-color: #27282a transparent;
+}
+
+.scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
