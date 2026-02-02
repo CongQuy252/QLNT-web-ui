@@ -1,3 +1,5 @@
+import type { RoomStatus } from '@/constants/appConstants';
+
 export interface Room {
   id: string;
   number: string;
@@ -5,7 +7,7 @@ export interface Room {
   floor: number;
   area: number;
   price: number;
-  status: 'available' | 'occupied' | 'maintenance';
+  status: RoomStatus;
   currentTenant?: string; // tenant id
   description?: string;
 }
