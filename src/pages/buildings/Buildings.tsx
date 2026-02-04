@@ -1,7 +1,6 @@
 import { Building2, Home, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
-import Breadcrumbs from '@/components/ui/breadcrumb/Breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RoomStatus } from '@/constants/appConstants';
@@ -213,7 +212,6 @@ const Buildings = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <Breadcrumbs />
       <div className="flex items-center justify-between">
         <div className="mb-4">
           <h1 className="text-3xl font-bold text-slate-900">Quản lý Tòa Nhà</h1>
