@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { BsBuildingAdd } from 'react-icons/bs';
 
@@ -36,7 +36,8 @@ interface CreateOrUpdateBuildingDialogProps {
   setIsOpen: (open: boolean) => void;
   isEditMode: boolean;
   handleNewBuilding: () => void;
-  handleSave: () => void;
+  handleSave: (data: BuildingFormInput) => void;
+  building?: BuildingFormInput;
 }
 
 const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> = ({
@@ -45,6 +46,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
   isEditMode,
   handleNewBuilding,
   handleSave,
+  building,
 }) => {
   const cities = useProvinceOptions();
   const [search, setSearch] = useState('');
@@ -67,18 +69,35 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
       totalFloors: undefined,
       totalRooms: undefined,
       yearBuilt: undefined,
-      phone: '',
-      email: '',
       description: '',
     },
   });
 
+  useEffect(() => {
+    if (isOpen && isEditMode && building) {
+      reset({
+        name: building.name,
+        address: building.address,
+        city: building.city,
+        ward: building.ward,
+        totalFloors: building.totalFloors,
+        totalRooms: building.totalRooms,
+        yearBuilt: building.yearBuilt,
+        description: building.description ?? '',
+      });
+    }
+  }, [isOpen, isEditMode, building, reset]);
+
   const onSubmit: SubmitHandler<BuildingFormInput> = (data) => {
     const parsed = buildingSchema.parse(data);
 
-    console.log(parsed.totalFloors);
+    if (isEditMode) {
+      handleSave(parsed); // update
+    } else {
+      handleNewBuilding(); // create
+    }
 
-    handleSave();
+    setIsOpen(false);
   };
 
   return (
@@ -105,14 +124,14 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="name" className="text-sm font-medium text-slate-700">
+            <Label htmlFor="name" className="text-sm font-medium text-slate-700" isRequired>
               Tên Tòa Nhà
             </Label>
             <Input {...register('name')} />
             {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
           </div>
           <div>
-            <Label htmlFor="address" className="text-sm font-medium text-slate-700">
+            <Label htmlFor="address" className="text-sm font-medium text-slate-700" isRequired>
               Địa Chỉ
             </Label>
             <Input {...register('address')} placeholder="Địa chỉ tòa nhà" className="mt-1" />
@@ -121,7 +140,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="city" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="city" className="text-sm font-medium text-slate-700" isRequired>
                 Thành Phố
               </Label>
               <Select
@@ -148,8 +167,8 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
               {errors.city && <p className="text-xs text-red-500">{errors.city.message}</p>}
             </div>
             <div>
-              <Label htmlFor="district" className="text-sm font-medium text-slate-700">
-                Quận/Huyện
+              <Label htmlFor="district" className="text-sm font-medium text-slate-700" isRequired>
+                Xã/Phường
               </Label>
               <Select
                 value={watch('ward')}
@@ -200,7 +219,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="floors" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="floors" className="text-sm font-medium text-slate-700" isRequired>
                 Số Tầng
               </Label>
               <Input type="number" {...register('totalFloors')} placeholder="5" className="mt-1" />
@@ -209,7 +228,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
               )}
             </div>
             <div>
-              <Label htmlFor="rooms" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="rooms" className="text-sm font-medium text-slate-700" isRequired>
                 Số Phòng
               </Label>
               <Input type="number" {...register('totalRooms')} placeholder="20" className="mt-1" />
@@ -218,32 +237,13 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
               )}
             </div>
             <div>
-              <Label htmlFor="year" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="year" className="text-sm font-medium text-slate-700" isRequired>
                 Năm Xây
               </Label>
-              <Input type="number" {...register('yearBuilt')} placeholder="2020" className="mt-1" />
+              <Input type="number" {...register('yearBuilt')} placeholder="2025" className="mt-1" />
               {errors.yearBuilt && (
                 <p className="text-xs text-red-500">{errors.yearBuilt.message}</p>
               )}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="phone" className="text-sm font-medium text-slate-700">
-                Số Điện Thoại
-              </Label>
-              <Input {...register('phone')} type="tel" placeholder="0901234567" className="mt-1" />
-            </div>
-            <div>
-              <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-                Email
-              </Label>
-              <Input
-                {...register('email')}
-                type="email"
-                placeholder="email@example.com"
-                className="mt-1"
-              />
             </div>
           </div>
           <div>

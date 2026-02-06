@@ -27,3 +27,9 @@ export enum QueriesKey {
   provinces = 'provinces',
   wards = 'wards',
 }
+
+export enum RoomStatus {
+  available = '1', // available
+  occupied = '2', // occupied
+  maintenance = '3', // maintenance
+}

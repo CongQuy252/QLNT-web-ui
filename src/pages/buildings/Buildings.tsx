@@ -1,10 +1,11 @@
-import { Building2, Home, Mail, MapPin, Pencil, Phone, Trash2 } from 'lucide-react';
+import { Building2, Home, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
-import Breadcrumbs from '@/components/ui/breadcrumb/Breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { RoomStatus } from '@/constants/appConstants';
 import CreateOrUpdateBuildingDialog from '@/pages/dialogs/createOrUpdateBuildingDialog/CreateOrUpdateBuildingDialog';
+import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
 import type { Building } from '@/types/building';
 import type { Room } from '@/types/room';
 
@@ -21,8 +22,6 @@ const Buildings = () => {
       totalRooms: 20,
       yearBuilt: 2015,
       owner: 'owner1',
-      phone: '0901234567',
-      email: 'tonhaA@example.com',
       description: 'Tòa nhà cho thuê phòng trọ hiện đại với đầy đủ\n tiện ích',
       utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Giặt tự động'],
     },
@@ -36,8 +35,6 @@ const Buildings = () => {
       totalRooms: 12,
       yearBuilt: 2018,
       owner: 'owner1',
-      phone: '0901234567',
-      email: 'tonhaB@example.com',
       description: 'Tòa nhà gần trường đại học, phù hợp sinh viên',
       utilities: ['Điều hòa', 'WiFi miễn phí', 'Bảo vệ 24/7'],
     },
@@ -51,8 +48,6 @@ const Buildings = () => {
       totalRooms: 16,
       yearBuilt: 2020,
       owner: 'owner1',
-      phone: '0901234567',
-      email: 'tonhaC@example.com',
       description: 'Tòa nhà mới xây, có thang máy và khu vui chơi chung',
       utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Gym'],
     },
@@ -66,8 +61,6 @@ const Buildings = () => {
       totalRooms: 16,
       yearBuilt: 2020,
       owner: 'owner1',
-      phone: '0901234567',
-      email: 'tonhaD@example.com',
       description: 'Tòa nhà mới xây, có thang máy và khu vui chơi chung',
       utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Gym'],
     },
@@ -81,8 +74,6 @@ const Buildings = () => {
       totalRooms: 16,
       yearBuilt: 2020,
       owner: 'owner1',
-      phone: '0901234567',
-      email: 'tonhaE@example.com',
       description: 'Tòa nhà mới xây, có thang máy và khu vui chơi chung',
       utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Gym'],
     },
@@ -96,8 +87,6 @@ const Buildings = () => {
       totalRooms: 16,
       yearBuilt: 2020,
       owner: 'owner1',
-      phone: '0901234567',
-      email: 'tonhaF@example.com',
       description: 'Tòa nhà mới xây, có thang máy và khu vui chơi chung',
       utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Gym'],
     },
@@ -111,8 +100,6 @@ const Buildings = () => {
       totalRooms: 16,
       yearBuilt: 2020,
       owner: 'owner1',
-      phone: '0901234567',
-      email: 'tonhaG@example.com',
       description: 'Tòa nhà mới xây, có thang máy và khu vui chơi chung',
       utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Gym'],
     },
@@ -126,7 +113,7 @@ const Buildings = () => {
       floor: 1,
       area: 25,
       price: 3000000,
-      status: 'occupied',
+      status: RoomStatus.occupied,
       currentTenant: 'tenant1',
       description: 'Phòng đơn, có cửa sổ',
     },
@@ -137,7 +124,7 @@ const Buildings = () => {
       floor: 1,
       area: 30,
       price: 3500000,
-      status: 'occupied',
+      status: RoomStatus.occupied,
       currentTenant: 'tenant2',
       description: 'Phòng đôi, có toilet riêng',
     },
@@ -148,7 +135,7 @@ const Buildings = () => {
       floor: 1,
       area: 25,
       price: 3000000,
-      status: 'available',
+      status: RoomStatus.available,
       description: 'Phòng đơn',
     },
     {
@@ -158,7 +145,7 @@ const Buildings = () => {
       floor: 2,
       area: 35,
       price: 4000000,
-      status: 'available',
+      status: RoomStatus.available,
       description: 'Phòng lớn, ban công',
     },
     {
@@ -168,7 +155,7 @@ const Buildings = () => {
       floor: 3,
       area: 28,
       price: 3200000,
-      status: 'maintenance',
+      status: RoomStatus.maintenance,
       description: 'Đang sửa chữa',
     },
   ];
@@ -176,56 +163,32 @@ const Buildings = () => {
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    ward: '',
-    city: '',
-    totalFloors: '',
-    totalRooms: '',
-    yearBuilt: '',
-    phone: '',
-    email: '',
-    description: '',
-  });
+  const [editingBuilding, setEditingBuilding] = useState<Building>();
 
   const handleNewBuilding = () => {
     setIsEditMode(false);
-    setFormData({
-      name: '',
-      address: '',
-      ward: '',
-      city: '',
-      totalFloors: '',
-      totalRooms: '',
-      yearBuilt: '',
-      phone: '',
-      email: '',
-      description: '',
-    });
+    setEditingBuilding(undefined);
     setIsOpen(true);
   };
 
   const handleEditBuilding = (building: Building) => {
     setIsEditMode(true);
-    setFormData({
-      name: building.name,
-      address: building.address,
-      ward: building.ward,
-      city: building.city,
-      totalFloors: building.totalFloors.toString(),
-      totalRooms: building.totalRooms.toString(),
-      yearBuilt: building.yearBuilt.toString(),
-      phone: building.phone,
-      email: building.email,
-      description: building.description || '',
-    });
+    setEditingBuilding(building);
+    setSelectedBuilding(building.id);
     setIsOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async (data: BuildingFormInput) => {
+    if (isEditMode && editingBuilding) {
+      console.log('Update building', {
+        id: editingBuilding.id,
+        ...data,
+      });
+    } else {
+      console.log('Create new building', data);
+    }
+
     setIsOpen(false);
-    console.log('Saved building:', formData);
   };
 
   const building = selectedBuilding ? buildings.find((b) => b.id === selectedBuilding) : null;
@@ -236,13 +199,19 @@ const Buildings = () => {
   };
 
   const buildingRooms = building ? getRoomsByBuilding(building.id) : [];
-  const occupiedRooms = buildingRooms.filter((r) => r.status === 'occupied').length;
-  const availableRooms = buildingRooms.filter((r) => r.status === 'available').length;
-  const maintenanceRooms = buildingRooms.filter((r) => r.status === 'maintenance').length;
+  const occupiedRooms = buildingRooms.filter((r) => r.status === RoomStatus.occupied).length;
+  const availableRooms = buildingRooms.filter((r) => r.status === RoomStatus.available).length;
+  const maintenanceRooms = buildingRooms.filter((r) => r.status === RoomStatus.maintenance).length;
+
+  const handleBuildingDelete = () => {
+    if (building) {
+      console.log('Delete building', building.id);
+      setSelectedBuilding(null);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col">
-      <Breadcrumbs />
       <div className="flex items-center justify-between">
         <div className="mb-4">
           <h1 className="text-3xl font-bold text-slate-900">Quản lý Tòa Nhà</h1>
@@ -254,6 +223,7 @@ const Buildings = () => {
           isEditMode={isEditMode}
           handleNewBuilding={handleNewBuilding}
           handleSave={handleSave}
+          building={editingBuilding}
         />
       </div>
 
@@ -316,6 +286,7 @@ const Buildings = () => {
                         size="sm"
                         className="gap-1 text-red-600 hover:text-red-700 bg-transparent"
                         icon={<Trash2 className="h-4 w-4" />}
+                        onClick={handleBuildingDelete}
                       />
                     </div>
                   </div>
@@ -338,20 +309,6 @@ const Buildings = () => {
                     <div>
                       <div className="text-sm text-slate-600">Năm Xây Dựng</div>
                       <div className="font-medium text-slate-900">{building.yearBuilt}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-slate-600">Số Điện Thoại</div>
-                      <div className="font-medium text-slate-900 flex items-center gap-2 mt-1">
-                        <Phone className="h-4 w-4 text-slate-400" />
-                        {building.phone}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-slate-600">Email</div>
-                      <div className="font-medium text-slate-900 flex items-center gap-2 mt-1">
-                        <Mail className="h-4 w-4 text-slate-400" />
-                        {building.email}
-                      </div>
                     </div>
                   </div>
                   {building.description && (

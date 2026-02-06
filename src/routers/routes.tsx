@@ -6,6 +6,7 @@ import HomeSidebar from '@/pages/HomeSidebar/HomeSidebar';
 import Buildings from '@/pages/buildings/Buildings';
 import Home from '@/pages/home/Home';
 import Rooms from '@/pages/rooms/Rooms';
+import Tenant from '@/pages/tenant/Tenant';
 
 import PrivateRoute from './PrivateRoute';
 
@@ -27,6 +28,10 @@ export const routes: RouteObject[] = [
           {
             path: `/${Path.rooms}`,
             element: <Rooms />,
+          },
+          {
+            path: `/${Path.tenants}`,
+            element: <Tenant />,
           },
         ],
       },
@@ -54,5 +59,9 @@ export const breadcrumbRoutes = [
   {
     path: `/${Path.rooms}`,
     breadcrumb: 'Quản Lý Phòng',
+  },
+  {
+    path: `/${Path.tenants}`,
+    breadcrumb: 'Quản Lý Người Thuê',
   },
 ];

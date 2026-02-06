@@ -8,8 +8,6 @@ export interface Building {
   totalRooms: number;
   yearBuilt: number;
   owner: string;
-  phone: string;
-  email: string;
   description?: string;
   utilities?: string[];
 }
