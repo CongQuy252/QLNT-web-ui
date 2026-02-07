@@ -2,6 +2,7 @@ import { Edit, Home, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 import PlusRoom from '@/assets/Icon/PlusRoom';
+import ImageListDialog from '@/components/ui/ImageView/ImageListDialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -12,107 +13,32 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { RoomStatus } from '@/constants/appConstants';
+import { rooms } from '@/pages/rooms/data/roomMockData';
+import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
+import { formatCurrency } from '@/utils/utils';
 
 export default function Rooms() {
-  const rooms = [
-    {
-      id: 'room1',
-      number: '101',
-      building: 'A',
-      floor: 1,
-      area: 25,
-      price: 3000000,
-      status: 'occupied',
-      currentTenant: 'tenant1',
-      description: 'Phòng đơn, có cửa sổ',
-    },
-    {
-      id: 'room2',
-      number: '102',
-      building: 'A',
-      floor: 1,
-      area: 30,
-      price: 3500000,
-      status: 'occupied',
-      currentTenant: 'tenant2',
-      description: 'Phòng đôi, có toilet riêng',
-    },
-    {
-      id: 'room3',
-      number: '103',
-      building: 'A',
-      floor: 1,
-      area: 25,
-      price: 3000000,
-      status: 'available',
-      description: 'Phòng đơn',
-    },
-    {
-      id: 'room4',
-      number: '201',
-      building: 'A',
-      floor: 2,
-      area: 35,
-      price: 4000000,
-      status: 'available',
-      description: 'Phòng lớn, ban công',
-    },
-    {
-      id: 'room5',
-      number: '301',
-      building: 'B',
-      floor: 3,
-      area: 28,
-      price: 3200000,
-      status: 'maintenance',
-      description: 'Đang sửa chữa',
-    },
-  ];
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<
-    'all' | 'available' | 'occupied' | 'maintenance'
-  >('all');
+  const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
+  const [isOpenViewImageDialog, setIsOpenViewImageDialog] = useState<boolean>(false);
+  const [list, setList] = useState<string[]>([]);
 
   const filteredRooms = rooms.filter((room) => {
     const matchesSearch =
       room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       room.building.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || room.status === filterStatus;
+    const matchesStatus = filterStatus === RoomStatus.all || room.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'bg-green-100 text-green-800';
-      case 'occupied':
-        return 'bg-blue-100 text-blue-800';
-      case 'maintenance':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const handleOpenDialogViewImage = (listImage: string[]) => {
+    setIsOpenViewImageDialog(true);
+    setList(listImage);
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'Trống';
-      case 'occupied':
-        return 'Đã cho thuê';
-      case 'maintenance':
-        return 'Bảo trì';
-      default:
-        return status;
-    }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      minimumFractionDigits: 0,
-    }).format(amount);
+  const handleCloseDialogViewImage = () => {
+    setIsOpenViewImageDialog(false);
   };
 
   return (
@@ -151,23 +77,22 @@ export default function Rooms() {
           className="flex-1"
         />
         <div className="flex gap-2">
-          {(['all', 'available', 'occupied', 'maintenance'] as const).map((status) => (
-            <Button
-              key={status}
-              variant={filterStatus === status ? 'default' : 'outline'}
-              onClick={() => setFilterStatus(status)}
-              className={
-                filterStatus === status
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-700 border-slate-300'
-              }
-            >
-              {status === 'all' && 'Tất cả'}
-              {status === 'available' && 'Trống'}
-              {status === 'occupied' && 'Đã cho thuê'}
-              {status === 'maintenance' && 'Bảo trì'}
-            </Button>
-          ))}
+          {[RoomStatus.all, RoomStatus.available, RoomStatus.maintenance, RoomStatus.occupied].map(
+            (status) => (
+              <Button
+                key={status}
+                variant={filterStatus === status ? 'default' : 'outline'}
+                onClick={() => setFilterStatus(status)}
+                className={
+                  filterStatus === status
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-700 border-slate-300'
+                }
+              >
+                {getStatusLabel(status)}
+              </Button>
+            ),
+          )}
         </div>
       </div>
 
@@ -186,7 +111,12 @@ export default function Rooms() {
                       Tòa {room.building} - Tầng {room.floor}
                     </p>
                   </div>
-                  <div className="p-2 bg-slate-100 rounded-lg">
+                  <div
+                    className="p-2 bg-slate-100 rounded-lg cursor-pointer"
+                    onClick={() => {
+                      handleOpenDialogViewImage(room.images);
+                    }}
+                  >
                     <Home className="w-5 h-5 text-slate-600" />
                   </div>
                 </div>
@@ -206,9 +136,8 @@ export default function Rooms() {
 
                 <div>
                   <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(
-                      room.status,
-                    )}`}
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                      ${getStatusBadge(room.status)}`}
                   >
                     {getStatusLabel(room.status)}
                   </span>
@@ -259,6 +188,14 @@ export default function Rooms() {
           );
         })}
       </div>
+      {isOpenViewImageDialog && (
+        <ImageListDialog
+          open={isOpenViewImageDialog}
+          onClose={handleCloseDialogViewImage}
+          images={list}
+          title="Danh sách hình ảnh phòng"
+        />
+      )}
 
       {filteredRooms.length === 0 && (
         <Card className="p-12 bg-white text-center">

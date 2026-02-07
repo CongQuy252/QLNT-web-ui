@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { RoomStatus } from '@/constants/appConstants';
+import { rooms } from '@/pages/rooms/data/roomMockData';
 import type { Room } from '@/types/room';
 
 const Tenant = () => {
@@ -126,17 +126,7 @@ const Tenant = () => {
             </thead>
             <tbody>
               {filteredTenants.map((tenant) => {
-                const room: Room = {
-                  id: 'room1',
-                  number: '101',
-                  building: 'A',
-                  status: RoomStatus.occupied,
-                  floor: 1,
-                  area: 20,
-                  price: 5000000,
-                  currentTenant: tenant.id,
-                  description: 'Phòng đẹp, có ban công',
-                };
+                const room: Room = rooms[1];
                 const daysLeft = daysUntilExpiry(tenant.contractEndDate);
                 const isExpiringSoon = daysLeft <= 30 && daysLeft > 0;
 
