@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RoomStatus } from '@/constants/appConstants';
 import CreateOrUpdateBuildingDialog from '@/pages/dialogs/createOrUpdateBuildingDialog/CreateOrUpdateBuildingDialog';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
+import { rooms } from '@/pages/rooms/data/roomMockData';
 import type { Building } from '@/types/building';
 import type { Room } from '@/types/room';
 
@@ -105,60 +106,7 @@ const Buildings = () => {
     },
   ];
 
-  const mockRooms: Room[] = [
-    {
-      id: 'room1',
-      number: '101',
-      building: 'A',
-      floor: 1,
-      area: 25,
-      price: 3000000,
-      status: RoomStatus.occupied,
-      currentTenant: 'tenant1',
-      description: 'Phòng đơn, có cửa sổ',
-    },
-    {
-      id: 'room2',
-      number: '102',
-      building: 'A',
-      floor: 1,
-      area: 30,
-      price: 3500000,
-      status: RoomStatus.occupied,
-      currentTenant: 'tenant2',
-      description: 'Phòng đôi, có toilet riêng',
-    },
-    {
-      id: 'room3',
-      number: '103',
-      building: 'A',
-      floor: 1,
-      area: 25,
-      price: 3000000,
-      status: RoomStatus.available,
-      description: 'Phòng đơn',
-    },
-    {
-      id: 'room4',
-      number: '201',
-      building: 'A',
-      floor: 2,
-      area: 35,
-      price: 4000000,
-      status: RoomStatus.available,
-      description: 'Phòng lớn, ban công',
-    },
-    {
-      id: 'room5',
-      number: '301',
-      building: 'B',
-      floor: 3,
-      area: 28,
-      price: 3200000,
-      status: RoomStatus.maintenance,
-      description: 'Đang sửa chữa',
-    },
-  ];
+  const mockRooms: Room[] = rooms;
 
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
