@@ -8,6 +8,7 @@ export interface Room {
   area: number;
   price: number;
   status: RoomStatus;
+  images: string[];
   currentTenant?: string; // tenant id
   description?: string;
 }
