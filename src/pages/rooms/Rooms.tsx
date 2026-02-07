@@ -39,6 +39,7 @@ export default function Rooms() {
 
   const handleCloseDialogViewImage = () => {
     setIsOpenViewImageDialog(false);
+    setList([]);
   };
 
   return (
@@ -99,8 +100,7 @@ export default function Rooms() {
       {/* Room Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRooms.map((room) => {
-          // const tenant = room.currentTenant ? getTenantByRoomId(room.id) : null;
-          const tenant = room.currentTenant ? 'abc' : null;
+          const tenant = room.currentTenant ? 'abc' : undefined;
           return (
             <Card key={room.id} className="p-6 bg-white hover:shadow-lg transition-shadow">
               <div className="space-y-4">
