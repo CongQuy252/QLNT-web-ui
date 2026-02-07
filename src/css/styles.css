@@ -153,3 +153,23 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar {
+  overflow: auto;
+  padding-right: 3px;
+  scrollbar-width: thin;
+  scrollbar-color: #27282a transparent;
+}
+
+.scrollbar::-webkit-scrollbar {
+  width: 6px;
+}

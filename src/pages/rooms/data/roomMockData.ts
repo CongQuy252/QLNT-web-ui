@@ -1,0 +1,78 @@
+import { RoomStatus } from '@/constants/appConstants';
+import type { Room } from '@/types/room';
+
+export const rooms: Room[] = [
+  {
+    id: 'room1',
+    number: '101',
+    building: 'A',
+    floor: 1,
+    area: 25,
+    price: 3010000,
+    status: RoomStatus.available,
+    images: ['a.jpg', 'b.jpg'],
+    currentTenant: 'tenant1',
+    description: 'Phòng đơn, có cửa sổ',
+  },
+  {
+    id: 'room2',
+    number: '102',
+    building: 'A',
+    floor: 1,
+    area: 30,
+    price: 3500000,
+    status: RoomStatus.occupied,
+    images: [
+      'https://i.pinimg.com/736x/a0/e4/c1/a0e4c1f86074c44b006a3ac985604d30.jpg',
+      'https://i.pinimg.com/736x/02/a6/c3/02a6c34aa1bd7ed6837bb75f37e61dff.jpg',
+      'https://i.pinimg.com/736x/8a/ef/e5/8aefe52d46163b04fcd593350459327a.jpg',
+    ],
+    currentTenant: 'tenant2',
+    description: 'Phòng đôi, có toilet riêng',
+  },
+  {
+    id: 'room3',
+    number: '103',
+    building: 'A',
+    floor: 1,
+    area: 25,
+    price: 3000000,
+    status: RoomStatus.maintenance,
+    images: [
+      'https://i.pinimg.com/736x/a0/e4/c1/a0e4c1f86074c44b006a3ac985604d30.jpg',
+      'https://i.pinimg.com/736x/02/a6/c3/02a6c34aa1bd7ed6837bb75f37e61dff.jpg',
+      'https://i.pinimg.com/736x/8a/ef/e5/8aefe52d46163b04fcd593350459327a.jpg',
+    ],
+    description: 'Phòng đơn',
+  },
+  {
+    id: 'room4',
+    number: '201',
+    building: 'A',
+    floor: 2,
+    area: 35,
+    price: 4000000,
+    status: RoomStatus.maintenance,
+    images: [
+      'https://i.pinimg.com/736x/a0/e4/c1/a0e4c1f86074c44b006a3ac985604d30.jpg',
+      'https://i.pinimg.com/736x/02/a6/c3/02a6c34aa1bd7ed6837bb75f37e61dff.jpg',
+      'https://i.pinimg.com/736x/8a/ef/e5/8aefe52d46163b04fcd593350459327a.jpg',
+    ],
+    description: 'Phòng lớn, ban công',
+  },
+  {
+    id: 'room5',
+    number: '301',
+    building: 'B',
+    floor: 3,
+    area: 28,
+    price: 3200000,
+    status: RoomStatus.occupied,
+    images: [
+      'https://i.pinimg.com/736x/a0/e4/c1/a0e4c1f86074c44b006a3ac985604d30.jpg',
+      'https://i.pinimg.com/736x/02/a6/c3/02a6c34aa1bd7ed6837bb75f37e61dff.jpg',
+      'https://i.pinimg.com/736x/8a/ef/e5/8aefe52d46163b04fcd593350459327a.jpg',
+    ],
+    description: 'Đang sửa chữa',
+  },
+];

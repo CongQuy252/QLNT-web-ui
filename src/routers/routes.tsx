@@ -1,7 +1,12 @@
 import { lazy } from 'react';
 import { Navigate, type RouteObject } from 'react-router-dom';
 
+import { Path } from '@/constants/appConstants';
+import HomeSidebar from '@/pages/HomeSidebar/HomeSidebar';
+import Buildings from '@/pages/buildings/Buildings';
 import Home from '@/pages/home/Home';
+import Rooms from '@/pages/rooms/Rooms';
+import Tenant from '@/pages/tenant/Tenant';
 
 import PrivateRoute from './PrivateRoute';
 
@@ -13,28 +18,23 @@ export const routes: RouteObject[] = [
     element: <PrivateRoute />,
     children: [
       { index: true, element: <Home /> },
-      // {
-      //   path: '/user',
-      //   element: <Chat000 />,
-      //   children: [
-      //     {
-      //       index: true,
-      //       element: <Chat001 />,
-      //     },
-      //     {
-      //       path: Path.chat002,
-      //       element: <Chat002 />,
-      //     },
-      //     {
-      //       path: Path.chat003,
-      //       element: <Chat003 />,
-      //     },
-      //     {
-      //       path: Path.userId,
-      //       element: <Chat003 />,
-      //     },
-      //   ],
-      // },
+      {
+        element: <HomeSidebar />,
+        children: [
+          {
+            path: `/${Path.buildings}`,
+            element: <Buildings />,
+          },
+          {
+            path: `/${Path.rooms}`,
+            element: <Rooms />,
+          },
+          {
+            path: `/${Path.tenants}`,
+            element: <Tenant />,
+          },
+        ],
+      },
     ],
   },
   {
@@ -44,5 +44,24 @@ export const routes: RouteObject[] = [
   {
     path: '*',
     element: <Navigate to="/" replace />,
+  },
+];
+
+export const breadcrumbRoutes = [
+  {
+    path: '/',
+    breadcrumb: 'Trang chủ',
+  },
+  {
+    path: `/${Path.buildings}`,
+    breadcrumb: 'Quản Lý Tòa Nhà',
+  },
+  {
+    path: `/${Path.rooms}`,
+    breadcrumb: 'Quản Lý Phòng',
+  },
+  {
+    path: `/${Path.tenants}`,
+    breadcrumb: 'Quản Lý Người Thuê',
   },
 ];

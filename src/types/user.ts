@@ -5,6 +5,9 @@ export interface User {
   username: string;
   avatarUrl: string;
   fullName: string;
+  role: 'owner' | 'tenant';
+  phone?: string;
+  avatar?: string;
   createdAt?: string;
   createdBy?: string;
   updatedAt?: string;
