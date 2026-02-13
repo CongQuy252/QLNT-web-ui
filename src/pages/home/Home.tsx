@@ -24,7 +24,7 @@ const Home = () => {
   const navigator = useNavigate();
   const isMobile = useMobile();
 
-  const userId = localStorage.getItem('userId') ?? undefined;
+  const userId = localStorage.getItem('UserId') ?? undefined;
 
   const { data: user, isLoading, isError } = useUserQuery(userId);
 
@@ -33,7 +33,8 @@ const Home = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('userId');
+    localStorage.removeItem('UserId');
+    localStorage.removeItem('token');
     navigator(Path.login);
   };
 
