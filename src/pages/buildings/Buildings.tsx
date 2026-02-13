@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RoomStatus } from '@/constants/appConstants';
+import { buildings } from '@/pages/buildings/mockData/building';
 import CreateOrUpdateBuildingDialog from '@/pages/dialogs/createOrUpdateBuildingDialog/CreateOrUpdateBuildingDialog';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
 import { rooms } from '@/pages/rooms/data/roomMockData';
@@ -11,103 +12,6 @@ import type { Building } from '@/types/building';
 import type { Room } from '@/types/room';
 
 const Buildings = () => {
-  const buildings: Building[] = [
-    {
-      id: 'building1',
-      name: 'Tòa nhà A',
-      address:
-        '123 Đường Nguyễn Huệ, Khu phố 3, phường bình hưng hoà, quận bình tân, thành phố hồ chí minh',
-      ward: 'Quận 1, phường Bình Hưng hoà  b quận bình tân\nsdfs\nsdfsdf',
-      city: 'Thành phố Hồ Chí Minh',
-      totalFloors: 5,
-      totalRooms: 20,
-      yearBuilt: 2015,
-      owner: 'owner1',
-      description: 'Tòa nhà cho thuê phòng trọ hiện đại với đầy đủ\n tiện ích',
-      utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Giặt tự động'],
-    },
-    {
-      id: 'building2',
-      name: 'Tòa nhà B',
-      address: '456 Đường Trần Hưng Đạo',
-      ward: 'Quận 5',
-      city: 'Thành phố Hồ Chí Minh',
-      totalFloors: 3,
-      totalRooms: 12,
-      yearBuilt: 2018,
-      owner: 'owner1',
-      description: 'Tòa nhà gần trường đại học, phù hợp sinh viên',
-      utilities: ['Điều hòa', 'WiFi miễn phí', 'Bảo vệ 24/7'],
-    },
-    {
-      id: 'building3',
-      name: 'Tòa nhà C',
-      address: '789 Đường Pasteur',
-      ward: 'Quận 3',
-      city: 'Thành phố Hồ Chí Minh',
-      totalFloors: 4,
-      totalRooms: 16,
-      yearBuilt: 2020,
-      owner: 'owner1',
-      description: 'Tòa nhà mới xây, có thang máy và khu vui chơi chung',
-      utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Gym'],
-    },
-    {
-      id: 'building4',
-      name: 'Tòa nhà D',
-      address: '789 Đường Pasteur',
-      ward: 'Quận 3',
-      city: 'Thành phố Hồ Chí Minh',
-      totalFloors: 4,
-      totalRooms: 16,
-      yearBuilt: 2020,
-      owner: 'owner1',
-      description: 'Tòa nhà mới xây, có thang máy và khu vui chơi chung',
-      utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Gym'],
-    },
-    {
-      id: 'building5',
-      name: 'Tòa nhà E',
-      address: '101 Đường Lê Lợi',
-      ward: 'Quận 2',
-      city: 'Thành phố Hồ Chí Minh',
-      totalFloors: 4,
-      totalRooms: 16,
-      yearBuilt: 2020,
-      owner: 'owner1',
-      description: 'Tòa nhà mới xây, có thang máy và khu vui chơi chung',
-      utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Gym'],
-    },
-    {
-      id: 'building6',
-      name: 'Tòa nhà F',
-      address: '101 Đường Lê Lợi',
-      ward: 'Quận 2',
-      city: 'Thành phố Hồ Chí Minh',
-      totalFloors: 4,
-      totalRooms: 16,
-      yearBuilt: 2020,
-      owner: 'owner1',
-      description: 'Tòa nhà mới xây, có thang máy và khu vui chơi chung',
-      utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Gym'],
-    },
-    {
-      id: 'building7',
-      name: 'Tòa nhà G',
-      address: '101 Đường Lê Lợi',
-      ward: 'Quận 2',
-      city: 'Thành phố Hồ Chí Minh',
-      totalFloors: 4,
-      totalRooms: 16,
-      yearBuilt: 2020,
-      owner: 'owner1',
-      description: 'Tòa nhà mới xây, có thang máy và khu vui chơi chung',
-      utilities: ['Điều hòa', 'Nước nóng', 'WiFi miễn phí', 'Gym'],
-    },
-  ];
-
-  const mockRooms: Room[] = rooms;
-
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -143,7 +47,7 @@ const Buildings = () => {
 
   const getRoomsByBuilding = (buildingId: string): Room[] => {
     const buildingName = buildings.find((b) => b.id === buildingId)?.name;
-    return mockRooms.filter((r) => r.building === buildingName?.charAt(buildingName.length - 1));
+    return rooms.filter((r) => r.building === buildingName?.charAt(buildingName.length - 1));
   };
 
   const buildingRooms = building ? getRoomsByBuilding(building.id) : [];

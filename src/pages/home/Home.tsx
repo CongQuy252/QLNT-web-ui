@@ -1,9 +1,10 @@
 import { ArrowRight, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import useAuth from '@/hooks/useAuth';
+import { Path } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
 import {
   ownerIcon,
@@ -22,22 +23,31 @@ export interface Infomation {
 const Home = () => {
   const navigator = useNavigate();
   const isMobile = useMobile();
-  const { user, logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
-    navigator('/login');
-  };
+  const userId = localStorage.getItem('userId') ?? undefined;
+
+  const { data: user, isLoading, isError } = useUserQuery(userId);
 
   const handleNavigate = (path: string) => {
     navigator(path);
   };
 
-  if (!user) {
-    return null;
+  const handleLogout = () => {
+    localStorage.removeItem('userId');
+    navigator(Path.login);
+  };
+
+  // Loading state
+  if (isLoading) {
+    return <div className="p-10 text-center">Loading...</div>;
   }
 
-  const isOwner = user.role === 'owner';
+  // Error state
+  if (isError || !user) {
+    return <div className="p-10 text-center text-red-500">Không tải được thông tin user</div>;
+  }
+
+  const isOwner = user.role === 1;
 
   const navigationItems = isOwner ? ownerListFunctions : tenantListFunctions;
 

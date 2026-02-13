@@ -10,11 +10,11 @@ export function useLoginMutation() {
 
   return useMutation({
     mutationFn: async (data: LoginRequest) => {
-      const response = await http.post<LoginResponse>('/login', data);
+      const response = await http.post<LoginResponse>('/auth/login', data);
       return response.data;
     },
     onSuccess: (res) => {
-      localStorage.setItem(AppConst.token, res.access_token);
+      localStorage.setItem(AppConst.token, res.token);
       localStorage.setItem(AppConst.userid, res.user.id);
     },
     onError: handleHttpError,

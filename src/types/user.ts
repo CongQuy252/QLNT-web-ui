@@ -1,13 +1,12 @@
 export interface User {
   id: string;
   email: string;
-  password: string;
-  username: string;
   avatarUrl: string;
-  fullName: string;
-  role: 'owner' | 'tenant';
+  name: string;
+  role: number;
   phone?: string;
-  avatar?: string;
+  CCCD?: string;
+  CCCDImage: string[];
   createdAt?: string;
   createdBy?: string;
   updatedAt?: string;
@@ -20,12 +19,40 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  access_token: string;
-  user: User;
+  token: string;
+  user: GetUserResponse;
 }
 
 export interface GetUserResponse {
-  username: string;
   id: string;
   email: string;
+  name: string;
+  role: number;
+  phone: string;
+  cccdImages: {
+    front: string;
+    back: string;
+  };
+}
+
+export interface GetUserByIdResponse {
+  message: string;
+  data: {
+    cccdImages: {
+      front: {
+        url: string;
+        publicId: string;
+      };
+      back: {
+        url: string;
+        publicId: string;
+      };
+    };
+    id: string;
+    email: string;
+    name: string;
+    role: number;
+    phone: string;
+    cccd?: string;
+  };
 }

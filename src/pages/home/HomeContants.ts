@@ -54,7 +54,7 @@ export const tenantListFunctions: NavigationItem[] = [
     title: 'Thông Tin Phòng',
     description: 'Xem thông tin phòng của bạn',
     icon: Home,
-    path: `/${Path.buildings}/${Path.houseId}/${Path.rooms}/${Path.roomId}`,
+    path: `/${[Path.rooms, Path.roomId, Path.tenants, Path.userId].join('/')}`,
     color: 'from-blue-500 to-blue-600',
   },
   {

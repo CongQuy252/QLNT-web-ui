@@ -26,6 +26,7 @@ export enum Breadcrumb {
 export enum QueriesKey {
   provinces = 'provinces',
   wards = 'wards',
+  user = 'user',
 }
 
 export enum RoomStatus {
@@ -33,4 +34,9 @@ export enum RoomStatus {
   available = '1', // available
   occupied = '2', // occupied
   maintenance = '3', // maintenance
+}
+
+export enum Mode {
+  owner = 'owner',
+  tenant = 'tenant',
 }

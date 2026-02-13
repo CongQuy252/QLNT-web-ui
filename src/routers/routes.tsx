@@ -1,10 +1,11 @@
 import { lazy } from 'react';
 import { Navigate, type RouteObject } from 'react-router-dom';
 
-import { Path } from '@/constants/appConstants';
+import { Mode, Path } from '@/constants/appConstants';
 import HomeSidebar from '@/pages/HomeSidebar/HomeSidebar';
 import Buildings from '@/pages/buildings/Buildings';
 import Home from '@/pages/home/Home';
+import RoomDetails from '@/pages/roomDetails/RoomDetails';
 import Rooms from '@/pages/rooms/Rooms';
 import Tenant from '@/pages/tenant/Tenant';
 
@@ -32,6 +33,18 @@ export const routes: RouteObject[] = [
           {
             path: `/${Path.tenants}`,
             element: <Tenant />,
+          },
+          {
+            path: `/${[Path.rooms, Path.roomId, Path.tenants, Path.userId].join('/')}`,
+            element: <RoomDetails mode={Mode.tenant} />,
+          },
+          {
+            path: `/${[Path.buildings, Path.houseId, Path.rooms, Path.roomId].join('/')}`,
+            element: <RoomDetails mode={Mode.owner} />,
+          },
+          {
+            path: `/${[Path.rooms, Path.roomId].join('/')}`,
+            element: <RoomDetails mode={Mode.owner} />,
           },
         ],
       },
