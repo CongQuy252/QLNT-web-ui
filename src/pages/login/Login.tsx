@@ -20,7 +20,8 @@ import { Input } from '@/components/ui/input';
 import { type LoginFormData, loginSchema } from '@/pages/login/useLoginConstants';
 
 const LoginPage = () => {
-  const navigator = useNavigate();
+  const navigate = useNavigate();
+
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
@@ -31,12 +32,18 @@ const LoginPage = () => {
 
   const onSubmit = (data: LoginFormData) => {
     setErrorMessage(null);
-    loginMutation.mutate(data);
-  };
 
-  if (loginMutation.isSuccess) {
-    navigator('/user');
-  }
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        // Backend sẽ set httpOnly cookie chứa JWT
+        navigate('/');
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onError: (error: any) => {
+        setErrorMessage(error?.response?.data?.message ?? 'Email hoặc mật khẩu không đúng');
+      },
+    });
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40">

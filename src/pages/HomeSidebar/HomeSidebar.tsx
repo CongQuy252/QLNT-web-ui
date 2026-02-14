@@ -3,8 +3,8 @@ import { useMemo, useState } from 'react';
 import { FaHome } from 'react-icons/fa';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
+import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
-import useAuth from '@/hooks/useAuth';
 import { useMobile } from '@/hooks/useMobile';
 import { ownerIcon, ownerListFunctions, tenantListFunctions } from '@/pages/home/HomeContants';
 
@@ -12,11 +12,14 @@ const HomeSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useMobile();
-  const { user, logout } = useAuth();
 
   const [open, setOpen] = useState(false);
 
-  const isOwner = user.role === 'owner';
+  const userId = localStorage.getItem('userId') ?? undefined;
+
+  const { data: user, isLoading } = useUserQuery(userId);
+
+  const isOwner = user?.role === 1;
   const navigationItems = isOwner ? ownerListFunctions : tenantListFunctions;
 
   const updatedNavigationItems = useMemo(() => {
@@ -32,6 +35,8 @@ const HomeSidebar = () => {
 
     return updatedItems;
   }, [navigationItems]);
+
+  if (isLoading) return null;
 
   return (
     <div className="h-screen flex bg-slate-50 overflow-hidden">
@@ -89,7 +94,6 @@ const HomeSidebar = () => {
             variant="outline"
             className="w-full"
             onClick={() => {
-              logout();
               navigate('/login');
             }}
             icon={<LogOut className="w-4 h-4" />}

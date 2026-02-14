@@ -12,8 +12,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import CreateOrUpdateTenant from '@/pages/dialogs/createOrupdateTenant/CreateOrUpdateTenant';
 import { rooms } from '@/pages/rooms/data/roomMockData';
 import type { Room } from '@/types/room';
+import type { User } from '@/types/user';
 
 const Tenant = () => {
   const tenants = [
@@ -29,6 +31,8 @@ const Tenant = () => {
   ];
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingTenant, setEditingTenant] = useState<User | undefined>();
 
   const filteredTenants = tenants.filter((tenant) => {
     const matchesSearch =
@@ -54,6 +58,8 @@ const Tenant = () => {
     return diff;
   };
 
+  //TODO: Phân trang, Edit, Create
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -66,18 +72,18 @@ const Tenant = () => {
             <Button
               className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
               icon={<FaUserPlus className="w-4 h-4" />}
+              onClick={() => {
+                setEditingTenant(undefined);
+                setIsAddOpen(true);
+              }}
             />
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Thêm người thuê mới</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <p className="text-slate-600 text-sm">
-                Tính năng thêm người thuê mới sẽ được cập nhật trong phiên bản tiếp theo
-              </p>
-            </div>
-          </DialogContent>
+
+          <CreateOrUpdateTenant
+            isOpen={isAddOpen}
+            tenant={editingTenant}
+            onClose={() => setIsAddOpen(false)}
+          />
         </Dialog>
       </div>
 
@@ -185,6 +191,19 @@ const Tenant = () => {
                             variant="outline"
                             size="sm"
                             className="gap-2 text-slate-700 border-slate-300 bg-transparent"
+                            // onClick={() => {
+                            //   setEditingTenant({
+                            //     id: tenant.id,
+                            //     fullName: tenant.name,
+                            //     email: tenant.email,
+                            //     phone: tenant.phone,
+                            //     username: tenant.email.split('@')[0],
+                            //     role: 'tenant',
+                            //     CCCD: tenant.idNumber,
+                            //     CCCDImage: [],
+                            //   });
+                            //   setIsAddOpen(true);
+                            // }}
                             icon={<Edit className="w-4 h-4" />}
                           />
                         </DialogTrigger>
