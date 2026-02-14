@@ -10,11 +10,6 @@ export enum Path {
   userId = ':userId',
 }
 
-export enum AppConst {
-  token = 'token',
-  userid = 'UserId',
-}
-
 export enum Breadcrumb {
   home = 'Home',
   buildings = 'Quản Lý Tòa Nhà',
@@ -44,4 +39,9 @@ export enum Mode {
 export enum UserRole {
   admin = 1,
   tenant = 0,
+}
+
+export enum LocalStorageKey {
+  token = 'token',
+  userId = 'userId',
 }

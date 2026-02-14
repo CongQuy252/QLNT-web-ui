@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { AppConst } from '@/constants/appConstants';
+import { LocalStorageKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type { LoginRequest, LoginResponse } from '@/types/user';
@@ -14,8 +14,8 @@ export function useLoginMutation() {
       return response.data;
     },
     onSuccess: (res) => {
-      localStorage.setItem(AppConst.token, res.token);
-      localStorage.setItem(AppConst.userid, res.user.id);
+      localStorage.setItem(LocalStorageKey.token, res.token);
+      localStorage.setItem(LocalStorageKey.userId, res.user.id);
     },
     onError: handleHttpError,
   });

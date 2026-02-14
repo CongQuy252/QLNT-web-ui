@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Path } from '@/constants/appConstants';
+import { Path, UserRole } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
 import {
   ownerIcon,
@@ -48,7 +48,7 @@ const Home = () => {
     return <div className="p-10 text-center text-red-500">Không tải được thông tin user</div>;
   }
 
-  const isOwner = user.role === 1;
+  const isOwner = user.role === UserRole.admin;
 
   const navigationItems = isOwner ? ownerListFunctions : tenantListFunctions;
 
