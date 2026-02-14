@@ -40,3 +40,8 @@ export enum Mode {
   owner = 'owner',
   tenant = 'tenant',
 }
+
+export enum UserRole {
+  admin = 1,
+  tenant = 0,
+}
