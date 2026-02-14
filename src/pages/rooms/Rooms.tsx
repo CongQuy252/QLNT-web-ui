@@ -1,5 +1,6 @@
 import { Edit, Home, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { FaImages, FaUserPlus } from 'react-icons/fa';
 
 import PlusRoom from '@/assets/Icon/PlusRoom';
 import ImageListDialog from '@/components/ui/ImageView/ImageListDialog';
@@ -16,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { RoomStatus } from '@/constants/appConstants';
 import { rooms } from '@/pages/rooms/data/roomMockData';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
+import type { Room } from '@/types/room';
 import { formatCurrency } from '@/utils/utils';
 
 export default function Rooms() {
@@ -23,6 +25,20 @@ export default function Rooms() {
   const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
   const [isOpenViewImageDialog, setIsOpenViewImageDialog] = useState<boolean>(false);
   const [list, setList] = useState<string[]>([]);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
+
+  const [newRoom, setNewRoom] = useState<Room>({
+    id: crypto.randomUUID(),
+    number: '',
+    building: 'A',
+    floor: 1,
+    area: 0,
+    price: 0,
+    status: RoomStatus.available,
+    images: [],
+    currentTenant: undefined,
+    description: '',
+  });
 
   const filteredRooms = rooms.filter((room) => {
     const matchesSearch =
@@ -39,7 +55,14 @@ export default function Rooms() {
 
   const handleCloseDialogViewImage = () => {
     setIsOpenViewImageDialog(false);
+    setList([]);
   };
+
+  const handleAddRoom = () => {
+    alert('Addroom');
+  };
+
+  //TODO: Phân trang, Edit, Create, Thêm người thuê mới, Huỷ người thuê cũ đối với room đang cho thuê
 
   return (
     <div className="space-y-8">
@@ -48,21 +71,109 @@ export default function Rooms() {
           <h1 className="text-3xl font-bold text-slate-900">Quản lý phòng</h1>
           <p className="text-slate-600 mt-2">Tổng cộng {rooms.length} phòng</p>
         </div>
-        <Dialog>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button
               className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
               icon={<PlusRoom className="w-16 h-16" />}
             ></Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Thêm phòng mới</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <p className="text-slate-600 text-sm">
-                Tính năng thêm phòng mới sẽ được cập nhật trong phiên bản tiếp theo
-              </p>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Số phòng</label>
+                <Input
+                  placeholder="VD: 101, 102..."
+                  value={newRoom?.number}
+                  onChange={(e) => setNewRoom({ ...newRoom, number: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Tòa nhà</label>
+                  <select
+                    value={newRoom?.building}
+                    onChange={(e) => setNewRoom({ ...newRoom, building: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  >
+                    {['A', 'B', 'C', 'D', 'E'].map((b) => (
+                      <option key={b} value={b}>
+                        Tòa {b}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Tầng</label>
+                  <select
+                    value={newRoom?.floor}
+                    onChange={(e) => setNewRoom({ ...newRoom, floor: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  >
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((f) => (
+                      <option key={f} value={f}>
+                        Tầng {f}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Diện tích (m²)</label>
+                  <Input
+                    type="number"
+                    min="5"
+                    max="100"
+                    value={newRoom?.area}
+                    onChange={(e) => setNewRoom({ ...newRoom, area: Number(e.target.value) })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Giá thuê/tháng</label>
+                  <Input
+                    type="number"
+                    min="100000"
+                    step="100000"
+                    value={newRoom?.price}
+                    onChange={(e) => setNewRoom({ ...newRoom, price: Number(e.target.value) })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Mô tả</label>
+                <textarea
+                  placeholder="Mô tả chi tiết về phòng..."
+                  value={newRoom?.description}
+                  onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-none"
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-4 border-t border-slate-200">
+                <Button
+                  variant="outline"
+                  className="flex-1 text-slate-700 border-slate-300 bg-transparent"
+                  onClick={() => setIsAddDialogOpen(false)}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  className="flex-1 bg-slate-900 hover:bg-slate-800 text-white"
+                  onClick={handleAddRoom}
+                >
+                  Thêm phòng
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -99,8 +210,7 @@ export default function Rooms() {
       {/* Room Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRooms.map((room) => {
-          // const tenant = room.currentTenant ? getTenantByRoomId(room.id) : null;
-          const tenant = room.currentTenant ? 'abc' : null;
+          const tenant = room.currentTenant ? 'abc' : undefined;
           return (
             <Card key={room.id} className="p-6 bg-white hover:shadow-lg transition-shadow">
               <div className="space-y-4">
@@ -117,7 +227,7 @@ export default function Rooms() {
                       handleOpenDialogViewImage(room.images);
                     }}
                   >
-                    <Home className="w-5 h-5 text-slate-600" />
+                    <FaImages className="w-5 h-5 text-slate-600" />
                   </div>
                 </div>
 
@@ -143,7 +253,7 @@ export default function Rooms() {
                   </span>
                 </div>
 
-                {tenant && (
+                {tenant && room.status === RoomStatus.occupied && (
                   <div className="p-3 bg-slate-50 rounded-lg">
                     <p className="text-xs text-slate-600 mb-1">Người thuê hiện tại</p>
                     <p className="font-semibold text-slate-900">Họ và tên</p>
@@ -156,6 +266,29 @@ export default function Rooms() {
                 )}
 
                 <div className="flex gap-2 pt-4 border-t border-slate-200">
+                  {room.status === RoomStatus.available && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-2 text-slate-700 border-slate-300 bg-transparent"
+                          icon={<FaUserPlus className="w-4 h-4" />}
+                        />
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Thêm người thuê phòng</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <p className="text-slate-600 text-sm">
+                            Tính năng chỉnh sửa sẽ được cập nhật trong phiên bản tiếp theo
+                          </p>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button
@@ -176,12 +309,26 @@ export default function Rooms() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 gap-2 text-red-600 border-red-300 hover:bg-red-50 bg-transparent"
-                    icon={<Trash2 className="w-4 h-4" />}
-                  />
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-2 text-red-600 border-red-300 hover:bg-red-50 bg-transparent"
+                        icon={<Trash2 className="w-4 h-4" />}
+                      />
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Bạn có chắc muốn xoá phòng {room.number}</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <p className="text-slate-600 text-sm">
+                          Tính năng chỉnh sửa sẽ được cập nhật trong phiên bản tiếp theo
+                        </p>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </Card>

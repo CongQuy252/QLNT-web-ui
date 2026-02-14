@@ -52,7 +52,7 @@ const ImageListDialog: React.FC<ImageListDialogProps> = ({
                 type="button"
                 onClick={() => setActiveIndex(index)}
                 className={cn(
-                  'relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg border transition',
+                  'relative h-24 w-24 shrink-0 overflow-hidden rounded-lg border transition',
                   index === activeIndex ? 'ring-2 ring-primary' : 'opacity-70 hover:opacity-100',
                 )}
               >
