@@ -29,7 +29,6 @@ http.interceptors.response.use(
     if (error.response?.status === 401) {
       console.warn('Token hết hạn hoặc không hợp lệ.');
       localStorage.removeItem('token');
-      // Có thể redirect hoặc trigger toast ở đây
     }
 
     return Promise.reject(error);

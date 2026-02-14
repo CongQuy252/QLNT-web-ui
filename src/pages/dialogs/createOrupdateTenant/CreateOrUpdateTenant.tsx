@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { UserRole } from '@/constants/appConstants';
 import {
   type TenantFormValues,
   createOrUpdateTenantSchema,
@@ -29,9 +30,8 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
   const form = useForm<TenantFormValues>({
     resolver: zodResolver(createOrUpdateTenantSchema),
     defaultValues: {
-      fullName: tenant?.fullName ?? '',
+      name: tenant?.name ?? '',
       email: tenant?.email ?? '',
-      username: tenant?.username ?? '',
       phone: tenant?.phone ?? '',
       CCCD: tenant?.CCCD ?? '',
       CCCDImage: tenant?.CCCDImage ?? [],
@@ -41,7 +41,7 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
   const onSubmit = (values: TenantFormValues) => {
     const payload: Partial<User> = {
       ...values,
-      role: 'tenant',
+      role: UserRole.tenant,
     };
 
     console.log(payload);
@@ -68,7 +68,7 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
           >
             <FormField
               control={form.control}
-              name="fullName"
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Họ tên</FormLabel>
@@ -87,19 +87,6 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="email@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <FormControl>
-                    <Input placeholder="tenant01" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
