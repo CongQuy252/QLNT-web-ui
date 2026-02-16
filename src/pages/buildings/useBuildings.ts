@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
+import { useGetBuildingQueries } from '@/api/building';
 import { RoomStatus } from '@/constants/appConstants';
-import { buildings } from '@/pages/buildings/mockData/building';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
 import { rooms } from '@/pages/rooms/data/roomMockData';
 import type { Building } from '@/types/building';
@@ -12,6 +12,16 @@ export const useBuildings = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingBuilding, setEditingBuilding] = useState<Building>();
+  const getBuildingQueries = useGetBuildingQueries();
+
+  const buildings = useMemo(() => {
+    return (
+      getBuildingQueries.data?.map((b) => ({
+        ...b,
+        id: b._id,
+      })) ?? []
+    );
+  }, [getBuildingQueries.data]);
 
   const handleNewBuilding = () => {
     setIsEditMode(false);
@@ -22,14 +32,14 @@ export const useBuildings = () => {
   const handleEditBuilding = (building: Building) => {
     setIsEditMode(true);
     setEditingBuilding(building);
-    setSelectedBuilding(building.id);
+    setSelectedBuilding(building._id);
     setIsOpen(true);
   };
 
   const handleSave = async (data: BuildingFormInput) => {
     if (isEditMode && editingBuilding) {
       console.log('Update building', {
-        id: editingBuilding.id,
+        id: editingBuilding._id,
         ...data,
       });
     } else {
@@ -39,7 +49,7 @@ export const useBuildings = () => {
     setIsOpen(false);
   };
 
-  const building = selectedBuilding ? buildings.find((b) => b.id === selectedBuilding) : null;
+  const building = selectedBuilding ? buildings.find((b) => b.id === selectedBuilding) : undefined;
 
   const getRoomsByBuilding = (buildingId: string): Room[] => {
     const buildingName = buildings.find((b) => b.id === buildingId)?.name;
@@ -73,5 +83,6 @@ export const useBuildings = () => {
     setSelectedBuilding,
     selectedBuilding,
     building,
+    buildings,
   };
 };

@@ -67,7 +67,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
       name: '',
       address: '',
       city: '',
-      ward: '',
+      district: '',
       totalFloors: undefined,
       totalRooms: undefined,
       yearBuilt: undefined,
@@ -81,7 +81,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         name: building.name,
         address: building.address,
         city: building.city,
-        ward: building.ward,
+        district: building.district,
         totalFloors: building.totalFloors,
         totalRooms: building.totalRooms,
         yearBuilt: building.yearBuilt,
@@ -162,7 +162,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   value={watch('city')}
                   onValueChange={(value) => {
                     setValue('city', value, { shouldDirty: true, shouldValidate: true });
-                    setValue('ward', '', { shouldDirty: true, shouldValidate: true });
+                    setValue('district', '', { shouldDirty: true, shouldValidate: true });
                   }}
                 >
                   <SelectTrigger className="w-full max-w-48">
@@ -186,9 +186,9 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   Xã/Phường
                 </Label>
                 <Select
-                  value={watch('ward')}
+                  value={watch('district')}
                   disabled={!watch('city')}
-                  onValueChange={(value) => setValue('ward', value)}
+                  onValueChange={(value) => setValue('district', value)}
                   onOpenChange={(open) => !open && setSearch('')}
                 >
                   <SelectTrigger className="w-full max-w-48">
@@ -228,7 +228,9 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     </div>
                   </SelectContent>
                 </Select>
-                {errors.ward && <p className="text-xs text-red-500">{errors.ward.message}</p>}
+                {errors.district && (
+                  <p className="text-xs text-red-500">{errors.district.message}</p>
+                )}
               </div>
             </div>
 

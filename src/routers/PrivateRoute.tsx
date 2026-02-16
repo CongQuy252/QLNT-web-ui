@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
-import GlobalSpinner from '@/components/ui/globalSpinner/GlobalSpinner';
+import GlobalSpinner from '@/components/ui/GlobalSpinner/GlobalSpinner';
 import { LocalStorageKey, Path } from '@/constants/appConstants';
 import { useGlobalQueryLoading } from '@/hooks/useGlobalQueryLoading';
 

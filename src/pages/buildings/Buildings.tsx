@@ -2,7 +2,6 @@ import { Building2, Home, MapPin, Pencil, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { buildings } from '@/pages/buildings/mockData/building';
 import { useBuildings } from '@/pages/buildings/useBuildings';
 import CreateOrUpdateBuildingDialog from '@/pages/dialogs/createOrUpdateBuildingDialog/CreateOrUpdateBuildingDialog';
 
@@ -22,6 +21,7 @@ const Buildings = () => {
     setSelectedBuilding,
     selectedBuilding,
     building,
+    buildings,
   } = useBuildings();
 
   return (
@@ -61,7 +61,7 @@ const Buildings = () => {
                 >
                   <div className="font-medium text-slate-900">{building.name}</div>
                   <div className="text-sm text-slate-600 whitespace-break-spaces">
-                    {building.ward}
+                    {building.district}
                   </div>
                 </button>
               ))}
