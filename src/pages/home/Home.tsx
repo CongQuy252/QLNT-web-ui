@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Path, UserRole } from '@/constants/appConstants';
+import { Spinner } from '@/components/ui/spinner';
+import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
 import {
   ownerIcon,
@@ -24,7 +25,7 @@ const Home = () => {
   const navigator = useNavigate();
   const isMobile = useMobile();
 
-  const userId = localStorage.getItem('UserId') ?? undefined;
+  const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
   const { data: user, isLoading, isError } = useUserQuery(userId);
 
@@ -33,14 +34,12 @@ const Home = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('UserId');
-    localStorage.removeItem('token');
+    localStorage.clear();
     navigator(Path.login);
   };
 
-  // Loading state
   if (isLoading) {
-    return <div className="p-10 text-center">Loading...</div>;
+    return <Spinner />;
   }
 
   // Error state
