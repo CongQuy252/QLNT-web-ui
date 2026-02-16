@@ -6,6 +6,8 @@ import { createRoot } from 'react-dom/client';
 
 import { SnackbarProvider } from 'notistack';
 
+import LoadingProvider from '@/contexts/loadingProvider.tsx';
+
 import App from './App.tsx';
 import './css/styles.css';
 
@@ -14,7 +16,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <ReactQueryDevtools initialIsOpen={false} />
       <SnackbarProvider maxSnack={3} autoHideDuration={3000}>
-        <App />
+        <LoadingProvider>
+          <App />
+        </LoadingProvider>
       </SnackbarProvider>
     </QueryClientProvider>
   </StrictMode>,
