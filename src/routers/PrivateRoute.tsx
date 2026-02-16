@@ -1,11 +1,22 @@
+import { Fragment } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
-import { Path } from '@/constants/appConstants';
+import GlobalSpinner from '@/components/ui/globalSpinner/GlobalSpinner';
+import { LocalStorageKey, Path } from '@/constants/appConstants';
+import { useGlobalQueryLoading } from '@/hooks/useGlobalQueryLoading';
 
 const PrivateRoute = () => {
-  const isAuthenticated = !!localStorage.getItem('token');
+  const isAuthenticated = !!localStorage.getItem(LocalStorageKey.token);
+  useGlobalQueryLoading();
 
-  return isAuthenticated ? <Outlet /> : <Navigate to={Path.login} replace />;
+  return isAuthenticated ? (
+    <Fragment>
+      <GlobalSpinner />
+      <Outlet />
+    </Fragment>
+  ) : (
+    <Navigate to={Path.login} replace />
+  );
 };
 
 export default PrivateRoute;

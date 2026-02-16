@@ -5,6 +5,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
+import { LocalStorageKey, UserRole } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
 import { ownerIcon, ownerListFunctions, tenantListFunctions } from '@/pages/home/HomeContants';
 
@@ -15,28 +16,42 @@ const HomeSidebar = () => {
 
   const [open, setOpen] = useState(false);
 
-  const userId = localStorage.getItem('userId') ?? undefined;
+  const userId = localStorage.getItem(LocalStorageKey.userId);
 
-  const { data: user, isLoading } = useUserQuery(userId);
+  const { data: user, isLoading } = useUserQuery(userId!, !!userId);
 
-  const isOwner = user?.role === 1;
-  const navigationItems = isOwner ? ownerListFunctions : tenantListFunctions;
+  const isReady = !!userId && !!user && !isLoading;
+
+  const navigationItems = useMemo(() => {
+    if (!isReady) return [];
+
+    return user.role === UserRole.admin ? ownerListFunctions : tenantListFunctions;
+  }, [isReady, user]);
 
   const updatedNavigationItems = useMemo(() => {
-    const updatedItems = [...navigationItems];
-    updatedItems.push({
-      rowId: '1',
-      title: 'Home',
-      description: 'Xem danh sách phòng, trạng thái, giá thuê',
-      icon: FaHome,
-      path: `/`,
-      color: 'from-blue-500 to-blue-600',
-    });
+    if (!navigationItems.length) return [];
 
-    return updatedItems;
+    if (navigationItems.some((i) => i.path === '/')) {
+      return navigationItems;
+    }
+
+    return [
+      ...navigationItems,
+      {
+        rowId: '1',
+        title: 'Home',
+        description: 'Xem danh sách phòng, trạng thái, giá thuê',
+        icon: FaHome,
+        path: '/',
+        color: 'from-blue-500 to-blue-600',
+      },
+    ];
   }, [navigationItems]);
 
-  if (isLoading) return null;
+  if (!isReady) return null;
+
+  // ⬇️ Lúc này user chắc chắn tồn tại
+  const isOwner = user.role === UserRole.admin;
 
   return (
     <div className="h-screen flex bg-slate-50 overflow-hidden">

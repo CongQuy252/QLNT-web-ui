@@ -1,17 +1,18 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { AppConst, QueriesKey } from '@/constants/appConstants';
+
+import { LocalStorageKey, QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type { GetUserByIdResponse, LoginRequest, LoginResponse } from '@/types/user';
 
-export const useUserQuery = (userId?: string) => {
+export const useUserQuery = (userId?: string, enable?: boolean) => {
   return useQuery({
     queryKey: [QueriesKey.user, userId],
     queryFn: async () => {
       const response = await http.get<GetUserByIdResponse>(`/users/${userId}`);
       return response.data.data;
     },
-    enabled: !!userId,
+    enabled: enable || !!userId,
   });
 };
 
@@ -24,8 +25,8 @@ export function useLoginMutation() {
       return response.data;
     },
     onSuccess: (res) => {
-      localStorage.setItem(AppConst.token, res.token);
-      localStorage.setItem(AppConst.userid, res.user.id);
+      localStorage.setItem(LocalStorageKey.token, res.token);
+      localStorage.setItem(LocalStorageKey.userId, res.user.id);
     },
     onError: handleHttpError,
   });
