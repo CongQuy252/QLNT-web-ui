@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { FaImages, FaUserPlus } from 'react-icons/fa';
 
 import PlusRoom from '@/assets/Icon/PlusRoom';
-import ImageListDialog from '@/components/ui/ImageView/ImageListDialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -13,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import ImageListDialog from '@/components/ui/imageView/ImageListDialog';
 import { Input } from '@/components/ui/input';
 import { RoomStatus } from '@/constants/appConstants';
 import { rooms } from '@/pages/rooms/data/roomMockData';
