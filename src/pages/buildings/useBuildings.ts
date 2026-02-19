@@ -1,11 +1,8 @@
 import { useMemo, useState } from 'react';
 
 import { useGetBuildingQueries } from '@/api/building';
-import { RoomStatus } from '@/constants/appConstants';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
-import { rooms } from '@/pages/rooms/data/roomMockData';
 import type { Building } from '@/types/building';
-import type { Room } from '@/types/room';
 
 export const useBuildings = () => {
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
@@ -51,16 +48,6 @@ export const useBuildings = () => {
 
   const building = selectedBuilding ? buildings.find((b) => b.id === selectedBuilding) : undefined;
 
-  const getRoomsByBuilding = (buildingId: string): Room[] => {
-    const buildingName = buildings.find((b) => b.id === buildingId)?.name;
-    return rooms.filter((r) => r.building === buildingName?.charAt(buildingName.length - 1));
-  };
-
-  const buildingRooms = building ? getRoomsByBuilding(building.id) : [];
-  const occupiedRooms = buildingRooms.filter((r) => r.status === RoomStatus.occupied).length;
-  const availableRooms = buildingRooms.filter((r) => r.status === RoomStatus.available).length;
-  const maintenanceRooms = buildingRooms.filter((r) => r.status === RoomStatus.maintenance).length;
-
   const handleBuildingDelete = () => {
     if (building) {
       console.log('Delete building', building.id);
@@ -76,9 +63,6 @@ export const useBuildings = () => {
     handleNewBuilding,
     handleEditBuilding,
     handleSave,
-    occupiedRooms,
-    availableRooms,
-    maintenanceRooms,
     handleBuildingDelete,
     setSelectedBuilding,
     selectedBuilding,

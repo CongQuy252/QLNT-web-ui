@@ -1,16 +1,12 @@
 import { Calendar, Edit, Mail, Phone, Users } from 'lucide-react';
 import { useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
+import { PiHouseLine } from 'react-icons/pi';
 
+import { AlertDialogHeader } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import CreateOrUpdateTenant from '@/pages/dialogs/createOrupdateTenant/CreateOrUpdateTenant';
 import { rooms } from '@/pages/rooms/data/roomMockData';
@@ -28,11 +24,84 @@ const Tenant = () => {
       contractEndDate: '2025-12-31',
       status: 'active',
     },
+    {
+      id: 'tenant2',
+      name: 'Nguyễn Văn A',
+      idNumber: '0123456789',
+      email: 'nguyenvana@example.com',
+      phone: '0987654321',
+      contractEndDate: '2025-12-31',
+      status: 'active',
+    },
+    {
+      id: 'tenant3',
+      name: 'Nguyễn Văn A',
+      idNumber: '0123456789',
+      email: 'nguyenvana@example.com',
+      phone: '0987654321',
+      contractEndDate: '2025-12-31',
+      status: 'active',
+    },
+    {
+      id: 'tenant4',
+      name: 'Nguyễn Văn A',
+      idNumber: '0123456789',
+      email: 'nguyenvana@example.com',
+      phone: '0987654321',
+      contractEndDate: '2025-12-31',
+      status: 'active',
+    },
+    {
+      id: 'tenant5',
+      name: 'Nguyễn Văn A',
+      idNumber: '0123456789',
+      email: 'nguyenvana@example.com',
+      phone: '0987654321',
+      contractEndDate: '2025-12-31',
+      status: 'active',
+    },
+    {
+      id: 'tenant6',
+      name: 'Nguyễn Văn A',
+      idNumber: '0123456789',
+      email: 'nguyenvana@example.com',
+      phone: '0987654321',
+      contractEndDate: '2025-12-31',
+      status: 'active',
+    },
+    {
+      id: 'tenant7',
+      name: 'Nguyễn Văn A',
+      idNumber: '0123456789',
+      email: 'nguyenvana@example.com',
+      phone: '0987654321',
+      contractEndDate: '2025-12-31',
+      status: 'active',
+    },
+    {
+      id: 'tenant8',
+      name: 'Nguyễn Văn A',
+      idNumber: '0123456789',
+      email: 'nguyenvana@example.com',
+      phone: '0987654321',
+      contractEndDate: '2025-12-31',
+      status: 'active',
+    },
   ];
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<User | undefined>();
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds(
+      (prev) =>
+        prev.includes(id)
+          ? prev.filter((item) => item !== id) // đóng
+          : [...prev, id], // mở thêm
+    );
+  };
 
   const filteredTenants = tenants.filter((tenant) => {
     const matchesSearch =
@@ -61,7 +130,7 @@ const Tenant = () => {
   //TODO: Phân trang, Edit, Create
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 flex flex-col h-full overflow-hidden">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Quản lý người thuê</h1>
@@ -90,7 +159,7 @@ const Tenant = () => {
       {/* Filter */}
       <div className="flex flex-col md:flex-row gap-4">
         <Input
-          placeholder="Tìm kiếm theo tên, email hoặc số điện thoại..."
+          placeholder="Tìm kiếm theo số điện thoại"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
@@ -116,9 +185,8 @@ const Tenant = () => {
       </div>
 
       {/* Tenants Table */}
-      <Card className="bg-white overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      <div className="flex-1 overflow-y-auto pr-2">
+        {/* <table className="w-full text-sm">
             <thead className="border-b border-slate-200 bg-slate-50">
               <tr>
                 <th className="text-left py-4 px-6 font-semibold text-slate-900">Họ tên</th>
@@ -223,9 +291,104 @@ const Tenant = () => {
                 );
               })}
             </tbody>
-          </table>
+          </table> */}
+
+        <div className="grid gap-4">
+          {filteredTenants.map((tenant) => {
+            const room: Room = rooms[1];
+            const daysLeft = daysUntilExpiry(tenant.contractEndDate);
+            const isExpiringSoon = daysLeft <= 30 && daysLeft > 0;
+            const isOpen = expandedIds.includes(tenant.id);
+
+            return (
+              <Card key={tenant.id} className="p-4 cursor-pointer hover:shadow-md transition">
+                {/* Header */}
+                <div
+                  className="flex justify-between items-center"
+                  onClick={() => toggleExpand(tenant.id)}
+                >
+                  <div>
+                    <p className="font-semibold text-slate-900">{tenant.name}</p>
+                    <p className="text-xs text-slate-500">{tenant.phone}</p>
+                  </div>
+
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(
+                      tenant.status,
+                    )}`}
+                  >
+                    {getStatusLabel(tenant.status)}
+                  </span>
+                </div>
+
+                {/* Expand content */}
+                {isOpen && (
+                  <div className="mt-4 border-t pt-4 space-y-3 text-sm text-slate-700">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      {tenant.email}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      {tenant.phone}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <PiHouseLine className="w-4 h-4" />
+                      {room ? `Phòng ${room.number}` : 'N/A'}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      <div>
+                        <p>{daysLeft > 0 ? `Còn ${daysLeft} ngày` : 'Hết hạn'}</p>
+                        <p className="text-xs text-slate-500">Đến {tenant.contractEndDate}</p>
+                      </div>
+                    </div>
+
+                    {isExpiringSoon && <p className="text-orange-600 text-xs">⚠ Sắp hết hạn</p>}
+
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 text-slate-700 border-slate-300 bg-transparent"
+                          // onClick={() => {
+                          //   setEditingTenant({
+                          //     id: tenant.id,
+                          //     fullName: tenant.name,
+                          //     email: tenant.email,
+                          //     phone: tenant.phone,
+                          //     username: tenant.email.split('@')[0],
+                          //     role: 'tenant',
+                          //     CCCD: tenant.idNumber,
+                          //     CCCDImage: [],
+                          //   });
+                          //   setIsAddOpen(true);
+                          // }}
+                          icon={<Edit className="w-4 h-4" />}
+                        />
+                      </DialogTrigger>
+                      <DialogContent>
+                        <AlertDialogHeader>
+                          <DialogTitle>{tenant.name}</DialogTitle>
+                        </AlertDialogHeader>
+                        <div className="space-y-4 py-4">
+                          <p className="text-slate-600 text-sm">
+                            Tính năng chỉnh sửa sẽ được cập nhật trong phiên bản tiếp theo
+                          </p>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
         </div>
-      </Card>
+      </div>
 
       {filteredTenants.length === 0 && (
         <Card className="p-12 bg-white text-center">
