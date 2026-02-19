@@ -20,6 +20,7 @@ export enum Breadcrumb {
 
 export enum QueriesKey {
   provinces = 'provinces',
+  districts = 'districts',
   wards = 'wards',
   user = 'user',
   buildings = 'buildings',

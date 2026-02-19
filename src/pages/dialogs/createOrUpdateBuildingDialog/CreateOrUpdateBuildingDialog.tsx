@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import { BsBuildingAdd } from 'react-icons/bs';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -11,7 +10,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,6 +25,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useMobile } from '@/hooks/useMobile';
 import { useProvinceOptions } from '@/pages/dialogs/createOrUpdateBuildingDialog/hooks/getAddress';
+import { useDistrictsQuery } from '@/api/address';
+import type { Province, Ward } from '@/types/address';
 import {
   type BuildingFormInput,
   buildingSchema,
@@ -36,23 +36,22 @@ interface CreateOrUpdateBuildingDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   isEditMode: boolean;
-  handleNewBuilding: () => void;
   handleSave: (data: BuildingFormInput) => void;
   building?: BuildingFormInput;
+  isSaving?: boolean;
 }
 
 const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> = ({
   isOpen,
   setIsOpen,
   isEditMode,
-  handleNewBuilding,
   handleSave,
   building,
+  isSaving,
 }) => {
   const isMobile = useMobile();
   const cities = useProvinceOptions();
   const [search, setSearch] = useState('');
-  const wards = cities?.wards;
 
   const {
     register,
@@ -75,32 +74,78 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
     },
   });
 
+  const selectedCityCode = watch('city');
+  const districtsQuery = useDistrictsQuery(selectedCityCode);
+  const wards = districtsQuery.data?.wards;
+
+  // Lấy tên tỉnh từ code
+  const getCityName = useCallback((cityCode: string) => {
+    const city = cities?.find(p => p.code.toString() === cityCode);
+    return city?.name || '';
+  }, [cities]);
+
+  // Lấy code tỉnh từ tên (dùng cho edit mode)
+  const getCityCode = useCallback((cityName: string) => {
+    const city = cities?.find(p => p.name === cityName);
+    return city?.code.toString() || '';
+  }, [cities]);
+
+  // Lấy code quận/huyện từ tên (dùng cho edit mode)
+  const getDistrictCode = useCallback((districtName: string) => {
+    // Trong edit mode, ta không thể lấy code từ cities data vì không có wards
+    // Thay vào đó, ta sẽ return tên district và xử lý sau khi có districts query data
+    return districtName;
+  }, []);
+
   useEffect(() => {
     if (isOpen && isEditMode && building) {
+      // Trong edit mode, chuyển tên tỉnh/thành phố và quận/huyện thành code
+      const cityCode = getCityCode(building.city);
+      const districtCode = getDistrictCode(building.district);
+      
       reset({
         name: building.name,
         address: building.address,
-        city: building.city,
-        district: building.district,
+        city: cityCode,
+        district: districtCode,
         totalFloors: building.totalFloors,
         totalRooms: building.totalRooms,
         yearBuilt: building.yearBuilt,
         description: building.description ?? '',
       });
     }
-  }, [isOpen, isEditMode, building, reset]);
+  }, [isOpen, isEditMode, building, reset, getCityCode, getDistrictCode]);
 
-  const onSubmit: SubmitHandler<BuildingFormInput> = (data) => {
-    const parsed = buildingSchema.parse(data);
-
-    if (isEditMode) {
-      handleSave(parsed); // update
-    } else {
-      handleNewBuilding(); // create
+  // useEffect để xử lý edit mode khi districts query đã có data
+  useEffect(() => {
+    if (isOpen && isEditMode && building && districtsQuery.data && building.district) {
+      // Tìm district code từ wards data khi đã load xong
+      const districtCode = districtsQuery.data.wards?.find(w => w.name === building.district)?.code.toString();
+      if (districtCode) {
+        setValue('district', districtCode);
+      }
     }
+  }, [isOpen, isEditMode, building, districtsQuery.data, setValue]);
 
+  const onSubmit = useCallback<SubmitHandler<BuildingFormInput>>((data) => {
+    const cityName = getCityName(data.city);
+
+    const districtName = wards?.find(w => w.code.toString() === data.district)?.name || data.district;
+    
+    if (!districtName.trim()) {
+      return;
+    }
+    
+    const processedData = {
+      ...data,
+      city: cityName,
+      district: districtName,
+    };
+    
+    const parsed = buildingSchema.parse(processedData);
+    handleSave(parsed);
     setIsOpen(false);
-  };
+  }, [getCityName, wards, handleSave]);
 
   return (
     <Dialog
@@ -110,13 +155,6 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         if (!open) reset();
       }}
     >
-      <DialogTrigger asChild>
-        <Button
-          onClick={handleNewBuilding}
-          className="gap-2"
-          icon={<BsBuildingAdd className="h-4 w-4" />}
-        />
-      </DialogTrigger>
       <DialogContent
         className={isMobile ? 'w-screen h-screen max-w-none rounded-none p-0' : 'max-w-md'}
       >
@@ -173,9 +211,11 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     <SelectGroup>
                       <SelectLabel>Tỉnh/Thành phố</SelectLabel>
 
-                      <SelectItem key={79} value={'79'}>
-                        TP.HCM
-                      </SelectItem>
+                      {cities?.map((province: Province) => (
+                        <SelectItem key={province.code} value={province.code.toString()}>
+                          {province.name}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -183,16 +223,16 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
               </div>
               <div>
                 <Label htmlFor="district" className="text-sm font-medium text-slate-700" isRequired>
-                  Xã/Phường
+                  Quận/Huyện
                 </Label>
                 <Select
                   value={watch('district')}
-                  disabled={!watch('city')}
+                  disabled={!watch('city') || districtsQuery.isLoading}
                   onValueChange={(value) => setValue('district', value)}
                   onOpenChange={(open) => !open && setSearch('')}
                 >
                   <SelectTrigger className="w-full max-w-48">
-                    <SelectValue placeholder={'Chọn xã/phường'} />
+                    <SelectValue placeholder={districtsQuery.isLoading ? 'Đang tải...' : 'Chọn quận/huyện'} />
                   </SelectTrigger>
 
                   <SelectContent className="p-0 max-h-300">
@@ -212,16 +252,16 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                         <SelectLabel>Quận/Huyện</SelectLabel>
 
                         {wards
-                          ?.filter((item) => item.name.toLowerCase().includes(search.toLowerCase()))
-                          .map((item) => (
+                          ?.filter((item: Ward) => item.name.toLowerCase().includes(search.toLowerCase()))
+                          .map((item: Ward) => (
                             <SelectItem key={item.code} value={item.code.toString()}>
                               {item.name}
                             </SelectItem>
                           ))}
 
-                        {wards?.length === 0 && (
+                        {wards?.length === 0 && !districtsQuery.isLoading && (
                           <div className="px-2 py-3 text-sm text-muted-foreground">
-                            Không tìm thấy kết quả
+                            {districtsQuery.isError ? 'Lỗi tải dữ liệu' : 'Không tìm thấy quận/huyện'}
                           </div>
                         )}
                       </SelectGroup>
@@ -294,8 +334,8 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
               )}
             </div>
             <div className={isMobile ? 'border-t p-4 sticky bottom-0 bg-background' : ''}>
-              <Button type="submit" className="w-full">
-                {isEditMode ? 'Cập nhật' : 'Thêm Tòa Nhà'}
+              <Button type="submit" className="w-full" disabled={isSaving}>
+                {isSaving ? 'Đang lưu...' : (isEditMode ? 'Cập nhật' : 'Thêm Tòa Nhà')}
               </Button>
             </div>
           </div>

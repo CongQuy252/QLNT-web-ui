@@ -1,4 +1,4 @@
-import { Building2, Home, MapPin, Pencil, Trash2 } from 'lucide-react';
+import { Building2, Home, MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,8 @@ const Buildings = () => {
     selectedBuilding,
     building,
     buildings,
+    isSaving,
+    isDeleting,
   } = useBuildings();
 
   return (
@@ -31,15 +33,23 @@ const Buildings = () => {
           <h1 className="text-3xl font-bold text-slate-900">Quản lý Tòa Nhà</h1>
           <p className="text-slate-600">Quản lý thông tin và thống kê tòa nhà</p>
         </div>
-        <CreateOrUpdateBuildingDialog
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          isEditMode={isEditMode}
-          handleNewBuilding={handleNewBuilding}
-          handleSave={handleSave}
-          building={editingBuilding}
-        />
+        <Button
+          onClick={handleNewBuilding}
+          className="gap-2"
+          icon={<Plus className="h-4 w-4" />}
+        >
+          Thêm Tòa Nhà
+        </Button>
       </div>
+
+      <CreateOrUpdateBuildingDialog
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        isEditMode={isEditMode}
+        handleSave={handleSave}
+        building={editingBuilding}
+        isSaving={isSaving}
+      />
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
         <div className="lg:col-span-1 h-full min-h-0">
@@ -101,6 +111,7 @@ const Buildings = () => {
                         className="gap-1 text-red-600 hover:text-red-700 bg-transparent"
                         icon={<Trash2 className="h-4 w-4" />}
                         onClick={handleBuildingDelete}
+                        disabled={isDeleting}
                       />
                     </div>
                   </div>
