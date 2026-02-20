@@ -28,9 +28,9 @@ export enum QueriesKey {
 
 export enum RoomStatus {
   all = '0', //all
-  available = '1', // available
-  occupied = '2', // occupied
-  maintenance = '3', // maintenance
+  available = 'available', // available
+  occupied = 'occupied', // occupied
+  maintenance = 'maintenance', // maintenance
 }
 
 export enum Mode {

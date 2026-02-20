@@ -1,8 +1,12 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
-
-import { useGetBuildingQueries, useCreateBuildingMutation, useUpdateBuildingMutation, useDeleteBuildingMutation } from '@/api/building';
+import {
+  useCreateBuildingMutation,
+  useDeleteBuildingMutation,
+  useGetBuildingQueries,
+  useUpdateBuildingMutation,
+} from '@/api/building';
 import { QueriesKey } from '@/constants/appConstants';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
 import type { Building } from '@/types/building';
@@ -50,7 +54,7 @@ export const useBuildings = () => {
       } else {
         await createBuildingMutation.mutateAsync(data);
       }
-      
+
       queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
       setIsOpen(false);
     } catch (error) {
@@ -60,28 +64,30 @@ export const useBuildings = () => {
 
   const building = selectedBuilding ? buildings.find((b) => b.id === selectedBuilding) : undefined;
 
-  // Chỉ sử dụng roomStatus từ API, không dùng mock data
-  const occupiedRooms = building?.roomStatus?.occupied ?? 0;
-  const availableRooms = building?.roomStatus?.available ?? 0;
-  const maintenanceRooms = building?.roomStatus?.maintenance ?? 0;
-
   const handleBuildingDelete = async () => {
     if (!building) return;
 
     // Chỉ sử dụng roomStatus từ API
-    const totalRooms = building.roomStatus ? 
-      (building.roomStatus.available + building.roomStatus.occupied + building.roomStatus.maintenance) : 0;
-    
+    const totalRooms = building.roomStatus
+      ? building.roomStatus.available +
+        building.roomStatus.occupied +
+        building.roomStatus.maintenance
+      : 0;
+
     const occupiedRooms = building.roomStatus?.occupied ?? 0;
-    
+
     if (totalRooms > 0) {
       if (occupiedRooms > 0) {
-        alert(`Không thể xóa tòa nhà "${building.name}" vì vẫn còn ${occupiedRooms} phòng đang có người thuê. Vui lòng xử lý hết các hợp đồng thuê trước khi xóa.`);
+        alert(
+          `Không thể xóa tòa nhà "${building.name}" vì vẫn còn ${occupiedRooms} phòng đang có người thuê. Vui lòng xử lý hết các hợp đồng thuê trước khi xóa.`,
+        );
         return;
       }
-      
+
       // Có phòng nhưng không có người thuê
-      const confirmDelete = confirm(`Tòa nhà "${building.name}" có ${totalRooms} phòng nhưng chưa có người thuê. Bạn có chắc chắn muốn xóa?`);
+      const confirmDelete = confirm(
+        `Tòa nhà "${building.name}" có ${totalRooms} phòng nhưng chưa có người thuê. Bạn có chắc chắn muốn xóa?`,
+      );
       if (!confirmDelete) return;
     } else {
       // Không có phòng nào
@@ -107,9 +113,6 @@ export const useBuildings = () => {
     handleNewBuilding,
     handleEditBuilding,
     handleSave,
-    occupiedRooms,
-    availableRooms,
-    maintenanceRooms,
     handleBuildingDelete,
     setSelectedBuilding,
     selectedBuilding,

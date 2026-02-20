@@ -26,8 +26,18 @@ export interface Pagination {
   hasPrev: boolean;
 }
 
+export interface RoomStatus {
+  available: number;
+  occupied: number;
+  maintenance: number;
+}
+
+export type BuildingWithRoomStatus = Building & {
+  roomStatus: RoomStatus;
+};
+
 export interface BuildingListResponse {
   message: string;
-  data: Building[];
+  data: BuildingWithRoomStatus[];
   pagination: Pagination;
 }
