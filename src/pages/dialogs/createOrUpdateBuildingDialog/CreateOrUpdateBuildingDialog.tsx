@@ -335,7 +335,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
               <Textarea
                 {...register('description')}
                 placeholder="Mô tả chi tiết về tòa nhà..."
-                className={`mt-1 break-all overflow-auto ${isMobile ? 'h-56' : 'h-10'} resize-none scrollbar`}
+                className={`mt-1 break-all overflow-auto ${isMobile ? 'h-45' : 'h-10'} resize-none scrollbar`}
                 maxLength={500}
               />
 
