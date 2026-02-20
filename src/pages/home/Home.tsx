@@ -77,13 +77,16 @@ const Home = () => {
   };
 
   const renderInfomationCards = () => {
-    return infomations.map((info) => {
+    return infomations.map((info, index) => {
       if (info.label === '') {
         return null;
       }
 
       return (
-        <div className="bg-linear-to-br from-slate-50 to-slate-100 rounded-lg p-4 border border-slate-200">
+        <div
+          key={info.label + index}
+          className="bg-linear-to-br from-slate-50 to-slate-100 rounded-lg p-4 border border-slate-200"
+        >
           <p className="text-sm text-slate-600 mb-1">{info.label}</p>
           <p className="font-semibold text-slate-900 break-all">{info.value}</p>
         </div>

@@ -50,7 +50,6 @@ const HomeSidebar = () => {
 
   if (!isReady) return null;
 
-  // ⬇️ Lúc này user chắc chắn tồn tại
   const isOwner = user.role === UserRole.admin;
 
   return (

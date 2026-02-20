@@ -7,7 +7,6 @@ import CreateOrUpdateBuildingDialog from '@/pages/dialogs/createOrUpdateBuilding
 
 const Buildings = () => {
   const {
-    availableRooms,
     handleBuildingDelete,
     handleEditBuilding,
     handleNewBuilding,
@@ -16,8 +15,6 @@ const Buildings = () => {
     editingBuilding,
     setIsOpen,
     isEditMode,
-    maintenanceRooms,
-    occupiedRooms,
     setSelectedBuilding,
     selectedBuilding,
     building,
@@ -166,21 +163,27 @@ const Buildings = () => {
                         <Home className="h-4 w-4 text-green-600 shrink-0" />
                         <span className="text-sm text-green-700">Cho thuê</span>
                       </div>
-                      <div className="text-2xl font-bold text-green-600">{occupiedRooms}</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {building.roomStatus.occupied}
+                      </div>
                     </div>
                     <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                       <div className="flex items-center gap-2 mb-1">
                         <Home className="h-4 w-4 text-blue-600 shrink-0" />
                         <span className="text-sm text-blue-700">Trống</span>
                       </div>
-                      <div className="text-2xl font-bold text-blue-600">{availableRooms}</div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        {building.roomStatus.available}
+                      </div>
                     </div>
                     <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                       <div className="flex items-center gap-2 mb-1">
                         <Home className="h-4 w-4 text-yellow-600 shrink-0" />
                         <span className="text-sm text-yellow-700">Bảo trì</span>
                       </div>
-                      <div className="text-2xl font-bold text-yellow-600">{maintenanceRooms}</div>
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {building.roomStatus.maintenance}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
