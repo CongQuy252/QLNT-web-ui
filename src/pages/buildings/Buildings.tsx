@@ -1,13 +1,24 @@
-import { Building2, Home, MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Building2, Home, MapPin, Pencil, Trash2 } from 'lucide-react';
+import { BsBuildingAdd } from 'react-icons/bs';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
+import { InfoDialog } from '@/components/ui/infoDialog/InfoDialog';
 import { useBuildings } from '@/pages/buildings/useBuildings';
 import CreateOrUpdateBuildingDialog from '@/pages/dialogs/createOrUpdateBuildingDialog/CreateOrUpdateBuildingDialog';
 
 const Buildings = () => {
   const {
-    handleBuildingDelete,
+    confirmOpen,
+    confirmMessage,
+    setConfirmOpen,
+    handleConfirmDelete,
+    handleAskDeleteBuilding,
+    infoOpen,
+    infoMessage,
+    setInfoOpen,
+    isDeleting,
     handleEditBuilding,
     handleNewBuilding,
     handleSave,
@@ -20,7 +31,6 @@ const Buildings = () => {
     building,
     buildings,
     isSaving,
-    isDeleting,
   } = useBuildings();
 
   return (
@@ -33,10 +43,8 @@ const Buildings = () => {
         <Button
           onClick={handleNewBuilding}
           className="gap-2"
-          icon={<Plus className="h-4 w-4" />}
-        >
-          Thêm Tòa Nhà
-        </Button>
+          icon={<BsBuildingAdd className="h-4 w-4" />}
+        />
       </div>
 
       <CreateOrUpdateBuildingDialog
@@ -68,7 +76,7 @@ const Buildings = () => {
                 >
                   <div className="font-medium text-slate-900">{building.name}</div>
                   <div className="text-sm text-slate-600 whitespace-break-spaces">
-                    {building.district}
+                    {building.district}, {building.city}
                   </div>
                 </button>
               ))}
@@ -89,7 +97,7 @@ const Buildings = () => {
                       <div>
                         <CardTitle>{building.name}</CardTitle>
                         <CardDescription className="mt-1 text-base">
-                          {building.city}
+                          {building.district}, {building.city}
                         </CardDescription>
                       </div>
                     </div>
@@ -107,7 +115,10 @@ const Buildings = () => {
                         size="sm"
                         className="gap-1 text-red-600 hover:text-red-700 bg-transparent"
                         icon={<Trash2 className="h-4 w-4" />}
-                        onClick={handleBuildingDelete}
+                        onClick={() => {
+                          setSelectedBuilding(building.id);
+                          handleAskDeleteBuilding();
+                        }}
                         disabled={isDeleting}
                       />
                     </div>
@@ -125,7 +136,7 @@ const Buildings = () => {
                       <div className="text-sm text-slate-600">Địa Chỉ</div>
                       <div className="font-medium text-slate-900 flex items-center gap-2 mt-1 whitespace-break-spaces">
                         <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
-                        {building.address}
+                        {building.address}, {building.district}, {building.city}
                       </div>
                     </div>
                     <div>
@@ -210,6 +221,20 @@ const Buildings = () => {
           )}
         </div>
       </div>
+      {confirmOpen && (
+        <ConfirmDialog
+          open={confirmOpen}
+          description={confirmMessage}
+          confirmText="Xoá"
+          loading={isDeleting}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      )}
+
+      {infoOpen && (
+        <InfoDialog open={infoOpen} message={infoMessage} onClose={() => setInfoOpen(false)} />
+      )}
     </div>
   );
 };

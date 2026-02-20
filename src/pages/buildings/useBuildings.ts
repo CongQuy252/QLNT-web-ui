@@ -16,6 +16,11 @@ export const useBuildings = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingBuilding, setEditingBuilding] = useState<Building>();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [infoMessage, setInfoMessage] = useState('');
   const queryClient = useQueryClient();
   const getBuildingQueries = useGetBuildingQueries();
   const createBuildingMutation = useCreateBuildingMutation();
@@ -64,10 +69,9 @@ export const useBuildings = () => {
 
   const building = selectedBuilding ? buildings.find((b) => b.id === selectedBuilding) : undefined;
 
-  const handleBuildingDelete = async () => {
+  const handleAskDeleteBuilding = () => {
     if (!building) return;
 
-    // Chỉ sử dụng roomStatus từ API
     const totalRooms = building.roomStatus
       ? building.roomStatus.available +
         building.roomStatus.occupied +
@@ -76,32 +80,33 @@ export const useBuildings = () => {
 
     const occupiedRooms = building.roomStatus?.occupied ?? 0;
 
-    if (totalRooms > 0) {
-      if (occupiedRooms > 0) {
-        alert(
-          `Không thể xóa tòa nhà "${building.name}" vì vẫn còn ${occupiedRooms} phòng đang có người thuê. Vui lòng xử lý hết các hợp đồng thuê trước khi xóa.`,
-        );
-        return;
-      }
-
-      // Có phòng nhưng không có người thuê
-      const confirmDelete = confirm(
-        `Tòa nhà "${building.name}" có ${totalRooms} phòng nhưng chưa có người thuê. Bạn có chắc chắn muốn xóa?`,
+    if (occupiedRooms > 0) {
+      setInfoMessage(
+        `Không thể xóa "${building.name}" vì còn ${occupiedRooms} phòng đang có người thuê.`,
       );
-      if (!confirmDelete) return;
-    } else {
-      // Không có phòng nào
-      const confirmDelete = confirm(`Bạn có chắc chắn muốn xóa tòa nhà "${building.name}"?`);
-      if (!confirmDelete) return;
+      setInfoOpen(true);
+      return;
     }
+
+    if (totalRooms > 0) {
+      setConfirmMessage(`Tòa nhà có ${totalRooms} phòng chưa có người thuê. Bạn có chắc muốn xóa?`);
+    } else {
+      setConfirmMessage(`Bạn có chắc chắn muốn xóa "${building.name}"?`);
+    }
+
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!building) return;
 
     try {
       await deleteBuildingMutation.mutateAsync(building._id);
       queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
       setSelectedBuilding(null);
+      setConfirmOpen(false);
     } catch (error) {
-      console.error('Error deleting building:', error);
-      alert('Xóa tòa nhà thất bại. Vui lòng thử lại.');
+      console.error(error);
     }
   };
 
@@ -113,7 +118,14 @@ export const useBuildings = () => {
     handleNewBuilding,
     handleEditBuilding,
     handleSave,
-    handleBuildingDelete,
+    confirmOpen,
+    confirmMessage,
+    setConfirmOpen,
+    handleConfirmDelete,
+    handleAskDeleteBuilding,
+    infoOpen,
+    infoMessage,
+    setInfoOpen,
     setSelectedBuilding,
     selectedBuilding,
     building,
