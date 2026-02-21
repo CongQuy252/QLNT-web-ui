@@ -1,66 +1,85 @@
 import { useState } from 'react';
 
+import { useGetRoomsQueries, useUpdateRoomMutation } from '@/api/room';
 import { RoomStatus } from '@/constants/appConstants';
-import { rooms } from '@/pages/rooms/data/roomMockData';
 import type { Room } from '@/types/room';
 
 export const useRooms = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
-  const [isOpenViewImageDialog, setIsOpenViewImageDialog] = useState<boolean>(false);
-  const [list, setList] = useState<string[]>([]);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
-
-  const [newRoom, setNewRoom] = useState<Room>({
-    id: crypto.randomUUID(),
-    number: '',
-    building: 'A',
-    floor: 1,
-    area: 0,
-    price: 0,
-    status: RoomStatus.available,
-    images: [],
-    currentTenant: undefined,
-    description: '',
-  });
-
-  const filteredRooms = rooms.filter((room) => {
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
+  const { data, isLoading, error } = useGetRoomsQueries(currentPage, pageSize);
+  const rooms = data?.rooms || [];
+  const pagination = data?.pagination;
+  const updateRoomMutation = useUpdateRoomMutation();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
+  const [editRoom, setEditRoom] = useState<Room | null>(null);
+  const filteredRooms = rooms.filter((room: Room) => {
     const matchesSearch =
       room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       room.building.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === RoomStatus.all || room.status === filterStatus;
+
     return matchesSearch && matchesStatus;
   });
 
-  const handleOpenDialogViewImage = (listImage: string[]) => {
-    setIsOpenViewImageDialog(true);
-    setList(listImage);
+  const handleEditRoom = (room: Room) => {
+    setEditRoom(room);
+    setIsEditDialogOpen(true);
   };
 
-  const handleCloseDialogViewImage = () => {
-    setIsOpenViewImageDialog(false);
-    setList([]);
-  };
-
-  const handleAddRoom = () => {
-    alert('Addroom');
+  const handleUpdateRoom = () => {
+    if (editRoom) {
+      updateRoomMutation.mutate(
+        {
+          id: editRoom.id,
+          data: {
+            number: editRoom.number,
+            buildingId: editRoom.buildingId,
+            floor: editRoom.floor,
+            area: editRoom.area,
+            price: editRoom.price,
+            status:
+              editRoom.status === RoomStatus.available
+                ? RoomStatus.available
+                : editRoom.status === RoomStatus.maintenance
+                  ? RoomStatus.maintenance
+                  : editRoom.status === RoomStatus.occupied
+                    ? RoomStatus.occupied
+                    : RoomStatus.available,
+            description: editRoom.description,
+          },
+        },
+        {
+          onSuccess: () => {
+            setIsEditDialogOpen(false);
+            setEditRoom(null);
+          },
+        },
+      );
+    }
   };
 
   return {
-    totalRoom: rooms.length,
-    handleAddRoom,
-    handleCloseDialogViewImage,
-    handleOpenDialogViewImage,
-    filteredRooms,
-    newRoom,
-    setNewRoom,
-    isAddDialogOpen,
-    setIsAddDialogOpen,
-    list,
-    isOpenViewImageDialog,
-    setFilterStatus,
+    totalItems: pagination?.total ?? 0,
+    isLoading,
+    isEditDialogOpen,
+    setIsEditDialogOpen,
+    editRoom,
+    setEditRoom,
+    handleUpdateRoom,
+    updateRoomMutation,
+    searchTerm,
     setSearchTerm,
     filterStatus,
-    searchTerm,
+    setFilterStatus,
+    error,
+    filteredRooms,
+    handleEditRoom,
+    pagination,
+    currentPage,
+    pageSize,
+    setCurrentPage,
   };
 };
