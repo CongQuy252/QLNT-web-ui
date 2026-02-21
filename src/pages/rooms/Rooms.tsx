@@ -1,9 +1,6 @@
 import { Edit, Home, Trash2 } from 'lucide-react';
-import { FaImages, FaUserPlus } from 'react-icons/fa';
+import { FaUserPlus } from 'react-icons/fa';
 
-import { useGetBuildingQueries } from '@/api/building';
-import { useGetRoomsQueries, useUpdateRoomMutation } from '@/api/room';
-import PlusRoom from '@/assets/Icon/PlusRoom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -13,103 +10,35 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import ImageListDialog from '@/components/ui/imageView/ImageListDialog';
 import { Input } from '@/components/ui/input';
 import { RoomStatus } from '@/constants/appConstants';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
 import { useRooms } from '@/pages/rooms/useRooms';
+import type { Room } from '@/types/room';
 import { formatCurrency } from '@/utils/utils';
 
 export default function Rooms() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
-  const [isOpenViewImageDialog, setIsOpenViewImageDialog] = useState<boolean>(false);
-  const [list, setList] = useState<string[]>([]);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
-
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 10;
-
-  const { data, isLoading, error } = useGetRoomsQueries(currentPage, pageSize);
-  const rooms = data?.rooms || [];
-  const pagination = data?.pagination;
-  const updateRoomMutation = useUpdateRoomMutation();
-  const { data: buildings = [] } = useGetBuildingQueries();
-
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
-  const [editRoom, setEditRoom] = useState<Room | null>(null);
-
-  const [newRoom, setNewRoom] = useState<Room>({
-    id: crypto.randomUUID(),
-    number: '',
-    building: 'A',
-    floor: 1,
-    area: 0,
-    price: 0,
-    status: RoomStatus.available,
-    images: [],
-    currentTenant: undefined,
-    description: '',
-  });
-
-  const filteredRooms = rooms.filter((room: Room) => {
-    const matchesSearch =
-      room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.building.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === RoomStatus.all || room.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
-
-  const handleOpenDialogViewImage = (listImage: string[]) => {
-    setIsOpenViewImageDialog(true);
-    setList(listImage);
-  };
-
-  const handleCloseDialogViewImage = () => {
-    setIsOpenViewImageDialog(false);
-    setList([]);
-  };
-
-  const handleAddRoom = () => {
-    alert('Addroom');
-  };
-
-  const handleEditRoom = (room: Room) => {
-    setEditRoom(room);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleUpdateRoom = () => {
-    if (editRoom) {
-      updateRoomMutation.mutate(
-        {
-          id: editRoom.id,
-          data: {
-            number: editRoom.number,
-            buildingId: editRoom.buildingId,
-            floor: editRoom.floor,
-            area: editRoom.area,
-            price: editRoom.price,
-            status:
-              editRoom.status === RoomStatus.available
-                ? 'available'
-                : editRoom.status === RoomStatus.maintenance
-                  ? 'maintenance'
-                  : editRoom.status === RoomStatus.occupied
-                    ? 'occupied'
-                    : 'available',
-            description: editRoom.description,
-          },
-        },
-        {
-          onSuccess: () => {
-            setIsEditDialogOpen(false);
-            setEditRoom(null);
-          },
-        },
-      );
-    }
-  };
+  const {
+    totalItems,
+    isLoading,
+    isEditDialogOpen,
+    setIsEditDialogOpen,
+    editRoom,
+    setEditRoom,
+    handleUpdateRoom,
+    updateRoomMutation,
+    searchTerm,
+    setSearchTerm,
+    filterStatus,
+    setFilterStatus,
+    error,
+    filteredRooms,
+    handleEditRoom,
+    pagination,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+  } = useRooms();
 
   return (
     <div className="h-full flex flex-col">
@@ -117,124 +46,9 @@ export default function Rooms() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Quản lý phòng</h1>
           <p className="text-slate-600 mt-2">
-            {isLoading ? 'Đang tải...' : `Tổng cộng ${pagination?.total || 0} phòng`}
+            {isLoading ? 'Đang tải...' : `Tổng cộng ${totalItems} phòng`}
           </p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
-              icon={<PlusRoom className="w-16 h-16" />}
-            ></Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Thêm phòng mới</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Số phòng</label>
-                <Input
-                  placeholder="VD: 101, 102..."
-                  value={newRoom?.number}
-                  onChange={(e) => setNewRoom({ ...newRoom, number: e.target.value })}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Tòa nhà</label>
-                  <select
-                    value={newRoom?.buildingId || ''}
-                    onChange={(e) => {
-                      const selectedBuilding = buildings.find((b) => b._id === e.target.value);
-                      setNewRoom({
-                        ...newRoom,
-                        buildingId: e.target.value,
-                        building: selectedBuilding?.name || '',
-                      });
-                    }}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    aria-label="Tòa nhà"
-                  >
-                    {buildings.map((building) => (
-                      <option key={building._id} value={building._id}>
-                        {building.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Tầng</label>
-                  <select
-                    value={newRoom?.floor}
-                    onChange={(e) => setNewRoom({ ...newRoom, floor: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    aria-label="Tầng"
-                  >
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((f) => (
-                      <option key={f} value={f}>
-                        Tầng {f}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Diện tích (m²)</label>
-                  <Input
-                    type="number"
-                    min="5"
-                    max="100"
-                    value={newRoom?.area}
-                    onChange={(e) => setNewRoom({ ...newRoom, area: Number(e.target.value) })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Giá thuê/tháng</label>
-                  <Input
-                    type="number"
-                    min="100000"
-                    step="100000"
-                    value={newRoom?.price}
-                    onChange={(e) => setNewRoom({ ...newRoom, price: Number(e.target.value) })}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Mô tả</label>
-                <textarea
-                  placeholder="Mô tả chi tiết về phòng..."
-                  value={newRoom?.description}
-                  onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-none"
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex gap-2 pt-4 border-t border-slate-200">
-                <Button
-                  variant="outline"
-                  className="flex-1 text-slate-700 border-slate-300 bg-transparent"
-                  onClick={() => setIsAddDialogOpen(false)}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  className="flex-1 bg-slate-900 hover:bg-slate-800 text-white"
-                  onClick={handleAddRoom}
-                >
-                  Thêm phòng
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
@@ -351,9 +165,9 @@ export default function Rooms() {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-4 mt-3">
         <Input
-          placeholder="Tìm kiếm theo tên phòng hoặc tòa nhà..."
+          placeholder="Tìm kiếm theo số phòng hoặc tòa nhà..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
@@ -364,12 +178,15 @@ export default function Rooms() {
               <Button
                 key={status}
                 variant={filterStatus === status ? 'default' : 'outline'}
-                onClick={() => setFilterStatus(status)}
-                className={
+                onClick={() => {
+                  setFilterStatus(status);
+                  setCurrentPage(1);
+                }}
+                className={`${
                   filterStatus === status
                     ? 'bg-slate-900 text-white'
                     : 'text-slate-700 border-slate-300'
-                }
+                } p-[11.5px]`}
               >
                 {getStatusLabel(status)}
               </Button>
@@ -379,7 +196,7 @@ export default function Rooms() {
       </div>
 
       {/* Room Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto">
         {isLoading && (
           <div className="col-span-full flex justify-center py-8">
             <div className="text-slate-600">Đang tải danh sách phòng...</div>
@@ -401,18 +218,10 @@ export default function Rooms() {
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
-                      <h3 className="text-xl font-bold text-slate-900">Phòng {room.number}</h3>
+                      <h3 className="text-xl font-bold text-slate-900">{room.number}</h3>
                       <p className="text-sm text-slate-600">
                         Tòa {room.building} - Tầng {room.floor}
                       </p>
-                    </div>
-                    <div
-                      className="p-2 bg-slate-100 rounded-lg cursor-pointer"
-                      onClick={() => {
-                        handleOpenDialogViewImage(room.images);
-                      }}
-                    >
-                      <FaImages className="w-5 h-5 text-slate-600" />
                     </div>
                   </div>
 
@@ -467,7 +276,8 @@ export default function Rooms() {
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <p className="text-slate-600 text-sm">
-                              Tính năng chỉnh sửa sẽ được cập nhật trong phiên bản tiếp theo
+                              Tính năng Thêm người thuê phòng sẽ được cập nhật trong phiên bản tiếp
+                              theo
                             </p>
                           </div>
                         </DialogContent>
@@ -507,21 +317,20 @@ export default function Rooms() {
             );
           })}
       </div>
-      {isOpenViewImageDialog && (
-        <ImageListDialog
-          open={isOpenViewImageDialog}
-          onClose={handleCloseDialogViewImage}
-          images={list}
-          title="Danh sách hình ảnh phòng"
-        />
+
+      {!isLoading && !error && filteredRooms.length === 0 && (
+        <Card className="p-12 bg-white text-center">
+          <Home className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+          <p className="text-slate-600">Không tìm thấy phòng nào phù hợp</p>
+        </Card>
       )}
 
       {/* Pagination */}
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-3">
           <div className="text-sm text-slate-600">
-            Hiển thị {(currentPage - 1) * pageSize + 1} đến{' '}
-            {Math.min(currentPage * pageSize, pagination.total)} của {pagination.total} phòng
+            {(currentPage - 1) * pageSize + 1} -{' '}
+            {Math.min(currentPage * pageSize, pagination.total)} / {pagination.total}
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -533,7 +342,7 @@ export default function Rooms() {
               Trước
             </Button>
             <span className="text-sm text-slate-600">
-              Trang {currentPage} / {pagination.totalPages}
+              {currentPage} / {pagination.totalPages}
             </span>
             <Button
               variant="outline"
@@ -545,13 +354,6 @@ export default function Rooms() {
             </Button>
           </div>
         </div>
-      )}
-
-      {!isLoading && !error && filteredRooms.length === 0 && (
-        <Card className="p-12 bg-white text-center">
-          <Home className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-600">Không tìm thấy phòng nào phù hợp</p>
-        </Card>
       )}
     </div>
   );

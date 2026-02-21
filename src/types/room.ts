@@ -16,7 +16,38 @@ export interface Room {
 }
 
 export interface RoomListResponse {
-  message: string;
-  data: Room[];
+  rooms: GetRoom[];
   pagination: Pagination;
 }
+
+export interface GetRoom {
+  id: string;
+  number: string;
+  buildingId?: {
+    _id: string;
+    name: string;
+  };
+  floor: number;
+  area: number;
+  price: number;
+  status: RoomStatus;
+  description?: string;
+}
+
+export interface PutRoom {
+  id: string;
+  number: string;
+  buildingId?: string;
+  floor: number;
+  area: number;
+  price: number;
+  status: RoomStatus;
+  description?: string;
+}
+
+export interface PutRoomResponse {
+  message: string;
+  data: PutRoom;
+}
+
+export type PutRoomRequest = Omit<PutRoom, 'id'>;
