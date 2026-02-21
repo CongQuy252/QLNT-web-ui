@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
 import { InfoDialog } from '@/components/ui/infoDialog/InfoDialog';
+import { Path, RoomStatus } from '@/constants/appConstants';
 import { useBuildings } from '@/pages/buildings/useBuildings';
 import CreateOrUpdateBuildingDialog from '@/pages/dialogs/createOrUpdateBuildingDialog/CreateOrUpdateBuildingDialog';
 
@@ -31,7 +32,58 @@ const Buildings = () => {
     building,
     buildings,
     isSaving,
+    handleClickRoomStatusCount,
   } = useBuildings();
+
+  const renderRoomStatusCount = () => {
+    const statusConfig = [
+      {
+        label: 'Cho thuê',
+        value: building?.roomStatus?.occupied,
+        bg: 'bg-green-50',
+        border: 'border-green-200',
+        text: 'text-green-700',
+        number: 'text-green-600',
+        icon: 'text-green-600',
+        status: RoomStatus.occupied,
+      },
+      {
+        label: 'Trống',
+        value: building?.roomStatus?.available,
+        bg: 'bg-blue-50',
+        border: 'border-blue-200',
+        text: 'text-blue-700',
+        number: 'text-blue-600',
+        icon: 'text-blue-600',
+        status: RoomStatus.available,
+      },
+      {
+        label: 'Bảo trì',
+        value: building?.roomStatus?.maintenance,
+        bg: 'bg-yellow-50',
+        border: 'border-yellow-200',
+        text: 'text-yellow-700',
+        number: 'text-yellow-600',
+        icon: 'text-yellow-600',
+        status: RoomStatus.maintenance,
+      },
+    ];
+
+    return statusConfig.map((status) => (
+      <div
+        key={status.label}
+        className={`p-3 rounded-lg border h-full flex flex-col justify-between cursor-pointer ${status.bg} ${status.border}`}
+        onClick={() => handleClickRoomStatusCount(`${building?.id}/${Path.rooms}`, status.status)}
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <Home className={`h-4 w-4 shrink-0 ${status.icon}`} />
+          <span className={`text-sm ${status.text}`}>{status.label}</span>
+        </div>
+
+        <div className={`text-2xl font-bold ${status.number}`}>{status.value}</div>
+      </div>
+    ));
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -179,35 +231,7 @@ const Buildings = () => {
                   <CardTitle className="text-base">Thống Kê Phòng</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Home className="h-4 w-4 text-green-600 shrink-0" />
-                        <span className="text-sm text-green-700">Cho thuê</span>
-                      </div>
-                      <div className="text-2xl font-bold text-green-600">
-                        {building.roomStatus.occupied}
-                      </div>
-                    </div>
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Home className="h-4 w-4 text-blue-600 shrink-0" />
-                        <span className="text-sm text-blue-700">Trống</span>
-                      </div>
-                      <div className="text-2xl font-bold text-blue-600">
-                        {building.roomStatus.available}
-                      </div>
-                    </div>
-                    <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Home className="h-4 w-4 text-yellow-600 shrink-0" />
-                        <span className="text-sm text-yellow-700">Bảo trì</span>
-                      </div>
-                      <div className="text-2xl font-bold text-yellow-600">
-                        {building.roomStatus.maintenance}
-                      </div>
-                    </div>
-                  </div>
+                  <div className="grid grid-cols-3 gap-4">{renderRoomStatusCount()}</div>
                 </CardContent>
               </Card>
             </div>

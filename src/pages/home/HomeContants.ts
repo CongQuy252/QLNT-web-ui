@@ -62,7 +62,7 @@ export const tenantListFunctions: NavigationItem[] = [
     title: 'Thanh Toán Tiền Phòng',
     description: 'Xem và quản lý các khoản thanh toán',
     icon: CreditCard,
-    path: `/${Path.buildings}/${Path.houseId}/${Path.rooms}/${Path.roomId}/${Path.payments}`,
+    path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}/${Path.roomId}/${Path.payments}`,
     color: 'from-green-500 to-green-600',
   },
 ];

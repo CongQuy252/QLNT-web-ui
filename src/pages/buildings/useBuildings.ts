@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
   useCreateBuildingMutation,
@@ -7,25 +8,25 @@ import {
   useGetBuildingQueries,
   useUpdateBuildingMutation,
 } from '@/api/building';
-import { QueriesKey } from '@/constants/appConstants';
+import { QueriesKey, RoomStatus } from '@/constants/appConstants';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
 import type { Building } from '@/types/building';
 
 export const useBuildings = () => {
-  const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingBuilding, setEditingBuilding] = useState<Building>();
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmMessage, setConfirmMessage] = useState('');
-
-  const [infoOpen, setInfoOpen] = useState(false);
-  const [infoMessage, setInfoMessage] = useState('');
+  const navigator = useNavigate();
   const queryClient = useQueryClient();
   const getBuildingQueries = useGetBuildingQueries();
   const createBuildingMutation = useCreateBuildingMutation();
   const updateBuildingMutation = useUpdateBuildingMutation();
   const deleteBuildingMutation = useDeleteBuildingMutation();
+  const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
+  const [editingBuilding, setEditingBuilding] = useState<Building>();
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [infoMessage, setInfoMessage] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const buildings = useMemo(() => {
     return (
@@ -110,6 +111,12 @@ export const useBuildings = () => {
     }
   };
 
+  const handleClickRoomStatusCount = (path: string, status: RoomStatus) => {
+    navigator(path, {
+      state: { status },
+    });
+  };
+
   return {
     isOpen,
     setIsOpen,
@@ -132,5 +139,6 @@ export const useBuildings = () => {
     buildings,
     isSaving: createBuildingMutation.isPending || updateBuildingMutation.isPending,
     isDeleting: deleteBuildingMutation.isPending,
+    handleClickRoomStatusCount,
   };
 };
