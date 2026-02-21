@@ -17,7 +17,7 @@ import { useRooms } from '@/pages/rooms/useRooms';
 import type { Room } from '@/types/room';
 import { formatCurrency } from '@/utils/utils';
 
-export default function Rooms() {
+const Rooms = () => {
   const {
     totalItems,
     isLoading,
@@ -45,9 +45,7 @@ export default function Rooms() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Quản lý phòng</h1>
-          <p className="text-slate-600 mt-2">
-            {isLoading ? 'Đang tải...' : `Tổng cộng ${totalItems} phòng`}
-          </p>
+          <p className="text-slate-600 mt-2">{`Tổng cộng ${totalItems} phòng`}</p>
         </div>
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="max-w-md">
@@ -165,14 +163,29 @@ export default function Rooms() {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="flex flex-col md:flex-row gap-4 mt-3">
-        <Input
-          placeholder="Tìm kiếm theo số phòng hoặc tòa nhà..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1"
-        />
-        <div className="flex gap-2 mb-5">
+
+      <div className="flex flex-col md:flex-row gap-4 mt-3 w-full">
+        <div className="relative flex-1">
+          <Input
+            placeholder="Tìm kiếm ..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="peer"
+          />
+          <div
+            className="pointer-events-none absolute left-1/2 -top-10 -translate-x-1/2
+                  opacity-0 peer-focus:opacity-100
+                  transition-all duration-200
+                  bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap"
+          >
+            Nhập số phòng hoặc tên tòa nhà để tìm kiếm
+            <div
+              className="absolute left-1/2 top-full -translate-x-1/2
+                    border-6 border-transparent border-t-gray-900"
+            ></div>
+          </div>
+        </div>
+        <div className="flex gap-2 mb-5 w-full overflow-x-auto">
           {[RoomStatus.all, RoomStatus.available, RoomStatus.maintenance, RoomStatus.occupied].map(
             (status) => (
               <Button
@@ -357,4 +370,6 @@ export default function Rooms() {
       )}
     </div>
   );
-}
+};
+
+export default Rooms;

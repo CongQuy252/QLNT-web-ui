@@ -40,6 +40,7 @@ export const useGetRoomsQueries = (page = 1, limit = 10, isEnabled = true) => {
     },
     enabled: isEnabled,
     meta: { handleError: handleHttpError },
+    placeholderData: (prev) => prev,
   });
 };
 

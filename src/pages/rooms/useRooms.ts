@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useGetRoomsQueries, useUpdateRoomMutation } from '@/api/room';
 import { RoomStatus } from '@/constants/appConstants';
@@ -61,8 +61,10 @@ export const useRooms = () => {
     }
   };
 
+  const totalItems = useMemo(() => pagination?.total ?? 0, [pagination]);
+
   return {
-    totalItems: pagination?.total ?? 0,
+    totalItems,
     isLoading,
     isEditDialogOpen,
     setIsEditDialogOpen,
