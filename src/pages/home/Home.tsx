@@ -66,9 +66,9 @@ const Home = () => {
   ];
 
   const renderSumaryCards = () => {
-    return sumaryInfomations.map((info) => {
+    return sumaryInfomations.map((info, index) => {
       return (
-        <Card className="p-6 border-0">
+        <Card className="p-6 border-0" key={`${info.label}_${index}`}>
           <p className="text-sm text-slate-600 mb-2">{info.label}</p>
           <p className="text-3xl font-bold text-slate-900">{info.value}</p>
         </Card>
@@ -77,13 +77,16 @@ const Home = () => {
   };
 
   const renderInfomationCards = () => {
-    return infomations.map((info) => {
+    return infomations.map((info, index) => {
       if (info.label === '') {
         return null;
       }
 
       return (
-        <div className="bg-linear-to-br from-slate-50 to-slate-100 rounded-lg p-4 border border-slate-200">
+        <div
+          key={info.label + index}
+          className="bg-linear-to-br from-slate-50 to-slate-100 rounded-lg p-4 border border-slate-200"
+        >
           <p className="text-sm text-slate-600 mb-1">{info.label}</p>
           <p className="font-semibold text-slate-900 break-all">{info.value}</p>
         </div>

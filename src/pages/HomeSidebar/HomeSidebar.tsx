@@ -50,7 +50,6 @@ const HomeSidebar = () => {
 
   if (!isReady) return null;
 
-  // ⬇️ Lúc này user chắc chắn tồn tại
   const isOwner = user.role === UserRole.admin;
 
   return (
@@ -125,7 +124,7 @@ const HomeSidebar = () => {
       {/* CONTENT */}
       <main className="flex-1 h-full p-6 overflow-y-auto overflow-x-hidden">
         {isMobile && (
-          <Button variant="ghost" size="icon" className="mb-4" onClick={() => setOpen(true)}>
+          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
             <Menu className="w-6 h-6" />
           </Button>
         )}

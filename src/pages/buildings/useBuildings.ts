@@ -1,18 +1,32 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { useGetBuildingQueries } from '@/api/building';
-import { RoomStatus } from '@/constants/appConstants';
+import {
+  useCreateBuildingMutation,
+  useDeleteBuildingMutation,
+  useGetBuildingQueries,
+  useUpdateBuildingMutation,
+} from '@/api/building';
+import { QueriesKey, RoomStatus } from '@/constants/appConstants';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
-import { rooms } from '@/pages/rooms/data/roomMockData';
 import type { Building } from '@/types/building';
-import type { Room } from '@/types/room';
 
 export const useBuildings = () => {
+  const navigator = useNavigate();
+  const queryClient = useQueryClient();
+  const getBuildingQueries = useGetBuildingQueries();
+  const createBuildingMutation = useCreateBuildingMutation();
+  const updateBuildingMutation = useUpdateBuildingMutation();
+  const deleteBuildingMutation = useDeleteBuildingMutation();
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
+  const [editingBuilding, setEditingBuilding] = useState<Building>();
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [infoMessage, setInfoMessage] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editingBuilding, setEditingBuilding] = useState<Building>();
-  const getBuildingQueries = useGetBuildingQueries();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const buildings = useMemo(() => {
     return (
@@ -37,35 +51,70 @@ export const useBuildings = () => {
   };
 
   const handleSave = async (data: BuildingFormInput) => {
-    if (isEditMode && editingBuilding) {
-      console.log('Update building', {
-        id: editingBuilding._id,
-        ...data,
-      });
-    } else {
-      console.log('Create new building', data);
-    }
+    try {
+      if (isEditMode && editingBuilding) {
+        await updateBuildingMutation.mutateAsync({
+          id: editingBuilding._id,
+          data,
+        });
+      } else {
+        await createBuildingMutation.mutateAsync(data);
+      }
 
-    setIsOpen(false);
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Error saving building:', error);
+    }
   };
 
   const building = selectedBuilding ? buildings.find((b) => b.id === selectedBuilding) : undefined;
 
-  const getRoomsByBuilding = (buildingId: string): Room[] => {
-    const buildingName = buildings.find((b) => b.id === buildingId)?.name;
-    return rooms.filter((r) => r.building === buildingName?.charAt(buildingName.length - 1));
+  const handleAskDeleteBuilding = () => {
+    if (!building) return;
+
+    const totalRooms = building.roomStatus
+      ? building.roomStatus.available +
+        building.roomStatus.occupied +
+        building.roomStatus.maintenance
+      : 0;
+
+    const occupiedRooms = building.roomStatus?.occupied ?? 0;
+
+    if (occupiedRooms > 0) {
+      setInfoMessage(
+        `Không thể xóa "${building.name}" vì còn ${occupiedRooms} phòng đang có người thuê.`,
+      );
+      setInfoOpen(true);
+      return;
+    }
+
+    if (totalRooms > 0) {
+      setConfirmMessage(`Tòa nhà có ${totalRooms} phòng chưa có người thuê. Bạn có chắc muốn xóa?`);
+    } else {
+      setConfirmMessage(`Bạn có chắc chắn muốn xóa "${building.name}"?`);
+    }
+
+    setConfirmOpen(true);
   };
 
-  const buildingRooms = building ? getRoomsByBuilding(building.id) : [];
-  const occupiedRooms = buildingRooms.filter((r) => r.status === RoomStatus.occupied).length;
-  const availableRooms = buildingRooms.filter((r) => r.status === RoomStatus.available).length;
-  const maintenanceRooms = buildingRooms.filter((r) => r.status === RoomStatus.maintenance).length;
+  const handleConfirmDelete = async () => {
+    if (!building) return;
 
-  const handleBuildingDelete = () => {
-    if (building) {
-      console.log('Delete building', building.id);
+    try {
+      await deleteBuildingMutation.mutateAsync(building._id);
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
       setSelectedBuilding(null);
+      setConfirmOpen(false);
+    } catch (error) {
+      console.error(error);
     }
+  };
+
+  const handleClickRoomStatusCount = (path: string, status: RoomStatus) => {
+    navigator(path, {
+      state: { status },
+    });
   };
 
   return {
@@ -76,13 +125,20 @@ export const useBuildings = () => {
     handleNewBuilding,
     handleEditBuilding,
     handleSave,
-    occupiedRooms,
-    availableRooms,
-    maintenanceRooms,
-    handleBuildingDelete,
+    confirmOpen,
+    confirmMessage,
+    setConfirmOpen,
+    handleConfirmDelete,
+    handleAskDeleteBuilding,
+    infoOpen,
+    infoMessage,
+    setInfoOpen,
     setSelectedBuilding,
     selectedBuilding,
     building,
     buildings,
+    isSaving: createBuildingMutation.isPending || updateBuildingMutation.isPending,
+    isDeleting: deleteBuildingMutation.isPending,
+    handleClickRoomStatusCount,
   };
 };
