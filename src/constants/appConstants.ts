@@ -48,3 +48,9 @@ export enum LocalStorageKey {
   token = 'token',
   userId = 'userId',
 }
+
+export enum TenantStatus {
+  all = 'all',
+  active = 'active',
+  inactive = 'inactive',
+}

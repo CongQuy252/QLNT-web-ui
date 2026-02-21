@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { TenantStatus } from '@/constants/appConstants';
 import CreateOrUpdateTenant from '@/pages/dialogs/createOrupdateTenant/CreateOrUpdateTenant';
 import { rooms } from '@/pages/rooms/data/roomMockData';
+import type { Pagination } from '@/types/building';
 import type { Room } from '@/types/room';
 import type { User } from '@/types/user';
 
@@ -31,7 +33,7 @@ const Tenant = () => {
       email: 'nguyenvana@example.com',
       phone: '0987654321',
       contractEndDate: '2025-12-31',
-      status: 'active',
+      status: 'inactive',
     },
     {
       id: 'tenant3',
@@ -88,11 +90,24 @@ const Tenant = () => {
       status: 'active',
     },
   ];
+
+  const pagination: Pagination = {
+    hasNext: false,
+    hasPrev: false,
+    limit: 20,
+    page: 1,
+    total: 20,
+    totalPages: 200,
+  };
+  const isLoading = false;
+
+  const pageSize = 20;
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [filterStatus, setFilterStatus] = useState<TenantStatus>(TenantStatus.all);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<User | undefined>();
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const toggleExpand = (id: string) => {
     setExpandedIds(
@@ -108,7 +123,7 @@ const Tenant = () => {
       tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tenant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tenant.phone.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || tenant.status === filterStatus;
+    const matchesStatus = filterStatus === TenantStatus.all || tenant.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
@@ -130,8 +145,8 @@ const Tenant = () => {
   //TODO: Phân trang, Edit, Create
 
   return (
-    <div className="space-y-8 flex flex-col h-full overflow-hidden">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="h-full flex flex-col">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Quản lý người thuê</h1>
           <p className="text-slate-600 mt-2">Tổng cộng {tenants.length} người thuê</p>
@@ -157,142 +172,50 @@ const Tenant = () => {
       </div>
 
       {/* Filter */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <Input
-          placeholder="Tìm kiếm theo số điện thoại"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1"
-        />
-        <div className="flex gap-2">
-          {(['all', 'active', 'inactive'] as const).map((status) => (
+      <div className="flex flex-col md:flex-row gap-4 mt-3">
+        <div className="relative flex-1">
+          <Input
+            placeholder="Tìm kiếm ..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="peer"
+          />
+          <div
+            className="pointer-events-none absolute left-1/2 -top-10 -translate-x-1/2
+                  opacity-0 peer-focus:opacity-100
+                  transition-all duration-200
+                  bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap"
+          >
+            Nhập tên người thuê
+            <div
+              className="absolute left-1/2 top-full -translate-x-1/2
+                    border-6 border-transparent border-t-gray-900"
+            ></div>
+          </div>
+        </div>
+
+        <div className="flex gap-2 mb-3">
+          {[TenantStatus.all, TenantStatus.active, TenantStatus.inactive].map((status) => (
             <Button
               key={status}
               variant={filterStatus === status ? 'default' : 'outline'}
               onClick={() => setFilterStatus(status)}
-              className={
+              className={`flex-1 ${
                 filterStatus === status
                   ? 'bg-slate-900 text-white'
                   : 'text-slate-700 border-slate-300'
-              }
+              }`}
             >
-              {status === 'all' && 'Tất cả'}
-              {status === 'active' && 'Đang ở'}
-              {status === 'inactive' && 'Đã trả'}
+              {status === TenantStatus.all && 'Tất cả'}
+              {status === TenantStatus.active && 'Đang ở'}
+              {status === TenantStatus.inactive && 'Đã trả'}
             </Button>
           ))}
         </div>
       </div>
 
       {/* Tenants Table */}
-      <div className="flex-1 overflow-y-auto pr-2">
-        {/* <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50">
-              <tr>
-                <th className="text-left py-4 px-6 font-semibold text-slate-900">Họ tên</th>
-                <th className="text-left py-4 px-6 font-semibold text-slate-900">Phòng</th>
-                <th className="text-left py-4 px-6 font-semibold text-slate-900">Email</th>
-                <th className="text-left py-4 px-6 font-semibold text-slate-900">Số điện thoại</th>
-                <th className="text-left py-4 px-6 font-semibold text-slate-900">Hợp đồng</th>
-                <th className="text-left py-4 px-6 font-semibold text-slate-900">Trạng thái</th>
-                <th className="text-left py-4 px-6 font-semibold text-slate-900">Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTenants.map((tenant) => {
-                const room: Room = rooms[1];
-                const daysLeft = daysUntilExpiry(tenant.contractEndDate);
-                const isExpiringSoon = daysLeft <= 30 && daysLeft > 0;
-
-                return (
-                  <tr key={tenant.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="py-4 px-6">
-                      <div>
-                        <p className="font-semibold text-slate-900">{tenant.name}</p>
-                        <p className="text-xs text-slate-600">{tenant.idNumber}</p>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <p className="font-medium text-slate-900">
-                        {room ? `Phòng ${room.number}` : 'N/A'}
-                      </p>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2 text-slate-600">
-                        <Mail className="w-4 h-4" />
-                        {tenant.email}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2 text-slate-600">
-                        <Phone className="w-4 h-4" />
-                        {tenant.phone}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-slate-600" />
-                        <div className="text-sm">
-                          <p className="text-slate-900 font-medium">
-                            {daysLeft > 0 ? `Còn ${daysLeft} ngày` : 'Hết hạn'}
-                          </p>
-                          <p className="text-xs text-slate-600">Đến {tenant.contractEndDate}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(
-                          tenant.status,
-                        )}`}
-                      >
-                        {getStatusLabel(tenant.status)}
-                      </span>
-                      {isExpiringSoon && (
-                        <span className="block text-xs text-orange-600 mt-1">⚠ Sắp hết hạn</span>
-                      )}
-                    </td>
-                    <td className="py-4 px-6">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-2 text-slate-700 border-slate-300 bg-transparent"
-                            // onClick={() => {
-                            //   setEditingTenant({
-                            //     id: tenant.id,
-                            //     fullName: tenant.name,
-                            //     email: tenant.email,
-                            //     phone: tenant.phone,
-                            //     username: tenant.email.split('@')[0],
-                            //     role: 'tenant',
-                            //     CCCD: tenant.idNumber,
-                            //     CCCDImage: [],
-                            //   });
-                            //   setIsAddOpen(true);
-                            // }}
-                            icon={<Edit className="w-4 h-4" />}
-                          />
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Chỉnh sửa thông tin {tenant.name}</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4 py-4">
-                            <p className="text-slate-600 text-sm">
-                              Tính năng chỉnh sửa sẽ được cập nhật trong phiên bản tiếp theo
-                            </p>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table> */}
-
+      <div className="flex-1 overflow-y-auto">
         <div className="grid gap-4">
           {filteredTenants.map((tenant) => {
             const room: Room = rooms[1];
@@ -395,6 +318,36 @@ const Tenant = () => {
           <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-600">Không tìm thấy người thuê nào phù hợp</p>
         </Card>
+      )}
+
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between mt-3">
+          <div className="text-sm text-slate-600">
+            {(currentPage - 1) * pageSize + 1} -{' '}
+            {Math.min(currentPage * pageSize, pagination.total)} / {pagination.total}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={!pagination.hasPrev || isLoading}
+            >
+              Trước
+            </Button>
+            <span className="text-sm text-slate-600">
+              {currentPage} / {pagination.totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.min(pagination.totalPages, prev + 1))}
+              disabled={!pagination.hasNext || isLoading}
+            >
+              Tiếp
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

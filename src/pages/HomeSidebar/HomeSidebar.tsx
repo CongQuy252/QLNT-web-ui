@@ -1,6 +1,7 @@
-import { ArrowRight, LogOut, Menu } from 'lucide-react';
+import { ArrowRight, LogOut } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { FaHome } from 'react-icons/fa';
+import { RiExpandRightFill } from 'react-icons/ri';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useUserQuery } from '@/api/user';
@@ -123,9 +124,14 @@ const HomeSidebar = () => {
 
       {/* CONTENT */}
       <main className="flex-1 h-full p-6 overflow-y-auto overflow-x-hidden">
-        {isMobile && (
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
-            <Menu className="w-6 h-6" />
+        {isMobile && !open && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setOpen(true)}
+            className="fixed -left-3 top-1/2 -translate-y-1/2 z-50 shadow-md bg-gray-200 rotate-45 rounded-md flex items-center justify-center"
+          >
+            <RiExpandRightFill className="-rotate-45 w-6 h-6" />
           </Button>
         )}
         <Outlet />
