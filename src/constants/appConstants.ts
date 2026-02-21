@@ -5,7 +5,7 @@ export enum Path {
   rooms = 'rooms',
   tenants = 'tenants',
   payments = 'payments',
-  houseId = ':houseId',
+  buildingId = ':buildingId',
   roomId = ':roomId',
   userId = ':userId',
 }
@@ -20,6 +20,7 @@ export enum Breadcrumb {
 
 export enum QueriesKey {
   provinces = 'provinces',
+  districts = 'districts',
   wards = 'wards',
   user = 'user',
   buildings = 'buildings',

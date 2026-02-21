@@ -66,9 +66,9 @@ const Home = () => {
   ];
 
   const renderSumaryCards = () => {
-    return sumaryInfomations.map((info) => {
+    return sumaryInfomations.map((info, index) => {
       return (
-        <Card className="p-6 border-0">
+        <Card className="p-6 border-0" key={`${info.label}_${index}`}>
           <p className="text-sm text-slate-600 mb-2">{info.label}</p>
           <p className="text-3xl font-bold text-slate-900">{info.value}</p>
         </Card>

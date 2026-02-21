@@ -1,5 +1,4 @@
 import { Edit, Home, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 import { FaImages, FaUserPlus } from 'react-icons/fa';
 
 import PlusRoom from '@/assets/Icon/PlusRoom';
@@ -15,61 +14,37 @@ import {
 import ImageListDialog from '@/components/ui/imageView/ImageListDialog';
 import { Input } from '@/components/ui/input';
 import { RoomStatus } from '@/constants/appConstants';
-import { rooms } from '@/pages/rooms/data/roomMockData';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
-import type { Room } from '@/types/room';
+import { useRooms } from '@/pages/rooms/useRooms';
 import { formatCurrency } from '@/utils/utils';
 
 export default function Rooms() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
-  const [isOpenViewImageDialog, setIsOpenViewImageDialog] = useState<boolean>(false);
-  const [list, setList] = useState<string[]>([]);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
-
-  const [newRoom, setNewRoom] = useState<Room>({
-    id: crypto.randomUUID(),
-    number: '',
-    building: 'A',
-    floor: 1,
-    area: 0,
-    price: 0,
-    status: RoomStatus.available,
-    images: [],
-    currentTenant: undefined,
-    description: '',
-  });
-
-  const filteredRooms = rooms.filter((room) => {
-    const matchesSearch =
-      room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.building.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === RoomStatus.all || room.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
-
-  const handleOpenDialogViewImage = (listImage: string[]) => {
-    setIsOpenViewImageDialog(true);
-    setList(listImage);
-  };
-
-  const handleCloseDialogViewImage = () => {
-    setIsOpenViewImageDialog(false);
-    setList([]);
-  };
-
-  const handleAddRoom = () => {
-    alert('Addroom');
-  };
+  const {
+    setIsAddDialogOpen,
+    isAddDialogOpen,
+    newRoom,
+    setNewRoom,
+    handleAddRoom,
+    searchTerm,
+    setSearchTerm,
+    filterStatus,
+    setFilterStatus,
+    filteredRooms,
+    handleOpenDialogViewImage,
+    isOpenViewImageDialog,
+    handleCloseDialogViewImage,
+    list,
+    totalRoom,
+  } = useRooms();
 
   //TODO: Phân trang, Edit, Create, Thêm người thuê mới, Huỷ người thuê cũ đối với room đang cho thuê
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="h-full flex flex-col">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Quản lý phòng</h1>
-          <p className="text-slate-600 mt-2">Tổng cộng {rooms.length} phòng</p>
+          <p className="text-slate-600 mt-2">Tổng cộng {totalRoom} phòng</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
@@ -180,14 +155,14 @@ export default function Rooms() {
       </div>
 
       {/* Filter */}
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-4 mt-3">
         <Input
-          placeholder="Tìm kiếm theo số phòng hoặc tòa nhà..."
+          placeholder="Tìm kiếm theo tên phòng hoặc tòa nhà..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
         />
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-5">
           {[RoomStatus.all, RoomStatus.available, RoomStatus.maintenance, RoomStatus.occupied].map(
             (status) => (
               <Button
@@ -208,7 +183,7 @@ export default function Rooms() {
       </div>
 
       {/* Room Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto">
         {filteredRooms.map((room) => {
           const tenant = room.currentTenant ? 'abc' : undefined;
           return (

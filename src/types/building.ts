@@ -10,6 +10,11 @@ export interface Building {
   ownerId: string;
   description?: string;
   utilities?: string[];
+  roomStatus?: {
+    available: number;
+    occupied: number;
+    maintenance: number;
+  };
 }
 
 export interface Pagination {
