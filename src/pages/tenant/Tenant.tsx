@@ -187,7 +187,7 @@ const Tenant = () => {
                       }
                     >
                       <LiaIdCard className="w-4 h-4" />
-                      Click để xem thông tin CCCD
+                      {tenant.cccd?.trim() || 'Không có thông tin CCCD'}
                     </div>
 
                     <Button
@@ -199,6 +199,7 @@ const Tenant = () => {
                           phone: tenant.phone,
                           email: tenant.email,
                           role: tenant.role,
+                          cccd: tenant.cccd ?? '',
                           cccdImagesFront: tenant.cccdImages?.front?.url,
                           cccdImagesBack: tenant.cccdImages?.back?.url,
                         });
@@ -256,11 +257,11 @@ const Tenant = () => {
         <UpdateTenantDialog
           isOpen={isEditOpen}
           tenant={editingTenant}
-          // rooms={rooms}
           onSubmit={handleSaveEditTenant}
-          onClose={() => setIsEditOpen(false)}
-          // onChange={setEditingTenant}
-          // onSave={handleSaveEditTenant}
+          onClose={() => {
+            setIsEditOpen(false);
+            setEditingTenant(undefined);
+          }}
         />
       )}
 

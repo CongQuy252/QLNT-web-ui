@@ -7,7 +7,7 @@ const GlobalSpinner = () => {
   if (!loading) return null;
 
   return (
-    <div className="spinner-overlay z-999">
+    <div className="fixed inset-0 spinner-overlay z-9999">
       <Spinner />
     </div>
   );

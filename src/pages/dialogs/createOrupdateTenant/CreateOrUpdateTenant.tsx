@@ -33,6 +33,7 @@ enum TenantFormField {
   email = 'email',
   phone = 'phone',
   role = 'role',
+  cccd = 'cccd',
   cccdFront = 'cccdFront',
   cccdBack = 'cccdBack',
 }
@@ -48,6 +49,7 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
       email: '',
       role: UserRole.tenant,
       phone: '',
+      cccd: '',
       cccdImagesFront: '',
       cccdImagesBack: '',
     },
@@ -60,8 +62,19 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
         email: tenant.email,
         phone: tenant.phone,
         role: tenant.role,
+        cccd: tenant.cccd,
         cccdImagesFront: tenant.cccdImagesFront ?? '',
         cccdImagesBack: tenant.cccdImagesBack ?? '',
+      });
+    } else {
+      form.reset({
+        name: '',
+        email: '',
+        phone: '',
+        role: UserRole.tenant,
+        cccd: '',
+        cccdImagesFront: '',
+        cccdImagesBack: '',
       });
     }
   }, [tenant, form]);
@@ -74,6 +87,7 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
     formData.append(TenantFormField.email, values.email);
     formData.append(TenantFormField.phone, values.phone);
     formData.append(TenantFormField.role, String(values.role));
+    formData.append(TenantFormField.cccd, values.cccd);
 
     if (values.cccdImagesFront instanceof File) {
       formData.append(TenantFormField.cccdFront, values.cccdImagesFront);
@@ -88,8 +102,8 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
         hide();
         onClose();
       },
+      onSettled: hide,
     });
-    hide();
     form.reset();
   };
 
@@ -145,7 +159,21 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
                 <FormItem>
                   <FormLabel>Số điện thoại</FormLabel>
                   <FormControl>
-                    <Input placeholder="0901234567" {...field} type="tel" />
+                    <Input placeholder="0901234567" {...field} type="tel" maxLength={10} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="cccd"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Số CCCD</FormLabel>
+                  <FormControl>
+                    <Input placeholder="cccd" {...field} maxLength={12} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

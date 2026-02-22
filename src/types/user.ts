@@ -66,6 +66,7 @@ export interface UpdateTenantRequest {
   name: string;
   role: UserRole;
   phone: string;
+  cccd: string;
   cccdImagesFront: string | File;
   cccdImagesBack: string | File;
   // roomId: string;
