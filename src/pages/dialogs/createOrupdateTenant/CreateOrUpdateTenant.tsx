@@ -28,6 +28,15 @@ interface CreateOrUpdateTenantProps {
   tenant?: UpdateTenantRequest;
 }
 
+enum TenantFormField {
+  name = 'name',
+  email = 'email',
+  phone = 'phone',
+  role = 'role',
+  cccdFront = 'cccdFront',
+  cccdBack = 'cccdBack',
+}
+
 const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onClose, tenant }) => {
   const createUserMutation = useCreateUserMutation();
   const { hide, show } = useLoading();
@@ -44,7 +53,6 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
     },
   });
 
-  // 🔥 cập nhật dữ liệu khi edit
   useEffect(() => {
     if (tenant) {
       form.reset({
@@ -62,17 +70,17 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
     show();
     const formData = new FormData();
 
-    formData.append('name', values.name);
-    formData.append('email', values.email);
-    formData.append('phone', values.phone);
-    formData.append('role', String(values.role));
+    formData.append(TenantFormField.name, values.name);
+    formData.append(TenantFormField.email, values.email);
+    formData.append(TenantFormField.phone, values.phone);
+    formData.append(TenantFormField.role, String(values.role));
 
     if (values.cccdImagesFront instanceof File) {
-      formData.append('cccdFront', values.cccdImagesFront);
+      formData.append(TenantFormField.cccdFront, values.cccdImagesFront);
     }
 
     if (values.cccdImagesBack instanceof File) {
-      formData.append('cccdBack', values.cccdImagesBack);
+      formData.append(TenantFormField.cccdBack, values.cccdImagesBack);
     }
     await createUserMutation.mutateAsync(formData, {
       onSuccess: () => {
