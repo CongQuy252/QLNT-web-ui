@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 import { useGetBuildingById } from '@/api/building';
 import { useGetRoomsQueries, useUpdateRoomMutation } from '@/api/room';
@@ -33,6 +34,9 @@ export const useRooms = () => {
 
     return matchesSearch && matchesStatus;
   });
+
+  const { buildingId } = useParams(); //Nếu có buildingId thì lọc theo buildingId và status (status được truyền trong state) - tham khảo useBuildings - handleClickRoomStatusCount
+  console.log('buildingId: ', buildingId);
 
   const tenants: UserRoom[] = [
     {
