@@ -1,18 +1,14 @@
 import { Edit, Mail, Phone, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
-import { PiHouseLine } from 'react-icons/pi';
 
 import { useGetTenantQueries } from '@/api/tenant';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { TenantStatus } from '@/constants/appConstants';
 import CreateOrUpdateTenant from '@/pages/dialogs/createOrupdateTenant/CreateOrUpdateTenant';
-import { rooms } from '@/pages/rooms/data/roomMockData';
 import UpdateTenantDialog from '@/pages/tenant/dialogs/UpdateTenantDialog';
-import type { Room } from '@/types/room';
 import type { UpdateTenantRequest } from '@/types/user';
 
 const Tenant = () => {
@@ -21,7 +17,7 @@ const Tenant = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<TenantStatus>(TenantStatus.all);
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [editingTenant, setEditingTenant] = useState<UpdateTenantRequest | null>(null);
+  const [editingTenant, setEditingTenant] = useState<UpdateTenantRequest>();
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -63,6 +59,7 @@ const Tenant = () => {
     return status === 'active' ? 'Đang ở' : 'Đã trả phòng';
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const daysUntilExpiry = (endDate: string) => {
     const end = new Date(endDate);
     const today = new Date();
@@ -85,7 +82,7 @@ const Tenant = () => {
           <h1 className="text-3xl font-bold text-slate-900">Quản lý người thuê</h1>
           <p className="text-slate-600 mt-2">Tổng cộng {tenants.length} người thuê</p>
         </div>
-        <Dialog>
+        {/* <Dialog>
           <DialogTrigger asChild>
             <Button
               className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
@@ -102,7 +99,21 @@ const Tenant = () => {
             tenant={editingTenant}
             onClose={() => setIsAddOpen(false)}
           />
-        </Dialog>
+        </Dialog> */}
+        <Button
+          className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
+          icon={<FaUserPlus className="w-4 h-4" />}
+          onClick={() => {
+            setEditingTenant(undefined);
+            setIsAddOpen(true);
+          }}
+        />
+
+        <CreateOrUpdateTenant
+          isOpen={isAddOpen}
+          tenant={editingTenant}
+          onClose={() => setIsAddOpen(false)}
+        />
       </div>
 
       {/* Filter */}
@@ -152,7 +163,6 @@ const Tenant = () => {
       <div className="flex-1 overflow-y-auto">
         <div className="grid gap-4">
           {filteredTenants.map((tenant) => {
-            const room: Room = rooms[1];
             // const daysLeft = daysUntilExpiry(tenant.contractEndDate);
             // const isExpiringSoon = daysLeft <= 30 && daysLeft > 0;
             const isOpen = expandedIds.includes(tenant.id);
@@ -180,7 +190,7 @@ const Tenant = () => {
 
                 {/* Expand content */}
                 {isOpen && (
-                  <div className="mt-4 border-t pt-4 space-y-3 text-sm text-slate-700">
+                  <div className="border-t pt-4 space-y-3 text-sm text-slate-700">
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
                       {tenant.email}
@@ -191,10 +201,10 @@ const Tenant = () => {
                       {tenant.phone}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                       <PiHouseLine className="w-4 h-4" />
                       {room ? `Phòng ${room.number}` : 'N/A'}
-                    </div>
+                    </div> */}
 
                     {/* <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
@@ -205,45 +215,18 @@ const Tenant = () => {
                     </div> */}
 
                     {/* {isExpiringSoon && <p className="text-orange-600 text-xs">⚠ Sắp hết hạn</p>} */}
-
-                    {/* <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-2 text-slate-700 border-slate-300 bg-transparent"
-                          // onClick={() => {
-                          //   setEditingTenant({
-                          //     id: tenant.id,
-                          //     fullName: tenant.name,
-                          //     email: tenant.email,
-                          //     phone: tenant.phone,
-                          //     username: tenant.email.split('@')[0],
-                          //     role: 'tenant',
-                          //     CCCD: tenant.idNumber,
-                          //     CCCDImage: [],
-                          //   });
-                          //   setIsAddOpen(true);
-                          // }}
-                          icon={<Edit className="w-4 h-4" />}
-                        />
-                      </DialogTrigger>
-                      <DialogContent>
-                        <AlertDialogHeader>
-                          <DialogTitle>{tenant.name}</DialogTitle>
-                        </AlertDialogHeader>
-                        <div className="space-y-4 py-4">
-                          <p className="text-slate-600 text-sm">
-                            Tính năng chỉnh sửa sẽ được cập nhật trong phiên bản tiếp theo
-                          </p>
-                        </div>
-                      </DialogContent>
-                    </Dialog> */}
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setEditingTenant(tenant);
+                        setEditingTenant({
+                          name: tenant.name,
+                          phone: tenant.phone,
+                          email: tenant.email,
+                          role: tenant.role,
+                          cccdImagesFront: tenant.cccdImages?.front?.url,
+                          cccdImagesBack: tenant.cccdImages?.back?.url,
+                        });
                         setIsEditOpen(true);
                       }}
                     >
@@ -298,10 +281,11 @@ const Tenant = () => {
         <UpdateTenantDialog
           isOpen={isEditOpen}
           tenant={editingTenant}
-          rooms={rooms}
+          // rooms={rooms}
+          onSubmit={handleSaveEditTenant}
           onClose={() => setIsEditOpen(false)}
-          onChange={setEditingTenant}
-          onSave={handleSaveEditTenant}
+          // onChange={setEditingTenant}
+          // onSave={handleSaveEditTenant}
         />
       )}
     </div>

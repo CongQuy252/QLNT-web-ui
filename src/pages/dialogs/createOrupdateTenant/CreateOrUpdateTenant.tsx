@@ -1,4 +1,5 @@
-import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -14,58 +15,65 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { UserRole } from '@/constants/appConstants';
-import {
-  type TenantFormValues,
-  createOrUpdateTenantSchema,
-} from '@/pages/dialogs/createOrupdateTenant/schema/createOrUpdateTenantSchema';
-import type { User } from '@/types/user';
+import { FileUploadField } from '@/pages/dialogs/createOrupdateTenant/FileUploadField';
+import { updateTenantSchema } from '@/pages/dialogs/createOrupdateTenant/schema/createOrUpdateTenantSchema';
+import type { UpdateTenantRequest } from '@/types/user';
 
 interface CreateOrUpdateTenantProps {
   isOpen: boolean;
   onClose: () => void;
-  tenant?: User;
+  tenant?: UpdateTenantRequest;
 }
 
 const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onClose, tenant }) => {
-  const form = useForm<TenantFormValues>({
-    resolver: zodResolver(createOrUpdateTenantSchema),
+  const form = useForm<UpdateTenantRequest>({
+    resolver: zodResolver(updateTenantSchema),
     defaultValues: {
-      name: tenant?.name ?? '',
-      email: tenant?.email ?? '',
-      phone: tenant?.phone ?? '',
-      CCCD: tenant?.CCCD ?? '',
-      CCCDImage: tenant?.CCCDImage ?? [],
+      name: '',
+      email: '',
+      role: UserRole.tenant,
+      phone: '',
+      cccdImagesFront: '',
+      cccdImagesBack: '',
     },
   });
 
-  const onSubmit = (values: TenantFormValues) => {
-    const payload: Partial<User> = {
-      ...values,
-      role: UserRole.tenant,
-    };
+  // 🔥 cập nhật dữ liệu khi edit
+  useEffect(() => {
+    if (tenant) {
+      form.reset({
+        name: tenant.name,
+        email: tenant.email,
+        phone: tenant.phone,
+        role: tenant.role,
+        cccdImagesFront: tenant.cccdImagesFront ?? '',
+        cccdImagesBack: tenant.cccdImagesBack ?? '',
+      });
+    }
+  }, [tenant, form]);
 
-    console.log(payload);
+  const onSubmit: SubmitHandler<UpdateTenantRequest> = (values) => {
+    console.log(values);
+
     onClose();
     form.reset();
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{tenant ? 'Cập nhật người thuê' : 'Thêm người thuê mới'}</DialogTitle>
-        </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="w-screen h-screen max-w-none rounded-none p-0 flex flex-col">
+        <div className={'flex items-center justify-between h-14 px-4 border-b'}>
+          <DialogHeader className={'p-0'}>
+            <DialogTitle>{tenant ? 'Cập nhật người thuê' : 'Thêm người thuê mới'}</DialogTitle>
+          </DialogHeader>
+        </div>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 py-4 max-h-96 overflow-y-auto"
+            className="space-y-4 py-4 h-full top-0 overflow-y-auto p-6"
           >
+            {/* NAME */}
             <FormField
               control={form.control}
               name="name"
@@ -79,6 +87,8 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
                 </FormItem>
               )}
             />
+
+            {/* EMAIL */}
             <FormField
               control={form.control}
               name="email"
@@ -92,6 +102,8 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
                 </FormItem>
               )}
             />
+
+            {/* PHONE */}
             <FormField
               control={form.control}
               name="phone"
@@ -99,46 +111,42 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
                 <FormItem>
                   <FormLabel>Số điện thoại</FormLabel>
                   <FormControl>
-                    <Input placeholder="0901234567" {...field} />
+                    <Input placeholder="0901234567" {...field} type="tel" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
-              name="CCCD"
+              name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Số CCCD</FormLabel>
+                  <FormLabel>Vai trò</FormLabel>
                   <FormControl>
-                    <Input placeholder="012345678901" {...field} />
+                    <select {...field} className="border rounded px-3 py-2 w-full">
+                      <option value={UserRole.tenant}>Tenant</option>
+                      <option value={UserRole.admin}>Admin</option>
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {/* CCCD FRONT */}
             <FormField
               control={form.control}
-              name="CCCDImage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ảnh CCCD</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files ?? []);
-                        const urls = files.map((file) => URL.createObjectURL(file));
-                        field.onChange(urls);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              name="cccdImagesFront"
+              render={({ field }) => <FileUploadField label="Ảnh CCCD mặt trước" field={field} />}
+            />
+
+            {/* CCCD BACK */}
+            <FormField
+              control={form.control}
+              name="cccdImagesBack"
+              render={({ field }) => <FileUploadField label="Ảnh CCCD mặt sau" field={field} />}
             />
             <div className="flex gap-2 pt-4 border-t">
               <Button type="button" variant="outline" className="flex-1" onClick={onClose}>

@@ -64,10 +64,10 @@ export interface GetUserByIdResponse {
 export interface UpdateTenantRequest {
   email: string;
   name: string;
-  role: number;
+  role: UserRole;
   phone: string;
-  cccdImagesFront?: string;
-  cccdImagesBack?: string;
+  cccdImagesFront: string | File;
+  cccdImagesBack: string | File;
   // roomId: string;
   // occupation: string;
   // contractStartDate: string;
