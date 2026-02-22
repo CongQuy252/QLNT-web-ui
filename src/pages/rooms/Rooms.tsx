@@ -38,6 +38,13 @@ const Rooms = () => {
     currentPage,
     pageSize,
     setCurrentPage,
+    filteredUsers,
+    phoneSearch,
+    setPhoneSearch,
+    selectedUser,
+    setSelectedUser,
+    openAddTenant,
+    setopenAddTenant,
   } = useRooms();
 
   return (
@@ -225,9 +232,10 @@ const Rooms = () => {
         {!isLoading &&
           !error &&
           filteredRooms.map((room: Room) => {
-            const tenant = room.currentTenant ? 'abc' : undefined;
+            const tenant = room.currentTenant ? room.currentTenant : undefined;
+
             return (
-              <Card key={room.id} className="p-6 bg-white hover:shadow-lg transition-shadow">
+              <Card key={room._id} className="p-6 bg-white hover:shadow-lg transition-shadow">
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -263,8 +271,8 @@ const Rooms = () => {
                   {tenant && room.status === RoomStatus.occupied && (
                     <div className="p-3 bg-slate-50 rounded-lg">
                       <p className="text-xs text-slate-600 mb-1">Người thuê hiện tại</p>
-                      <p className="font-semibold text-slate-900">Họ và tên</p>
-                      <p className="text-xs text-slate-600 mt-1">09090909090</p>
+                      <p className="font-semibold text-slate-900">{tenant.name}</p>
+                      <p className="text-xs text-slate-600 mt-1">{tenant.email}</p>
                     </div>
                   )}
 
@@ -274,7 +282,7 @@ const Rooms = () => {
 
                   <div className="flex gap-2 pt-4 border-t border-slate-200">
                     {room.status === RoomStatus.available && (
-                      <Dialog>
+                      <Dialog open={openAddTenant} onOpenChange={setopenAddTenant}>
                         <DialogTrigger asChild>
                           <Button
                             variant="outline"
@@ -283,15 +291,47 @@ const Rooms = () => {
                             icon={<FaUserPlus className="w-4 h-4" />}
                           />
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent
+                          className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col"
+                          onCloseAutoFocus={(e) => e.preventDefault()}
+                        >
                           <DialogHeader>
                             <DialogTitle>Thêm người thuê phòng</DialogTitle>
                           </DialogHeader>
-                          <div className="space-y-4 py-4">
-                            <p className="text-slate-600 text-sm">
-                              Tính năng Thêm người thuê phòng sẽ được cập nhật trong phiên bản tiếp
-                              theo
-                            </p>
+
+                          <div className="flex flex-col gap-4 py-4 flex-1 min-h-0">
+                            <Input
+                              placeholder="Tìm theo số điện thoại..."
+                              value={phoneSearch}
+                              onChange={(e) => setPhoneSearch(e.target.value)}
+                              autoFocus
+                            />
+
+                            <div className="flex-1 overflow-y-auto border rounded-lg">
+                              {filteredUsers?.length === 0 && (
+                                <p className="p-3 text-sm text-slate-500">Không tìm thấy</p>
+                              )}
+
+                              {filteredUsers?.map((user) => (
+                                <div
+                                  key={user._id}
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setopenAddTenant(false);
+                                  }}
+                                  className={`p-3 cursor-pointer flex justify-between items-center hover:bg-slate-100 ${selectedUser?._id === user._id ? 'bg-slate-100' : ''}`}
+                                >
+                                  <div>
+                                    <p className="font-medium">{user.name}</p>
+                                    <p className="text-sm text-slate-500">{user.phone}</p>
+                                  </div>
+
+                                  {selectedUser?._id === user._id && (
+                                    <span className="text-sm text-green-600">✓</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </DialogContent>
                       </Dialog>

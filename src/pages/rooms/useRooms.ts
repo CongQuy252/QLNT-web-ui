@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { useGetRoomsQueries, useUpdateRoomMutation } from '@/api/room';
 import { RoomStatus } from '@/constants/appConstants';
 import type { Room } from '@/types/room';
+import type { UserRoom } from '@/types/user';
 
 export const useRooms = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,6 +16,9 @@ export const useRooms = () => {
   const updateRoomMutation = useUpdateRoomMutation();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
   const [editRoom, setEditRoom] = useState<Room | null>(null);
+  const [phoneSearch, setPhoneSearch] = useState('');
+  const [selectedUser, setSelectedUser] = useState<UserRoom>();
+  const [openAddTenant, setopenAddTenant] = useState(false);
   const filteredRooms = rooms.filter((room: Room) => {
     const matchesSearch =
       room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -23,6 +27,47 @@ export const useRooms = () => {
 
     return matchesSearch && matchesStatus;
   });
+
+  const tenants: UserRoom[] = [
+    {
+      _id: '65d8f3c2a12b3c0012345678',
+      email: 'nguyenquy@example.com',
+      name: 'Nguyen Quy',
+      role: 1,
+      phone: '0912345678',
+      cccd: '079203001234',
+      cccdImages: {
+        front: {
+          url: 'https://cdn.example.com/cccd/front1.jpg',
+          publicId: 'cccd/front1',
+        },
+        back: {
+          url: 'https://cdn.example.com/cccd/back1.jpg',
+          publicId: 'cccd/back1',
+        },
+      },
+    },
+    {
+      _id: '65d8f3c2a12b3c0098765432',
+      email: 'tenant2@example.com',
+      name: 'Tran Van A',
+      role: 1,
+      phone: '0987654321',
+      cccd: '079203009999',
+      cccdImages: {
+        front: {
+          url: 'https://cdn.example.com/cccd/front2.jpg',
+          publicId: 'cccd/front2',
+        },
+        back: {
+          url: 'https://cdn.example.com/cccd/back2.jpg',
+          publicId: 'cccd/back2',
+        },
+      },
+    },
+  ];
+
+  const filteredUsers = tenants?.filter((u) => u.phone.includes(phoneSearch));
 
   const handleEditRoom = (room: Room) => {
     setEditRoom(room);
@@ -33,7 +78,7 @@ export const useRooms = () => {
     if (editRoom) {
       updateRoomMutation.mutate(
         {
-          id: editRoom.id,
+          id: editRoom._id,
           data: {
             number: editRoom.number,
             buildingId: editRoom.buildingId,
@@ -83,5 +128,12 @@ export const useRooms = () => {
     currentPage,
     pageSize,
     setCurrentPage,
+    filteredUsers,
+    phoneSearch,
+    setPhoneSearch,
+    selectedUser,
+    setSelectedUser,
+    openAddTenant,
+    setopenAddTenant,
   };
 };

@@ -2,7 +2,7 @@ import type { RoomStatus } from '@/constants/appConstants';
 import type { Pagination } from '@/types/building';
 
 export interface Room {
-  id: string;
+  _id: string;
   number: string;
   building: string;
   buildingId?: string; // Add buildingId for backend compatibility
@@ -10,8 +10,11 @@ export interface Room {
   area: number;
   price: number;
   status: RoomStatus;
-  images: string[];
-  currentTenant?: string; // tenant id
+  currentTenant?: {
+    _id: string;
+    email: string;
+    name: string;
+  };
   description?: string;
 }
 
@@ -21,7 +24,7 @@ export interface RoomListResponse {
 }
 
 export interface GetRoom {
-  id: string;
+  _id: string;
   number: string;
   buildingId?: {
     _id: string;
@@ -32,6 +35,11 @@ export interface GetRoom {
   price: number;
   status: RoomStatus;
   description?: string;
+  currentTenant?: {
+    _id: string;
+    email: string;
+    name: string;
+  };
 }
 
 export interface PutRoom {

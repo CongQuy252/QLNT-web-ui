@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QueriesKey, RoomStatus } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type { PutRoomRequest, PutRoomResponse, RoomListResponse } from '@/types/room';
+import type { PutRoomRequest, PutRoomResponse, Room, RoomListResponse } from '@/types/room';
 
 export const useGetRoomsQueries = (page = 1, limit = 10, isEnabled = true) => {
   const handleHttpError = useHandleHttpError();
@@ -11,9 +11,9 @@ export const useGetRoomsQueries = (page = 1, limit = 10, isEnabled = true) => {
     queryKey: [QueriesKey.rooms, page, limit],
     queryFn: async () => {
       const response = await http.get<RoomListResponse>(`/rooms?page=${page}&limit=${limit}`);
-      const rooms =
+      const rooms: Room[] =
         response.data.rooms?.map((room) => ({
-          id: room.id,
+          _id: room._id,
           number: room.number,
           building: room.buildingId?.name || '',
           buildingId: room.buildingId?._id || '',
@@ -28,9 +28,14 @@ export const useGetRoomsQueries = (page = 1, limit = 10, isEnabled = true) => {
                 : room.status === 'occupied'
                   ? RoomStatus.occupied
                   : RoomStatus.available,
-          images: [],
-          currentTenant: undefined,
-          description: room.description || undefined,
+          currentTenant: room.currentTenant?._id
+            ? {
+                _id: room.currentTenant._id,
+                name: room.currentTenant.name ?? '',
+                email: room.currentTenant.email ?? '',
+              }
+            : undefined,
+          description: room.description,
         })) || [];
 
       return {

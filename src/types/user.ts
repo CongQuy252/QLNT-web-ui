@@ -1,17 +1,22 @@
+import type { UserRole } from '@/constants/appConstants';
+
 export interface User {
-  id: string;
+  _id: string;
   email: string;
-  avatarUrl: string;
   name: string;
-  role: number;
-  phone?: string;
-  CCCD?: string;
-  CCCDImage: string[];
-  createdAt?: string;
-  createdBy?: string;
-  updatedAt?: string;
-  updatedBy?: string;
+  password: string;
+  role: UserRole;
+  phone: string;
+  cccd?: string;
+  cccdImages: {
+    front: { url: string; publicId: string };
+    back: { url: string; publicId: string };
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
+
+export type UserRoom = Omit<User, 'password' | 'createdAt' | 'updatedAt'>;
 
 export interface LoginRequest {
   email: string;
