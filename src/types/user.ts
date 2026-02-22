@@ -1,16 +1,20 @@
+import type { TenantStatus, UserRole } from '@/constants/appConstants';
+import type { Pagination } from '@/types/building';
+
 export interface User {
   id: string;
   email: string;
-  avatarUrl: string;
   name: string;
-  role: number;
+  password: string;
+  role: UserRole;
   phone?: string;
-  CCCD?: string;
-  CCCDImage: string[];
-  createdAt?: string;
-  createdBy?: string;
-  updatedAt?: string;
-  updatedBy?: string;
+  cccd?: string;
+  cccdImages: {
+    front: { url: string; publicId: string };
+    back: { url: string; publicId: string };
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface LoginRequest {
@@ -27,7 +31,7 @@ export interface GetUserResponse {
   id: string;
   email: string;
   name: string;
-  role: number;
+  role: UserRole;
   phone: string;
   cccdImages: {
     front: string;
@@ -55,4 +59,43 @@ export interface GetUserByIdResponse {
     phone: string;
     cccd?: string;
   };
+}
+
+export interface UpdateTenantRequest {
+  email: string;
+  name: string;
+  role: number;
+  phone: string;
+  cccdImagesFront?: string;
+  cccdImagesBack?: string;
+  // roomId: string;
+  // occupation: string;
+  // contractStartDate: string;
+  // contractEndDate: string;
+}
+
+export interface UserResponse {
+  cccdImages: {
+    front: {
+      url: string;
+      publicId: string;
+    };
+    back: {
+      url: string;
+      publicId: string;
+    };
+  };
+  _id: string;
+  email: string;
+  name: string;
+  role: number;
+  phone: string;
+  cccd?: string;
+  status: TenantStatus;
+}
+
+export interface GetTenantListResponse {
+  message: string;
+  data: UserResponse[];
+  pagination: Pagination;
 }

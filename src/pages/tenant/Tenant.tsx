@@ -1,113 +1,30 @@
-import { Calendar, Edit, Mail, Phone, Users } from 'lucide-react';
-import { useState } from 'react';
+import { Edit, Mail, Phone, Users } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
 import { PiHouseLine } from 'react-icons/pi';
 
-import { AlertDialogHeader } from '@/components/ui/alert-dialog';
+import { useGetTenantQueries } from '@/api/tenant';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { TenantStatus } from '@/constants/appConstants';
 import CreateOrUpdateTenant from '@/pages/dialogs/createOrupdateTenant/CreateOrUpdateTenant';
 import { rooms } from '@/pages/rooms/data/roomMockData';
-import type { Pagination } from '@/types/building';
+import UpdateTenantDialog from '@/pages/tenant/dialogs/UpdateTenantDialog';
 import type { Room } from '@/types/room';
-import type { User } from '@/types/user';
+import type { UpdateTenantRequest } from '@/types/user';
 
 const Tenant = () => {
-  const tenants = [
-    {
-      id: 'tenant1',
-      name: 'Nguyễn Văn A',
-      idNumber: '0123456789',
-      email: 'nguyenvana@example.com',
-      phone: '0987654321',
-      contractEndDate: '2025-12-31',
-      status: 'active',
-    },
-    {
-      id: 'tenant2',
-      name: 'Nguyễn Văn A',
-      idNumber: '0123456789',
-      email: 'nguyenvana@example.com',
-      phone: '0987654321',
-      contractEndDate: '2025-12-31',
-      status: 'inactive',
-    },
-    {
-      id: 'tenant3',
-      name: 'Nguyễn Văn A',
-      idNumber: '0123456789',
-      email: 'nguyenvana@example.com',
-      phone: '0987654321',
-      contractEndDate: '2025-12-31',
-      status: 'active',
-    },
-    {
-      id: 'tenant4',
-      name: 'Nguyễn Văn A',
-      idNumber: '0123456789',
-      email: 'nguyenvana@example.com',
-      phone: '0987654321',
-      contractEndDate: '2025-12-31',
-      status: 'active',
-    },
-    {
-      id: 'tenant5',
-      name: 'Nguyễn Văn A',
-      idNumber: '0123456789',
-      email: 'nguyenvana@example.com',
-      phone: '0987654321',
-      contractEndDate: '2025-12-31',
-      status: 'active',
-    },
-    {
-      id: 'tenant6',
-      name: 'Nguyễn Văn A',
-      idNumber: '0123456789',
-      email: 'nguyenvana@example.com',
-      phone: '0987654321',
-      contractEndDate: '2025-12-31',
-      status: 'active',
-    },
-    {
-      id: 'tenant7',
-      name: 'Nguyễn Văn A',
-      idNumber: '0123456789',
-      email: 'nguyenvana@example.com',
-      phone: '0987654321',
-      contractEndDate: '2025-12-31',
-      status: 'active',
-    },
-    {
-      id: 'tenant8',
-      name: 'Nguyễn Văn A',
-      idNumber: '0123456789',
-      email: 'nguyenvana@example.com',
-      phone: '0987654321',
-      contractEndDate: '2025-12-31',
-      status: 'active',
-    },
-  ];
-
-  const pagination: Pagination = {
-    hasNext: false,
-    hasPrev: false,
-    limit: 20,
-    page: 1,
-    total: 20,
-    totalPages: 200,
-  };
-  const isLoading = false;
-
+  const getTenantQueries = useGetTenantQueries();
   const pageSize = 20;
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<TenantStatus>(TenantStatus.all);
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [editingTenant, setEditingTenant] = useState<User | undefined>();
+  const [editingTenant, setEditingTenant] = useState<UpdateTenantRequest | null>(null);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const toggleExpand = (id: string) => {
     setExpandedIds(
@@ -117,6 +34,17 @@ const Tenant = () => {
           : [...prev, id], // mở thêm
     );
   };
+
+  const tenants = useMemo(() => {
+    return (
+      getTenantQueries.data?.data?.map((b) => ({
+        ...b,
+        id: b._id,
+      })) ?? []
+    );
+  }, [getTenantQueries.data]);
+
+  const pagination = getTenantQueries.data?.pagination;
 
   const filteredTenants = tenants.filter((tenant) => {
     const matchesSearch =
@@ -140,6 +68,12 @@ const Tenant = () => {
     const today = new Date();
     const diff = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     return diff;
+  };
+
+  const handleSaveEditTenant = () => {
+    if (!editingTenant) return;
+    console.log('Edited');
+    setIsEditOpen(false);
   };
 
   //TODO: Phân trang, Edit, Create
@@ -219,8 +153,8 @@ const Tenant = () => {
         <div className="grid gap-4">
           {filteredTenants.map((tenant) => {
             const room: Room = rooms[1];
-            const daysLeft = daysUntilExpiry(tenant.contractEndDate);
-            const isExpiringSoon = daysLeft <= 30 && daysLeft > 0;
+            // const daysLeft = daysUntilExpiry(tenant.contractEndDate);
+            // const isExpiringSoon = daysLeft <= 30 && daysLeft > 0;
             const isOpen = expandedIds.includes(tenant.id);
 
             return (
@@ -262,17 +196,17 @@ const Tenant = () => {
                       {room ? `Phòng ${room.number}` : 'N/A'}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
                       <div>
                         <p>{daysLeft > 0 ? `Còn ${daysLeft} ngày` : 'Hết hạn'}</p>
                         <p className="text-xs text-slate-500">Đến {tenant.contractEndDate}</p>
                       </div>
-                    </div>
+                    </div> */}
 
-                    {isExpiringSoon && <p className="text-orange-600 text-xs">⚠ Sắp hết hạn</p>}
+                    {/* {isExpiringSoon && <p className="text-orange-600 text-xs">⚠ Sắp hết hạn</p>} */}
 
-                    <Dialog>
+                    {/* <Dialog>
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
@@ -304,7 +238,17 @@ const Tenant = () => {
                           </p>
                         </div>
                       </DialogContent>
-                    </Dialog>
+                    </Dialog> */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingTenant(tenant);
+                        setIsEditOpen(true);
+                      }}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
                   </div>
                 )}
               </Card>
@@ -331,7 +275,7 @@ const Tenant = () => {
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={!pagination.hasPrev || isLoading}
+              disabled={!pagination.hasPrev || getTenantQueries.isLoading}
             >
               Trước
             </Button>
@@ -342,12 +286,23 @@ const Tenant = () => {
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage((prev) => Math.min(pagination.totalPages, prev + 1))}
-              disabled={!pagination.hasNext || isLoading}
+              disabled={!pagination.hasNext || getTenantQueries.isLoading}
             >
               Tiếp
             </Button>
           </div>
         </div>
+      )}
+
+      {editingTenant && (
+        <UpdateTenantDialog
+          isOpen={isEditOpen}
+          tenant={editingTenant}
+          rooms={rooms}
+          onClose={() => setIsEditOpen(false)}
+          onChange={setEditingTenant}
+          onSave={handleSaveEditTenant}
+        />
       )}
     </div>
   );
