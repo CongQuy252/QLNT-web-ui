@@ -6,7 +6,7 @@ import { useGetTenantQueries } from '@/api/tenant';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { TenantStatus } from '@/constants/appConstants';
+import { TenantStatus, UserRole } from '@/constants/appConstants';
 import CreateOrUpdateTenant from '@/pages/dialogs/createOrupdateTenant/CreateOrUpdateTenant';
 import UpdateTenantDialog from '@/pages/tenant/dialogs/UpdateTenantDialog';
 import type { UpdateTenantRequest } from '@/types/user';
@@ -23,11 +23,8 @@ const Tenant = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const toggleExpand = (id: string) => {
-    setExpandedIds(
-      (prev) =>
-        prev.includes(id)
-          ? prev.filter((item) => item !== id) // đóng
-          : [...prev, id], // mở thêm
+    setExpandedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   };
 
@@ -59,21 +56,11 @@ const Tenant = () => {
     return status === 'active' ? 'Đang ở' : 'Đã trả phòng';
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const daysUntilExpiry = (endDate: string) => {
-    const end = new Date(endDate);
-    const today = new Date();
-    const diff = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return diff;
-  };
-
   const handleSaveEditTenant = () => {
     if (!editingTenant) return;
     console.log('Edited');
     setIsEditOpen(false);
   };
-
-  //TODO: Phân trang, Edit, Create
 
   return (
     <div className="h-full flex flex-col">
@@ -82,24 +69,6 @@ const Tenant = () => {
           <h1 className="text-3xl font-bold text-slate-900">Quản lý người thuê</h1>
           <p className="text-slate-600 mt-2">Tổng cộng {tenants.length} người thuê</p>
         </div>
-        {/* <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
-              icon={<FaUserPlus className="w-4 h-4" />}
-              onClick={() => {
-                setEditingTenant(undefined);
-                setIsAddOpen(true);
-              }}
-            />
-          </DialogTrigger>
-
-          <CreateOrUpdateTenant
-            isOpen={isAddOpen}
-            tenant={editingTenant}
-            onClose={() => setIsAddOpen(false)}
-          />
-        </Dialog> */}
         <Button
           className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
           icon={<FaUserPlus className="w-4 h-4" />}
@@ -179,13 +148,15 @@ const Tenant = () => {
                     <p className="text-xs text-slate-500">{tenant.phone}</p>
                   </div>
 
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(
-                      tenant.status,
-                    )}`}
-                  >
-                    {getStatusLabel(tenant.status)}
-                  </span>
+                  {tenant.role !== UserRole.admin && (
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(
+                        tenant.status,
+                      )}`}
+                    >
+                      {getStatusLabel(tenant.status)}
+                    </span>
+                  )}
                 </div>
 
                 {/* Expand content */}
@@ -200,21 +171,6 @@ const Tenant = () => {
                       <Phone className="w-4 h-4" />
                       {tenant.phone}
                     </div>
-
-                    {/* <div className="flex items-center gap-2">
-                      <PiHouseLine className="w-4 h-4" />
-                      {room ? `Phòng ${room.number}` : 'N/A'}
-                    </div> */}
-
-                    {/* <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      <div>
-                        <p>{daysLeft > 0 ? `Còn ${daysLeft} ngày` : 'Hết hạn'}</p>
-                        <p className="text-xs text-slate-500">Đến {tenant.contractEndDate}</p>
-                      </div>
-                    </div> */}
-
-                    {/* {isExpiringSoon && <p className="text-orange-600 text-xs">⚠ Sắp hết hạn</p>} */}
                     <Button
                       variant="outline"
                       size="sm"

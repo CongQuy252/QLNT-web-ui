@@ -1,8 +1,10 @@
+import { queryClient } from '@/lib/reactQuery';
 import { useEffect } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 
+import { useCreateUserMutation } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
@@ -14,7 +16,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { UserRole } from '@/constants/appConstants';
+import { QueriesKey, UserRole } from '@/constants/appConstants';
+import { useLoading } from '@/hooks/useLoading';
 import { FileUploadField } from '@/pages/dialogs/createOrupdateTenant/FileUploadField';
 import { updateTenantSchema } from '@/pages/dialogs/createOrupdateTenant/schema/createOrUpdateTenantSchema';
 import type { UpdateTenantRequest } from '@/types/user';
@@ -26,6 +29,9 @@ interface CreateOrUpdateTenantProps {
 }
 
 const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onClose, tenant }) => {
+  const createUserMutation = useCreateUserMutation();
+  const { hide, show } = useLoading();
+
   const form = useForm<UpdateTenantRequest>({
     resolver: zodResolver(updateTenantSchema),
     defaultValues: {
@@ -52,10 +58,30 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
     }
   }, [tenant, form]);
 
-  const onSubmit: SubmitHandler<UpdateTenantRequest> = (values) => {
-    console.log(values);
+  const onSubmit: SubmitHandler<UpdateTenantRequest> = async (values) => {
+    show();
+    const formData = new FormData();
 
-    onClose();
+    formData.append('name', values.name);
+    formData.append('email', values.email);
+    formData.append('phone', values.phone);
+    formData.append('role', String(values.role));
+
+    if (values.cccdImagesFront instanceof File) {
+      formData.append('cccdFront', values.cccdImagesFront);
+    }
+
+    if (values.cccdImagesBack instanceof File) {
+      formData.append('cccdBack', values.cccdImagesBack);
+    }
+    await createUserMutation.mutateAsync(formData, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
+        hide();
+        onClose();
+      },
+    });
+    hide();
     form.reset();
   };
 

@@ -31,3 +31,20 @@ export function useLoginMutation() {
     onError: handleHttpError,
   });
 }
+
+export const useCreateUserMutation = () => {
+  const handleHttpError = useHandleHttpError();
+
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await http.post('/users/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data;
+    },
+    onError: handleHttpError,
+  });
+};

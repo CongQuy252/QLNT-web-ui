@@ -149,6 +149,7 @@ const UpdateTenantDialog: React.FC<UpdateTenantDialogProps> = ({
   const handleSubmit = (values: UpdateTenantRequest) => {
     onSubmit(values);
     onClose();
+    form.reset();
   };
 
   return (
