@@ -4,6 +4,7 @@ import { useGetBuildingById } from '@/api/building';
 import { useGetRoomsQueries, useUpdateRoomMutation } from '@/api/room';
 import { RoomStatus } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
+import { room } from '@/pages/roomDetails/mockData/data';
 import type { Room } from '@/types/room';
 import type { UserRoom } from '@/types/user';
 
@@ -22,6 +23,8 @@ export const useRooms = () => {
   const [phoneSearch, setPhoneSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserRoom>();
   const [openAddTenant, setopenAddTenant] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
   const filteredRooms = rooms.filter((room: Room) => {
     const matchesSearch =
       room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -121,6 +124,26 @@ export const useRooms = () => {
     }
   });
 
+  const handleAskDeleteRoom = () => {
+    if (!room) {
+      return;
+    }
+
+    setConfirmMessage('Bạn có chắc muốn xoá phòng này ?');
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!room) {
+      return;
+    }
+
+    // await deleteBuildingMutation.mutateAsync(building._id);
+    // queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
+    console.log('room deleted');
+    setConfirmOpen(false);
+  };
+
   return {
     totalItems,
     isLoading,
@@ -149,5 +172,10 @@ export const useRooms = () => {
     openAddTenant,
     setopenAddTenant,
     totalFloors: getBuildingById.data?.data.totalFloors ?? 0,
+    setConfirmOpen,
+    handleConfirmDelete,
+    confirmMessage,
+    confirmOpen,
+    handleAskDeleteRoom,
   };
 };

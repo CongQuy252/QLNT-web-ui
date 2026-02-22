@@ -32,13 +32,13 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <AlertDialog open={open}>
-      <AlertDialogContent>
+      <AlertDialogContent className="block">
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
 
-        <AlertDialogFooter>
+        <AlertDialogFooter className="mt-5 max-w-89.5">
           <AlertDialogCancel onClick={onCancel}>{cancelText}</AlertDialogCancel>
 
           <AlertDialogAction onClick={onConfirm} disabled={loading}>

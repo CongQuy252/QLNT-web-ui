@@ -3,6 +3,7 @@ import { FaUserPlus } from 'react-icons/fa';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
 import {
   Dialog,
   DialogContent,
@@ -57,6 +58,11 @@ const Rooms = () => {
     openAddTenant,
     setopenAddTenant,
     totalFloors,
+    setConfirmOpen,
+    handleConfirmDelete,
+    handleAskDeleteRoom,
+    confirmMessage,
+    confirmOpen,
   } = useRooms();
 
   return (
@@ -366,7 +372,19 @@ const Rooms = () => {
                       icon={<Edit className="w-4 h-4" />}
                       onClick={() => handleEditRoom(room)}
                     />
-                    <Dialog>
+
+                    {room.status !== RoomStatus.occupied && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-2 text-red-600 border-red-300 hover:bg-red-50 bg-transparent"
+                        icon={<Trash2 className="h-4 w-4" />}
+                        onClick={handleAskDeleteRoom}
+                        // disabled={isDeleting}
+                        disabled={false}
+                      />
+                    )}
+                    {/* <Dialog>
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
@@ -385,7 +403,7 @@ const Rooms = () => {
                           </p>
                         </div>
                       </DialogContent>
-                    </Dialog>
+                    </Dialog> */}
                   </div>
                 </div>
               </Card>
@@ -429,6 +447,16 @@ const Rooms = () => {
             </Button>
           </div>
         </div>
+      )}
+
+      {confirmOpen && (
+        <ConfirmDialog
+          open={confirmOpen}
+          description={confirmMessage}
+          confirmText="Xoá"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setConfirmOpen(false)}
+        />
       )}
     </div>
   );
