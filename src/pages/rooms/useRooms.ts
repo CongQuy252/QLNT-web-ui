@@ -1,11 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
+import { useGetBuildingById } from '@/api/building';
 import { useGetRoomsQueries, useUpdateRoomMutation } from '@/api/room';
 import { RoomStatus } from '@/constants/appConstants';
+import { useLoading } from '@/hooks/useLoading';
 import type { Room } from '@/types/room';
 import type { UserRoom } from '@/types/user';
 
 export const useRooms = () => {
+  const { hide, show } = useLoading();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -108,6 +111,16 @@ export const useRooms = () => {
 
   const totalItems = useMemo(() => pagination?.total ?? 0, [pagination]);
 
+  const getBuildingById = useGetBuildingById(editRoom?.buildingId ?? '');
+
+  useEffect(() => {
+    if (!getBuildingById.isError && !getBuildingById.isSuccess) {
+      show();
+    } else {
+      hide();
+    }
+  });
+
   return {
     totalItems,
     isLoading,
@@ -135,5 +148,6 @@ export const useRooms = () => {
     setSelectedUser,
     openAddTenant,
     setopenAddTenant,
+    totalFloors: getBuildingById.data?.data.totalFloors ?? 0,
   };
 };

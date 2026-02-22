@@ -1,9 +1,10 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { QueriesKey } from '@/constants/appConstants';
+import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type { BuildingListResponse } from '@/types/building';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
+import type { BuildingListResponse, GetBuildingByIdResponse } from '@/types/building';
 
 export const useGetBuildingQueries = (isEnabled = true) => {
   return useQuery({
@@ -13,6 +14,21 @@ export const useGetBuildingQueries = (isEnabled = true) => {
       return response.data.data;
     },
     enabled: isEnabled,
+  });
+};
+
+export const useGetBuildingById = (buildingId?: string, isEnable = true) => {
+  const handleHttpError = useHandleHttpError();
+  return useQuery({
+    queryKey: [QueriesKey.building, buildingId],
+    queryFn: async () => {
+      const response = await http.get<GetBuildingByIdResponse>(`/buildings/${buildingId}`);
+      return response.data;
+    },
+    meta: {
+      handleError: handleHttpError,
+    },
+    enabled: isEnable || !!buildingId,
   });
 };
 

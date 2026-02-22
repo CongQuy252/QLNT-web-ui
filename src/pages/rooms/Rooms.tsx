@@ -11,13 +11,24 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { RoomStatus } from '@/constants/appConstants';
+import { useMobile } from '@/hooks/useMobile';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
 import { useRooms } from '@/pages/rooms/useRooms';
 import type { Room } from '@/types/room';
 import { formatCurrency } from '@/utils/utils';
 
 const Rooms = () => {
+  const isMobile = useMobile();
   const {
     totalItems,
     isLoading,
@@ -45,6 +56,7 @@ const Rooms = () => {
     setSelectedUser,
     openAddTenant,
     setopenAddTenant,
+    totalFloors,
   } = useRooms();
 
   return (
@@ -55,7 +67,7 @@ const Rooms = () => {
           <p className="text-slate-600 mt-2">{`Tổng cộng ${totalItems} phòng`}</p>
         </div>
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col">
             <DialogHeader>
               <DialogTitle>Chỉnh sửa phòng {editRoom?.number}</DialogTitle>
             </DialogHeader>
@@ -80,7 +92,7 @@ const Rooms = () => {
                     className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
                     aria-label="Tầng"
                   >
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((f) => (
+                    {Array.from({ length: totalFloors }, (_, i) => i + 1).map((f) => (
                       <option key={f} value={f}>
                         Tầng {f}
                       </option>
@@ -118,35 +130,45 @@ const Rooms = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Trạng thái</label>
-                <select
-                  value={editRoom?.status || RoomStatus.available}
-                  onChange={(e) =>
-                    editRoom && setEditRoom({ ...editRoom, status: e.target.value as RoomStatus })
+                <Label className="text-sm font-medium text-slate-700">Trạng thái</Label>
+
+                <Select
+                  value={editRoom?.status ?? RoomStatus.available}
+                  onValueChange={(value) =>
+                    editRoom && setEditRoom({ ...editRoom, status: value as RoomStatus })
                   }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  aria-label="Trạng thái phòng"
                 >
-                  <option value={RoomStatus.available}>
-                    {getStatusLabel(RoomStatus.available)}
-                  </option>
-                  <option value={RoomStatus.maintenance}>
-                    {getStatusLabel(RoomStatus.maintenance)}
-                  </option>
-                  <option value={RoomStatus.occupied}>{getStatusLabel(RoomStatus.occupied)}</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn trạng thái phòng" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value={RoomStatus.available}>
+                      {getStatusLabel(RoomStatus.available)}
+                    </SelectItem>
+
+                    <SelectItem value={RoomStatus.maintenance}>
+                      {getStatusLabel(RoomStatus.maintenance)}
+                    </SelectItem>
+
+                    <SelectItem value={RoomStatus.occupied}>
+                      {getStatusLabel(RoomStatus.occupied)}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Mô tả</label>
-                <textarea
+                <Label className="text-sm font-medium text-slate-700">Mô tả</Label>
+                <Textarea
                   placeholder="Mô tả chi tiết về phòng..."
                   value={editRoom?.description || ''}
                   onChange={(e) =>
                     editRoom && setEditRoom({ ...editRoom, description: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-none"
-                  rows={3}
+                  className={`w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-none mt-1 break-all overflow-auto ${isMobile ? 'h-45' : 'h-10'} resize-none scrollbar`}
+                  rows={4}
+                  maxLength={500}
                 />
               </div>
 
