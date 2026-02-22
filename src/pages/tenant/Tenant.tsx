@@ -1,10 +1,12 @@
 import { Edit, Mail, Phone, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
+import { LiaIdCard } from 'react-icons/lia';
 
 import { useGetTenantQueries } from '@/api/tenant';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import ImageListDialog from '@/components/ui/imageView/ImageListDialog';
 import { Input } from '@/components/ui/input';
 import { TenantStatus, UserRole } from '@/constants/appConstants';
 import CreateOrUpdateTenant from '@/pages/dialogs/createOrupdateTenant/CreateOrUpdateTenant';
@@ -21,6 +23,7 @@ const Tenant = () => {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [imageList, setImageList] = useState<string[]>([]);
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) =>
@@ -60,6 +63,10 @@ const Tenant = () => {
     if (!editingTenant) return;
     console.log('Edited');
     setIsEditOpen(false);
+  };
+
+  const handleOpenImageViewer = (cccd: { front: string; back: string }) => {
+    setImageList([cccd.front, cccd.back]);
   };
 
   return (
@@ -132,8 +139,6 @@ const Tenant = () => {
       <div className="flex-1 overflow-y-auto">
         <div className="grid gap-4">
           {filteredTenants.map((tenant) => {
-            // const daysLeft = daysUntilExpiry(tenant.contractEndDate);
-            // const isExpiringSoon = daysLeft <= 30 && daysLeft > 0;
             const isOpen = expandedIds.includes(tenant.id);
 
             return (
@@ -171,6 +176,20 @@ const Tenant = () => {
                       <Phone className="w-4 h-4" />
                       {tenant.phone}
                     </div>
+
+                    <div
+                      className="flex items-center gap-2 cursor-pointer"
+                      onClick={() =>
+                        handleOpenImageViewer({
+                          front: tenant.cccdImages.front.url,
+                          back: tenant.cccdImages.back.url,
+                        })
+                      }
+                    >
+                      <LiaIdCard className="w-4 h-4" />
+                      Click để xem thông tin CCCD
+                    </div>
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -242,6 +261,15 @@ const Tenant = () => {
           onClose={() => setIsEditOpen(false)}
           // onChange={setEditingTenant}
           // onSave={handleSaveEditTenant}
+        />
+      )}
+
+      {imageList?.length > 0 && (
+        <ImageListDialog
+          images={imageList}
+          open={imageList?.length > 0}
+          onClose={() => setImageList([])}
+          title="Hình ảnh CCCD"
         />
       )}
     </div>
