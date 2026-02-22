@@ -63,6 +63,7 @@ const Rooms = () => {
     handleAskDeleteRoom,
     confirmMessage,
     confirmOpen,
+    setRoomSelected,
   } = useRooms();
 
   return (
@@ -344,6 +345,7 @@ const Rooms = () => {
                                 <div
                                   key={user._id}
                                   onClick={() => {
+                                    setRoomSelected(room);
                                     setSelectedUser(user);
                                     setopenAddTenant(false);
                                   }}
@@ -379,7 +381,9 @@ const Rooms = () => {
                         size="sm"
                         className="flex-1 gap-2 text-red-600 border-red-300 hover:bg-red-50 bg-transparent"
                         icon={<Trash2 className="h-4 w-4" />}
-                        onClick={handleAskDeleteRoom}
+                        onClick={() => {
+                          handleAskDeleteRoom(room);
+                        }}
                         // disabled={isDeleting}
                         disabled={false}
                       />

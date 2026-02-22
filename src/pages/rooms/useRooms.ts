@@ -4,7 +4,6 @@ import { useGetBuildingById } from '@/api/building';
 import { useGetRoomsQueries, useUpdateRoomMutation } from '@/api/room';
 import { RoomStatus } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
-import { room } from '@/pages/roomDetails/mockData/data';
 import type { Room } from '@/types/room';
 import type { UserRoom } from '@/types/user';
 
@@ -19,7 +18,8 @@ export const useRooms = () => {
   const pagination = data?.pagination;
   const updateRoomMutation = useUpdateRoomMutation();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
-  const [editRoom, setEditRoom] = useState<Room | null>(null);
+  const [editRoom, setEditRoom] = useState<Room>();
+  const [roomSelected, setRoomSelected] = useState<Room>();
   const [phoneSearch, setPhoneSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserRoom>();
   const [openAddTenant, setopenAddTenant] = useState(false);
@@ -105,7 +105,7 @@ export const useRooms = () => {
         {
           onSuccess: () => {
             setIsEditDialogOpen(false);
-            setEditRoom(null);
+            setEditRoom(undefined);
           },
         },
       );
@@ -124,17 +124,17 @@ export const useRooms = () => {
     }
   });
 
-  const handleAskDeleteRoom = () => {
+  const handleAskDeleteRoom = (room: Room) => {
     if (!room) {
       return;
     }
-
-    setConfirmMessage('Bạn có chắc muốn xoá phòng này ?');
+    setRoomSelected(room);
+    setConfirmMessage(`Bạn có chắc muốn xoá phòng ${room.number}`);
     setConfirmOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    if (!room) {
+    if (!roomSelected) {
       return;
     }
 
@@ -177,5 +177,6 @@ export const useRooms = () => {
     confirmMessage,
     confirmOpen,
     handleAskDeleteRoom,
+    setRoomSelected,
   };
 };
