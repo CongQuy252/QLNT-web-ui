@@ -388,26 +388,6 @@ const Rooms = () => {
                         disabled={false}
                       />
                     )}
-                    {/* <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 gap-2 text-red-600 border-red-300 hover:bg-red-50 bg-transparent"
-                          icon={<Trash2 className="w-4 h-4" />}
-                        />
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Bạn có chắc muốn xoá phòng {room.number}</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <p className="text-slate-600 text-sm">
-                            Tính năng chỉnh sửa sẽ được cập nhật trong phiên bản tiếp theo
-                          </p>
-                        </div>
-                      </DialogContent>
-                    </Dialog> */}
                   </div>
                 </div>
               </Card>
