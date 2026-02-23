@@ -26,6 +26,7 @@ export enum QueriesKey {
   buildings = 'buildings',
   building = 'building',
   rooms = 'rooms',
+  users = 'users',
 }
 
 export enum RoomStatus {

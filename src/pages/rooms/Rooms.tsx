@@ -39,6 +39,7 @@ const Rooms = () => {
     setEditRoom,
     handleUpdateRoom,
     updateRoomMutation,
+    handleAssignTenant,
     searchTerm,
     setSearchTerm,
     filterStatus,
@@ -245,7 +246,7 @@ const Rooms = () => {
       </div>
 
       {/* Room Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto flex-1">
         {isLoading && (
           <div className="col-span-full flex justify-center py-8">
             <div className="text-slate-600">Đang tải danh sách phòng...</div>
@@ -336,7 +337,7 @@ const Rooms = () => {
                               autoFocus
                             />
 
-                            <div className="flex-1 overflow-y-auto border rounded-lg">
+                            <div className="max-h-64 overflow-y-auto border rounded-lg">
                               {filteredUsers?.length === 0 && (
                                 <p className="p-3 text-sm text-slate-500">Không tìm thấy</p>
                               )}
@@ -345,9 +346,9 @@ const Rooms = () => {
                                 <div
                                   key={user._id}
                                   onClick={() => {
-                                    setRoomSelected(room);
                                     setSelectedUser(user);
-                                    setopenAddTenant(false);
+                                    setRoomSelected(room);
+                                    handleAssignTenant();
                                   }}
                                   className={`p-3 cursor-pointer flex justify-between items-center hover:bg-slate-100 ${selectedUser?._id === user._id ? 'bg-slate-100' : ''}`}
                                 >

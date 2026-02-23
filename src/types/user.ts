@@ -29,14 +29,14 @@ export interface LoginResponse {
 }
 
 export interface GetUserResponse {
-  id: string;
+  _id: string;
   email: string;
   name: string;
   role: number;
   phone: string;
   cccdImages: {
-    front: string;
-    back: string;
+    front: { url: string; publicId: string };
+    back: { url: string; publicId: string };
   };
 }
 
@@ -53,11 +53,34 @@ export interface GetUserByIdResponse {
         publicId: string;
       };
     };
-    id: string;
+    _id: string;
     email: string;
     name: string;
     role: number;
     phone: string;
     cccd?: string;
   };
+}
+
+export interface GetAllUsersRequest {
+  email?: string;
+  name?: string;
+  phone?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+export interface GetAllUsersResponse {
+  message: string;
+  data: GetUserResponse[];
+  pagination: Pagination;
 }

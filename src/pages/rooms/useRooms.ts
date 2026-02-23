@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useGetBuildingById } from '@/api/building';
-import { useGetRoomsQueries, useUpdateRoomMutation } from '@/api/room';
+import { useGetRoomsQueries, useUpdateRoomMutation, useAssignTenantMutation } from '@/api/room';
+import { useAllUsersQuery } from '@/api/user';
 import { RoomStatus } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import type { Room } from '@/types/room';
@@ -18,6 +19,7 @@ export const useRooms = () => {
   const rooms = data?.rooms || [];
   const pagination = data?.pagination;
   const updateRoomMutation = useUpdateRoomMutation();
+  const assignTenantMutation = useAssignTenantMutation();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
   const [editRoom, setEditRoom] = useState<Room>();
   const [roomSelected, setRoomSelected] = useState<Room>();
@@ -26,6 +28,9 @@ export const useRooms = () => {
   const [openAddTenant, setopenAddTenant] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState('');
+  const { data: usersData } = useAllUsersQuery({ phone: phoneSearch || undefined }, true);
+  const tenants = usersData?.data || [];
+
   const filteredRooms = rooms.filter((room: Room) => {
     const matchesSearch =
       room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -38,46 +43,7 @@ export const useRooms = () => {
   const { buildingId } = useParams(); //Nếu có buildingId thì lọc theo buildingId và status (status được truyền trong state) - tham khảo useBuildings - handleClickRoomStatusCount
   console.log('buildingId: ', buildingId);
 
-  const tenants: UserRoom[] = [
-    {
-      _id: '65d8f3c2a12b3c0012345678',
-      email: 'nguyenquy@example.com',
-      name: 'Nguyen Quy',
-      role: 1,
-      phone: '0912345678',
-      cccd: '079203001234',
-      cccdImages: {
-        front: {
-          url: 'https://cdn.example.com/cccd/front1.jpg',
-          publicId: 'cccd/front1',
-        },
-        back: {
-          url: 'https://cdn.example.com/cccd/back1.jpg',
-          publicId: 'cccd/back1',
-        },
-      },
-    },
-    {
-      _id: '65d8f3c2a12b3c0098765432',
-      email: 'tenant2@example.com',
-      name: 'Tran Van A',
-      role: 1,
-      phone: '0987654321',
-      cccd: '079203009999',
-      cccdImages: {
-        front: {
-          url: 'https://cdn.example.com/cccd/front2.jpg',
-          publicId: 'cccd/front2',
-        },
-        back: {
-          url: 'https://cdn.example.com/cccd/back2.jpg',
-          publicId: 'cccd/back2',
-        },
-      },
-    },
-  ];
-
-  const filteredUsers = tenants?.filter((u) => u.phone.includes(phoneSearch));
+  const filteredUsers = tenants;
 
   const handleEditRoom = (room: Room) => {
     setEditRoom(room);
@@ -148,6 +114,26 @@ export const useRooms = () => {
     setConfirmOpen(false);
   };
 
+  const handleAssignTenant = () => {
+    if (!roomSelected || !selectedUser) {
+      return;
+    }
+
+    assignTenantMutation.mutate(
+      {
+        roomId: roomSelected._id,
+        userId: selectedUser._id,
+      },
+      {
+        onSuccess: () => {
+          setopenAddTenant(false);
+          setSelectedUser(undefined);
+          setRoomSelected(undefined);
+        },
+      }
+    );
+  };
+
   return {
     totalItems,
     isLoading,
@@ -157,6 +143,8 @@ export const useRooms = () => {
     setEditRoom,
     handleUpdateRoom,
     updateRoomMutation,
+    assignTenantMutation,
+    handleAssignTenant,
     searchTerm,
     setSearchTerm,
     filterStatus,

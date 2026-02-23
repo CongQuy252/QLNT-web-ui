@@ -64,3 +64,19 @@ export const useUpdateRoomMutation = () => {
     onError: handleHttpError,
   });
 };
+
+export const useAssignTenantMutation = () => {
+  const queryClient = useQueryClient();
+  const handleHttpError = useHandleHttpError();
+
+  return useMutation({
+    mutationFn: async ({ roomId, userId }: { roomId: string; userId: string }) => {
+      const response = await http.post(`/rooms/${roomId}/assign-tenant`, { userId });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
+    },
+    onError: handleHttpError,
+  });
+};
