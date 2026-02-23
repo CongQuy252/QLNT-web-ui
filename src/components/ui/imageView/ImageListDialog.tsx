@@ -44,8 +44,8 @@ const ImageListDialog: React.FC<ImageListDialogProps> = ({
         </div>
 
         {/* Thumbnail list */}
-        <ScrollArea className="mt-4">
-          <div className="flex gap-3 pb-2">
+        <ScrollArea className="mt-3">
+          <div className="flex gap-3 p-3">
             {images.map((src, index) => (
               <button
                 key={index}

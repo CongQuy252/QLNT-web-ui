@@ -15,7 +15,7 @@ import type { UpdateTenantRequest } from '@/types/user';
 
 const Tenant = () => {
   const getTenantQueries = useGetTenantQueries();
-  const pageSize = 20;
+  const pageSize = 10;
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<TenantStatus>(TenantStatus.all);
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -74,7 +74,7 @@ const Tenant = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Quản lý người thuê</h1>
-          <p className="text-slate-600 mt-2">Tổng cộng {tenants.length} người thuê</p>
+          <p className="text-slate-600 mt-2">Tổng cộng {pagination?.total || 0} người thuê</p>
         </div>
         <Button
           className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
