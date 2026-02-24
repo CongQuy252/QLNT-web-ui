@@ -1,9 +1,8 @@
-import { ChevronLeft, ChevronRight, CreditCard, Save, X } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 import { useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
