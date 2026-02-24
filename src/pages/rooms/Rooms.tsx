@@ -4,12 +4,12 @@ import { FaUserPlus } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
+import { ToastContainer } from '@/components/ui/toast/Toast';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +23,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { RoomStatus } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
+import { useToast } from '@/hooks/useToast';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
 import { useRooms } from '@/pages/rooms/useRooms';
 import type { Room } from '@/types/room';
@@ -30,6 +31,7 @@ import { formatCurrency } from '@/utils/utils';
 
 const Rooms = () => {
   const isMobile = useMobile();
+  const { toasts } = useToast();
   const {
     totalItems,
     isLoading,
@@ -40,6 +42,9 @@ const Rooms = () => {
     handleUpdateRoom,
     updateRoomMutation,
     handleAssignTenant,
+    handleConfirmAssign,
+    assignConfirmOpen,
+    setAssignConfirmOpen,
     searchTerm,
     setSearchTerm,
     filterStatus,
@@ -64,7 +69,9 @@ const Rooms = () => {
     handleAskDeleteRoom,
     confirmMessage,
     confirmOpen,
-    setRoomSelected,
+    roomSelected,
+    handleOpenAddTenant,
+    assignTenantMutation,
   } = useRooms();
 
   return (
@@ -312,60 +319,13 @@ const Rooms = () => {
 
                   <div className="flex gap-2 pt-4 border-t border-slate-200">
                     {room.status === RoomStatus.available && (
-                      <Dialog open={openAddTenant} onOpenChange={setopenAddTenant}>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 gap-2 text-slate-700 border-slate-300 bg-transparent"
-                            icon={<FaUserPlus className="w-4 h-4" />}
-                          />
-                        </DialogTrigger>
-                        <DialogContent
-                          className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col"
-                          onCloseAutoFocus={(e) => e.preventDefault()}
-                        >
-                          <DialogHeader>
-                            <DialogTitle>Thêm người thuê phòng</DialogTitle>
-                          </DialogHeader>
-
-                          <div className="flex flex-col gap-4 py-4 flex-1 min-h-0">
-                            <Input
-                              placeholder="Tìm theo số điện thoại..."
-                              value={phoneSearch}
-                              onChange={(e) => setPhoneSearch(e.target.value)}
-                              autoFocus
-                            />
-
-                            <div className="max-h-64 overflow-y-auto border rounded-lg">
-                              {filteredUsers?.length === 0 && (
-                                <p className="p-3 text-sm text-slate-500">Không tìm thấy</p>
-                              )}
-
-                              {filteredUsers?.map((user) => (
-                                <div
-                                  key={user._id}
-                                  onClick={() => {
-                                    setSelectedUser(user);
-                                    setRoomSelected(room);
-                                    handleAssignTenant();
-                                  }}
-                                  className={`p-3 cursor-pointer flex justify-between items-center hover:bg-slate-100 ${selectedUser?._id === user._id ? 'bg-slate-100' : ''}`}
-                                >
-                                  <div>
-                                    <p className="font-medium">{user.name}</p>
-                                    <p className="text-sm text-slate-500">{user.phone}</p>
-                                  </div>
-
-                                  {selectedUser?._id === user._id && (
-                                    <span className="text-sm text-green-600">✓</span>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-2 text-slate-700 border-slate-300 bg-transparent"
+                        icon={<FaUserPlus className="w-4 h-4" />}
+                        onClick={() => handleOpenAddTenant(room)}
+                      />
                     )}
 
                     <Button
@@ -385,7 +345,6 @@ const Rooms = () => {
                         onClick={() => {
                           handleAskDeleteRoom(room);
                         }}
-                        // disabled={isDeleting}
                         disabled={false}
                       />
                     )}
@@ -395,6 +354,98 @@ const Rooms = () => {
             );
           })}
       </div>
+
+      {/* Dialog add tenant - global */}
+      <Dialog open={openAddTenant} onOpenChange={setopenAddTenant}>
+        <DialogContent
+          className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col"
+          onCloseAutoFocus={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Thêm người thuê phòng {roomSelected?.number}</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4 py-4 flex-1 min-h-0">
+            <Input
+              placeholder="Tìm theo số điện thoại..."
+              value={phoneSearch}
+              onChange={(e) => setPhoneSearch(e.target.value)}
+              autoFocus
+            />
+
+            <div className="max-h-64 overflow-y-auto border rounded-lg">
+              {filteredUsers?.length === 0 && (
+                <p className="p-3 text-sm text-slate-500">Không tìm thấy</p>
+              )}
+
+              {filteredUsers?.map((user) => (
+                <div
+                  key={user._id}
+                  onClick={() => {
+                    setSelectedUser(user);
+                  }}
+                  className={`p-3 cursor-pointer flex justify-between items-center hover:bg-slate-100 ${selectedUser?._id === user._id ? 'bg-slate-100' : ''}`}
+                >
+                  <div>
+                    <p className="font-medium">{user.name}</p>
+                    <p className="text-sm text-slate-500">{user.phone}</p>
+                  </div>
+
+                  {selectedUser?._id === user._id && (
+                    <span className="text-sm text-green-600">✓</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {selectedUser && (
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-slate-600">
+                    Đã chọn: <span className="font-medium">{selectedUser.name}</span>
+                  </span>
+                  <Button
+                    size="sm"
+                    onClick={handleAssignTenant}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Xác nhận gán
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog xác nhận assign tenant */}
+      <Dialog open={assignConfirmOpen} onOpenChange={setAssignConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận gán người thuê</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-slate-700">
+              Bạn có chắc muốn gán <span className="font-medium">{selectedUser?.name}</span> vào phòng <span className="font-medium">{roomSelected?.number}</span>?
+            </p>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setAssignConfirmOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleConfirmAssign}
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={assignTenantMutation.isPending}
+            >
+              {assignTenantMutation.isPending ? 'Đang gán...' : 'Xác nhận'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {!isLoading && !error && filteredRooms.length === 0 && (
         <Card className="p-12 bg-white text-center">
@@ -443,6 +494,9 @@ const Rooms = () => {
           onCancel={() => setConfirmOpen(false)}
         />
       )}
+      
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} />
     </div>
   );
 };

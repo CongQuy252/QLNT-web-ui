@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { LocalStorageKey, QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type { GetUserByIdResponse, LoginRequest, LoginResponse, GetAllUsersRequest, GetAllUsersResponse } from '@/types/user';
+import type { GetUserByIdResponse, LoginRequest, LoginResponse, GetNonTenantUsersRequest, GetNonTenantUsersResponse } from '@/types/user';
 
 export const useUserQuery = (userId?: string, enable?: boolean) => {
   return useQuery({
@@ -32,11 +32,11 @@ export function useLoginMutation() {
   });
 }
 
-export const useAllUsersQuery = (params?: GetAllUsersRequest, enabled?: boolean) => {
+export const useNonTenantUsersQuery = (params?: GetNonTenantUsersRequest, enabled?: boolean) => {
   return useQuery({
     queryKey: [QueriesKey.users, params],
     queryFn: async () => {
-      const response = await http.get<GetAllUsersResponse>('/users', { params });
+      const response = await http.get<GetNonTenantUsersResponse>('/users/non-tenants', { params });
       return response.data;
     },
     enabled,

@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 
 import { useGetBuildingById } from '@/api/building';
 import { useGetRoomsQueries, useUpdateRoomMutation, useAssignTenantMutation } from '@/api/room';
-import { useAllUsersQuery } from '@/api/user';
-import { RoomStatus } from '@/constants/appConstants';
+import { useNonTenantUsersQuery } from '@/api/user';
+import { RoomStatus, QueriesKey } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
+import { useToast } from '@/hooks/useToast';
 import type { Room } from '@/types/room';
 import type { UserRoom } from '@/types/user';
 
 export const useRooms = () => {
+  const queryClient = useQueryClient();
+  const { success } = useToast();
   const { hide, show } = useLoading();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
@@ -28,7 +32,8 @@ export const useRooms = () => {
   const [openAddTenant, setopenAddTenant] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState('');
-  const { data: usersData } = useAllUsersQuery({ phone: phoneSearch || undefined }, true);
+  const [assignConfirmOpen, setAssignConfirmOpen] = useState(false);
+  const { data: usersData } = useNonTenantUsersQuery({ phone: phoneSearch || undefined }, true);
   const tenants = usersData?.data || [];
 
   const filteredRooms = rooms.filter((room: Room) => {
@@ -114,7 +119,19 @@ export const useRooms = () => {
     setConfirmOpen(false);
   };
 
+  const handleOpenAddTenant = (room: Room) => {
+    setRoomSelected(room);
+    setopenAddTenant(true);
+  };
+
   const handleAssignTenant = () => {
+    if (!roomSelected || !selectedUser) {
+      return;
+    }
+    setAssignConfirmOpen(true);
+  };
+
+  const handleConfirmAssign = () => {
     if (!roomSelected || !selectedUser) {
       return;
     }
@@ -129,6 +146,14 @@ export const useRooms = () => {
           setopenAddTenant(false);
           setSelectedUser(undefined);
           setRoomSelected(undefined);
+          setAssignConfirmOpen(false);
+          // Invalidate lại query users để refresh danh sách
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
+          // Hiển thị thông báo thành công
+          success(`Đã gán ${selectedUser.name} vào phòng ${roomSelected.number} thành công!`);
+        },
+        onError: () => {
+          setAssignConfirmOpen(false);
         },
       }
     );
@@ -143,8 +168,12 @@ export const useRooms = () => {
     setEditRoom,
     handleUpdateRoom,
     updateRoomMutation,
+    handleOpenAddTenant,
     assignTenantMutation,
     handleAssignTenant,
+    handleConfirmAssign,
+    assignConfirmOpen,
+    setAssignConfirmOpen,
     searchTerm,
     setSearchTerm,
     filterStatus,
@@ -170,5 +199,6 @@ export const useRooms = () => {
     confirmOpen,
     handleAskDeleteRoom,
     setRoomSelected,
+    roomSelected,
   };
 };

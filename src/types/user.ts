@@ -62,7 +62,7 @@ export interface GetUserByIdResponse {
   };
 }
 
-export interface GetAllUsersRequest {
+export interface GetNonTenantUsersRequest {
   email?: string;
   name?: string;
   phone?: string;
@@ -79,8 +79,7 @@ export interface Pagination {
   hasPrev: boolean;
 }
 
-export interface GetAllUsersResponse {
-  message: string;
+export interface GetNonTenantUsersResponse {
   data: GetUserResponse[];
   pagination: Pagination;
 }
