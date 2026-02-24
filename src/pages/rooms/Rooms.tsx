@@ -213,7 +213,10 @@ const Rooms = () => {
           <Input
             placeholder="Tìm kiếm ..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1); // Reset về trang 1 khi search
+            }}
             className="peer"
           />
           <div

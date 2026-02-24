@@ -19,7 +19,7 @@ export const useRooms = () => {
   const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
-  const { data, isLoading, error } = useGetRoomsQueries(currentPage, pageSize);
+  const { data, isLoading, error } = useGetRoomsQueries(currentPage, pageSize, searchTerm, filterStatus);
   const rooms = data?.rooms || [];
   const pagination = data?.pagination;
   const updateRoomMutation = useUpdateRoomMutation();
@@ -36,14 +36,15 @@ export const useRooms = () => {
   const { data: usersData } = useNonTenantUsersQuery({ phone: phoneSearch || undefined }, true);
   const tenants = usersData?.data || [];
 
-  const filteredRooms = rooms.filter((room: Room) => {
-    const matchesSearch =
-      room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.building.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === RoomStatus.all || room.status === filterStatus;
-
-    return matchesSearch && matchesStatus;
-  });
+  // API đã lọc rồi nên không cần lọc lại ở frontend
+  // const filteredRooms = rooms.filter((room: Room) => {
+  //   const matchesSearch =
+  //     room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     room.building.toLowerCase().includes(searchTerm.toLowerCase());
+  //   const matchesStatus = filterStatus === RoomStatus.all || room.status === filterStatus;
+  //   return matchesSearch && matchesStatus;
+  // });
+  const filteredRooms = rooms;
 
   const { buildingId } = useParams(); //Nếu có buildingId thì lọc theo buildingId và status (status được truyền trong state) - tham khảo useBuildings - handleClickRoomStatusCount
   console.log('buildingId: ', buildingId);
