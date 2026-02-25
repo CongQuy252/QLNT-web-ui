@@ -5,6 +5,7 @@ import { Mode, Path } from '@/constants/appConstants';
 import HomeSidebar from '@/pages/HomeSidebar/HomeSidebar';
 import Buildings from '@/pages/buildings/Buildings';
 import Home from '@/pages/home/Home';
+import Payment from '@/pages/payment/Payment';
 import RoomDetails from '@/pages/roomDetails/RoomDetails';
 import Rooms from '@/pages/rooms/Rooms';
 import Tenant from '@/pages/tenant/Tenant';
@@ -49,6 +50,10 @@ export const routes: RouteObject[] = [
           {
             path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}`,
             element: <Rooms />,
+          },
+          {
+            path: `/${Path.payments}`,
+            element: <Payment />,
           },
         ],
       },
