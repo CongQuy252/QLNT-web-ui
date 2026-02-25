@@ -31,7 +31,9 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
         className="w-full text-left p-4 flex justify-between items-center hover:bg-slate-50"
       >
         <div>
-          {user.role === UserRole.admin && <p className="text-sm text-slate-500">{tenant?.name}</p>}
+          {user.role === UserRole.admin && (
+            <p className="text-sm text-slate-500">{tenant?.user.name}</p>
+          )}
 
           <p className="font-semibold text-slate-900">
             {room ? `${room.number} (Tòa ${room.building})` : '-'}

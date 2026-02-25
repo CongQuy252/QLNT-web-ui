@@ -25,11 +25,11 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
-  user: GetUserResponse;
+  user: GetUserLoginResponse;
 }
 
-export interface GetUserResponse {
-  _id: string;
+export interface GetUserLoginResponse {
+  id: string;
   email: string;
   name: string;
   role: UserRole;
@@ -40,26 +40,28 @@ export interface GetUserResponse {
   };
 }
 
+export interface GetUserResponse {
+  cccdImages: {
+    front: {
+      url: string;
+      publicId: string;
+    };
+    back: {
+      url: string;
+      publicId: string;
+    };
+  };
+  _id: string;
+  email: string;
+  name: string;
+  role: number;
+  phone: string;
+  cccd?: string;
+}
+
 export interface GetUserByIdResponse {
   message: string;
-  data: {
-    cccdImages: {
-      front: {
-        url: string;
-        publicId: string;
-      };
-      back: {
-        url: string;
-        publicId: string;
-      };
-    };
-    _id: string;
-    email: string;
-    name: string;
-    role: number;
-    phone: string;
-    cccd?: string;
-  };
+  data: GetUserResponse;
 }
 
 export interface GetNonTenantUsersRequest {

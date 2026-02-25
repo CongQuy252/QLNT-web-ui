@@ -32,7 +32,7 @@ export function useLoginMutation() {
     },
     onSuccess: (res) => {
       localStorage.setItem(LocalStorageKey.token, res.token);
-      localStorage.setItem(LocalStorageKey.userId, res.user._id);
+      localStorage.setItem(LocalStorageKey.userId, res.user.id);
     },
     onError: handleHttpError,
   });
