@@ -3,7 +3,13 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { LocalStorageKey, QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type { GetUserByIdResponse, LoginRequest, LoginResponse, GetNonTenantUsersRequest, GetNonTenantUsersResponse } from '@/types/user';
+import type {
+  GetNonTenantUsersRequest,
+  GetNonTenantUsersResponse,
+  GetUserByIdResponse,
+  LoginRequest,
+  LoginResponse,
+} from '@/types/user';
 
 export const useUserQuery = (userId?: string, enable?: boolean) => {
   return useQuery({
@@ -40,5 +46,22 @@ export const useNonTenantUsersQuery = (params?: GetNonTenantUsersRequest, enable
       return response.data;
     },
     enabled,
+  });
+};
+
+export const useCreateUserMutation = () => {
+  const handleHttpError = useHandleHttpError();
+
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await http.post('/users/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data;
+    },
+    onError: handleHttpError,
   });
 };

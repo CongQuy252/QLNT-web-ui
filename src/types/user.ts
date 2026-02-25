@@ -1,4 +1,4 @@
-import type { UserRole } from '@/constants/appConstants';
+import type { TenantStatus, UserRole } from '@/constants/appConstants';
 
 export interface User {
   _id: string;
@@ -32,7 +32,7 @@ export interface GetUserResponse {
   _id: string;
   email: string;
   name: string;
-  role: number;
+  role: UserRole;
   phone: string;
   cccdImages: {
     front: { url: string; publicId: string };
@@ -81,5 +81,45 @@ export interface Pagination {
 
 export interface GetNonTenantUsersResponse {
   data: GetUserResponse[];
+  pagination: Pagination;
+}
+
+export interface UpdateTenantRequest {
+  email: string;
+  name: string;
+  role: UserRole;
+  phone: string;
+  cccd: string;
+  cccdImagesFront: string | File;
+  cccdImagesBack: string | File;
+  // roomId: string;
+  // occupation: string;
+  // contractStartDate: string;
+  // contractEndDate: string;
+}
+
+export interface UserResponse {
+  cccdImages: {
+    front: {
+      url: string;
+      publicId: string;
+    };
+    back: {
+      url: string;
+      publicId: string;
+    };
+  };
+  _id: string;
+  email: string;
+  name: string;
+  role: number;
+  phone: string;
+  cccd?: string;
+  status: TenantStatus;
+}
+
+export interface GetTenantListResponse {
+  message: string;
+  data: UserResponse[];
   pagination: Pagination;
 }

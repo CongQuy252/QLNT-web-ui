@@ -232,6 +232,7 @@ const Rooms = () => {
             ></div>
           </div>
         </div>
+
         <div className="flex gap-2 mb-5 w-full overflow-x-auto">
           {[RoomStatus.all, RoomStatus.available, RoomStatus.maintenance, RoomStatus.occupied].map(
             (status) => (
