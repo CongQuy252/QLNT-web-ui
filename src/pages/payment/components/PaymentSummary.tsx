@@ -16,7 +16,7 @@ const PaymentSummary = ({ stats }: PaymentSummaryProps) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <Card className="bg-white py-4 my-4">
+    <Card className="bg-white py-4 mt-4 mb-1">
       <div
         className="flex items-center justify-between px-4 cursor-pointer"
         onClick={() => setExpanded(!expanded)}

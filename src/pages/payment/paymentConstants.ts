@@ -1,5 +1,7 @@
 import { payments, rooms, tenants } from '@/pages/payment/mockData/paymentMockData';
 
+export const maxItemPerPage = 10;
+
 export type PaymentStatus = 'paid' | 'pending' | 'overdue';
 
 export const getAllRooms = () => rooms;
