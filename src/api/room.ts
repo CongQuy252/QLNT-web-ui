@@ -5,12 +5,20 @@ import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type { PutRoomRequest, PutRoomResponse, Room, RoomListResponse } from '@/types/room';
 
-export const useGetRoomsQueries = (page = 1, limit = 10, isEnabled = true) => {
+export const useGetRoomsQueries = (page = 1, limit = 10, search = '', status = '', isEnabled = true) => {
   const handleHttpError = useHandleHttpError();
   return useQuery({
-    queryKey: [QueriesKey.rooms, page, limit],
+    queryKey: [QueriesKey.rooms, page, limit, search, status],
     queryFn: async () => {
-      const response = await http.get<RoomListResponse>(`/rooms?page=${page}&limit=${limit}`);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+      
+      if (search) params.append('search', search);
+      if (status && status !== RoomStatus.all) params.append('status', status);
+      
+      const response = await http.get<RoomListResponse>(`/rooms?${params.toString()}`);
       const rooms: Room[] =
         response.data.rooms?.map((room) => ({
           _id: room._id,
