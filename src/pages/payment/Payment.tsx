@@ -17,15 +17,13 @@ import { useMobile } from '@/hooks/useMobile';
 import PaymentCard from '@/pages/payment/components/PaymentCard';
 import PaymentSummary from '@/pages/payment/components/PaymentSummary';
 import {
-  getAllRooms,
   getAllTenants,
   getPaymentsByOwner,
   getPaymentsByTenant,
   getRoomById,
   getTenantById,
+  maxItemPerPage,
 } from '@/pages/payment/paymentConstants';
-
-const ITEMS_PER_PAGE = 10;
 
 export default function Payment() {
   // const { user } = useAuth();
@@ -62,7 +60,6 @@ export default function Payment() {
     user.role === UserRole.admin ? getPaymentsByOwner() : getPaymentsByTenant(user.id);
 
   const allTenants = getAllTenants();
-  const allRooms = getAllRooms();
 
   const handleCreateInvoice = () => {
     if (newInvoice.tenantId && newInvoice.roomId && newInvoice.amount && newInvoice.dueDate) {
@@ -101,9 +98,9 @@ export default function Payment() {
     return matchesSearch && matchesStatus;
   });
 
-  const totalPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const totalPages = Math.ceil(filteredPayments.length / maxItemPerPage);
+  const startIndex = (currentPage - 1) * maxItemPerPage;
+  const endIndex = startIndex + maxItemPerPage;
   const paginatedPayments = filteredPayments.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
@@ -243,14 +240,10 @@ export default function Payment() {
       <PaymentSummary stats={stats} />
 
       {/* Filter */}
-      <div className="flex flex-col md:flex-row gap-4 mt-3 w-full">
-        <div className="relative flex-1">
+      <div className={`${isMobile ? 'flex flex-col md:flex-row' : 'block'} gap-4 mt-3 w-full`}>
+        <div className={`${isMobile ? 'relative flex-1' : 'w-full block mb-3'}`}>
           <Input
-            placeholder={
-              user.role === UserRole.admin
-                ? 'Tìm kiếm theo tên người thuê hoặc tháng...'
-                : 'Tìm kiếm theo tháng...'
-            }
+            placeholder="Tìm kiếm ..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="peer"
