@@ -23,7 +23,10 @@ export enum QueriesKey {
   districts = 'districts',
   wards = 'wards',
   user = 'user',
+  users = 'users',
   buildings = 'buildings',
+  building = 'building',
+  rooms = 'rooms',
 }
 
 export enum RoomStatus {
@@ -46,4 +49,10 @@ export enum UserRole {
 export enum LocalStorageKey {
   token = 'token',
   userId = 'userId',
+}
+
+export enum TenantStatus {
+  all = 'all',
+  active = 'active',
+  inactive = 'inactive',
 }

@@ -41,3 +41,10 @@ export interface BuildingListResponse {
   data: BuildingWithRoomStatus[];
   pagination: Pagination;
 }
+
+export type GetBuildingByIdOmit = Omit<Building, 'roomStatus'>;
+
+export interface GetBuildingByIdResponse {
+  message: string;
+  data: GetBuildingByIdOmit;
+}

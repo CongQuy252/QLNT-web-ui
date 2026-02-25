@@ -1,17 +1,22 @@
+import type { TenantStatus, UserRole } from '@/constants/appConstants';
+
 export interface User {
-  id: string;
+  _id: string;
   email: string;
-  avatarUrl: string;
   name: string;
-  role: number;
-  phone?: string;
-  CCCD?: string;
-  CCCDImage: string[];
-  createdAt?: string;
-  createdBy?: string;
-  updatedAt?: string;
-  updatedBy?: string;
+  password: string;
+  role: UserRole;
+  phone: string;
+  cccd?: string;
+  cccdImages: {
+    front: { url: string; publicId: string };
+    back: { url: string; publicId: string };
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
+
+export type UserRoom = Omit<User, 'password' | 'createdAt' | 'updatedAt'>;
 
 export interface LoginRequest {
   email: string;
@@ -20,39 +25,103 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
-  user: GetUserResponse;
+  user: GetUserLoginResponse;
+}
+
+export interface GetUserLoginResponse {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  phone: string;
+  cccdImages: {
+    front: { url: string; publicId: string };
+    back: { url: string; publicId: string };
+  };
 }
 
 export interface GetUserResponse {
-  id: string;
+  cccdImages: {
+    front: {
+      url: string;
+      publicId: string;
+    };
+    back: {
+      url: string;
+      publicId: string;
+    };
+  };
+  _id: string;
   email: string;
   name: string;
   role: number;
   phone: string;
-  cccdImages: {
-    front: string;
-    back: string;
-  };
+  cccd?: string;
 }
 
 export interface GetUserByIdResponse {
   message: string;
-  data: {
-    cccdImages: {
-      front: {
-        url: string;
-        publicId: string;
-      };
-      back: {
-        url: string;
-        publicId: string;
-      };
+  data: GetUserResponse;
+}
+
+export interface GetNonTenantUsersRequest {
+  email?: string;
+  name?: string;
+  phone?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+export interface GetNonTenantUsersResponse {
+  data: GetUserResponse[];
+  pagination: Pagination;
+}
+
+export interface UpdateTenantRequest {
+  email: string;
+  name: string;
+  role: UserRole;
+  phone: string;
+  cccd: string;
+  cccdImagesFront: string | File;
+  cccdImagesBack: string | File;
+  // roomId: string;
+  // occupation: string;
+  // contractStartDate: string;
+  // contractEndDate: string;
+}
+
+export interface UserResponse {
+  cccdImages: {
+    front: {
+      url: string;
+      publicId: string;
     };
-    id: string;
-    email: string;
-    name: string;
-    role: number;
-    phone: string;
-    cccd?: string;
+    back: {
+      url: string;
+      publicId: string;
+    };
   };
+  _id: string;
+  email: string;
+  name: string;
+  role: number;
+  phone: string;
+  cccd?: string;
+  status: TenantStatus;
+}
+
+export interface GetTenantListResponse {
+  message: string;
+  data: UserResponse[];
+  pagination: Pagination;
 }

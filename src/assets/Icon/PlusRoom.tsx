@@ -50,6 +50,6 @@ const PlusRoom = React.forwardRef<SVGSVGElement, IconProps>(
   },
 );
 
-PlusRoom.displayName = 'MyIcon';
+PlusRoom.displayName = 'PlusRoom';
 
 export default PlusRoom;
