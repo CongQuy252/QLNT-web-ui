@@ -74,7 +74,7 @@ export default function Payment() {
   const filteredPayments = payments.filter((payment) => {
     const tenant = getTenantById(payment.tenantId);
     const matchesSearch =
-      tenant?.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tenant?.userId.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       false ||
       payment.month.includes(searchTerm);
     const matchesStatus = filterStatus === 'all' || payment.status === filterStatus;
@@ -134,8 +134,8 @@ export default function Payment() {
                   >
                     <option value="">-- Chọn người thuê --</option>
                     {allTenants.map((tenant) => (
-                      <option key={tenant.user._id} value={tenant.user._id}>
-                        {tenant.user.name}
+                      <option key={tenant.userId._id} value={tenant.userId._id}>
+                        {tenant.userId.name}
                       </option>
                     ))}
                   </select>
@@ -275,7 +275,7 @@ export default function Payment() {
 
       <div className="overflow-x-auto">
         {paginatedPayments.map((payment) => (
-          <PaymentCard key={payment.id} payment={payment} />
+          <PaymentCard key={payment._id} payment={payment} />
         ))}
       </div>
 
