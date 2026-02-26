@@ -1,11 +1,15 @@
+import { queryClient } from '@/lib/reactQuery';
 import { ArrowRight, LogOut } from 'lucide-react';
+import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useGetBuildingQueries } from '@/api/building';
+import { useGetRoomsQueries } from '@/api/room';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Spinner } from '@/components/ui/spinner';
 import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
+import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
 import {
   ownerIcon,
@@ -24,27 +28,38 @@ export interface Infomation {
 const Home = () => {
   const navigator = useNavigate();
   const isMobile = useMobile();
+  const { show, hide } = useLoading();
 
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
-  const { data: user, isLoading, isError } = useUserQuery(userId);
+  const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
+  const getBuildings = useGetBuildingQueries();
+  const getRooms = useGetRoomsQueries();
 
-  const handleNavigate = (path: string) => {
-    navigator(path);
-  };
+  const handleNavigate = (path: string) => navigator(path);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
+    queryClient.clear();
     localStorage.clear();
-    navigator(Path.login);
-  };
+    navigator(Path.login, { replace: true });
+  }, [navigator]);
 
-  if (isLoading) {
-    return <Spinner />;
-  }
+  useEffect(() => {
+    if (isLoading && getBuildings.isLoading && getRooms.isLoading) {
+      show();
+    } else {
+      hide();
+    }
+  }, [isLoading, show, hide, getBuildings.isLoading, getRooms.isLoading]);
 
-  // Error state
-  if (isError || !user) {
-    return <div className="p-10 text-center text-red-500">Không tải được thông tin user</div>;
+  useEffect(() => {
+    if (!isLoading && (isError || !user)) {
+      handleLogout();
+    }
+  }, [isLoading, isError, user, handleLogout]);
+
+  if (!user) {
+    return null;
   }
 
   const isOwner = user.role === UserRole.admin;
@@ -53,28 +68,14 @@ const Home = () => {
 
   const infomations: Infomation[] = [
     { label: 'Email', value: user.email },
-    isOwner ? { label: 'Số tòa nhà', value: '100' } : { label: 'Toà nhà', value: '1' },
-    isOwner ? { label: 'Tổng số phòng', value: '1816' } : { label: 'Số phòng', value: '101' },
+    isOwner
+      ? { label: 'Số tòa nhà', value: getBuildings.data?.pagination.total.toString() ?? '0' }
+      : { label: 'Toà nhà', value: '1' },
+    isOwner
+      ? { label: 'Tổng số phòng', value: getRooms.data?.pagination.total.toString() ?? '0' }
+      : { label: 'Số phòng', value: 'B212' },
     !isOwner ? { label: 'Tình trạng tiền', value: 'Đã thanh toán' } : { label: '', value: '' },
   ];
-
-  const sumaryInfomations: Infomation[] = [
-    { label: 'Phòng trống', value: '12' },
-    { label: 'Phòng cho thuê', value: '172' },
-    { label: 'Thanh toán chờ xử lý', value: '8' },
-    { label: 'Doanh thu tháng này', value: '847.5M' },
-  ];
-
-  const renderSumaryCards = () => {
-    return sumaryInfomations.map((info, index) => {
-      return (
-        <Card className="p-6 border-0" key={`${info.label}_${index}`}>
-          <p className="text-sm text-slate-600 mb-2">{info.label}</p>
-          <p className="text-3xl font-bold text-slate-900">{info.value}</p>
-        </Card>
-      );
-    });
-  };
 
   const renderInfomationCards = () => {
     return infomations.map((info, index) => {
@@ -149,14 +150,6 @@ const Home = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{renderInfomationCards()}</div>
           </div>
         </div>
-
-        {/* Quick Stats */}
-        {isOwner && (
-          <div className="mt-12">
-            <h3 className="text-xl font-bold text-slate-900 mb-6">Tóm tắt tình hình</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">{renderSumaryCards()}</div>
-          </div>
-        )}
 
         {/* Navigation Cards */}
         <div className="mt-12">

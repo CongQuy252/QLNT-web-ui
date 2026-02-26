@@ -15,6 +15,8 @@ export interface Building {
     occupied: number;
     maintenance: number;
   };
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Pagination {

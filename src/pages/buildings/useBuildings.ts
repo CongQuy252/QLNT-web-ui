@@ -30,12 +30,12 @@ export const useBuildings = () => {
 
   const buildings = useMemo(() => {
     return (
-      getBuildingQueries.data?.map((b) => ({
+      getBuildingQueries.data?.data.map((b) => ({
         ...b,
         id: b._id,
       })) ?? []
     );
-  }, [getBuildingQueries.data]);
+  }, [getBuildingQueries.data?.data]);
 
   const handleNewBuilding = () => {
     setIsEditMode(false);

@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useGetBuildingById } from '@/api/building';
-import { useGetRoomsQueries, useUpdateRoomMutation, useAssignTenantMutation } from '@/api/room';
+import { useAssignTenantMutation, useGetRoomsQueries, useUpdateRoomMutation } from '@/api/room';
 import { useNonTenantUsersQuery } from '@/api/user';
-import { RoomStatus, QueriesKey } from '@/constants/appConstants';
+import { QueriesKey, RoomStatus } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
 import type { Room } from '@/types/room';
@@ -19,8 +19,13 @@ export const useRooms = () => {
   const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
-  const { data, isLoading, error } = useGetRoomsQueries(currentPage, pageSize, searchTerm, filterStatus);
-  const rooms = data?.rooms || [];
+  const { data, isLoading, error } = useGetRoomsQueries(
+    currentPage,
+    pageSize,
+    searchTerm,
+    filterStatus,
+  );
+  const rooms = useMemo(() => data?.rooms || [], [data]);
   const pagination = data?.pagination;
   const updateRoomMutation = useUpdateRoomMutation();
   const assignTenantMutation = useAssignTenantMutation();
@@ -36,17 +41,13 @@ export const useRooms = () => {
   const { data: usersData } = useNonTenantUsersQuery({ phone: phoneSearch || undefined }, true);
   const tenants = usersData?.data || [];
 
-  // API đã lọc rồi nên không cần lọc lại ở frontend
-  // const filteredRooms = rooms.filter((room: Room) => {
-  //   const matchesSearch =
-  //     room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //     room.building.toLowerCase().includes(searchTerm.toLowerCase());
-  //   const matchesStatus = filterStatus === RoomStatus.all || room.status === filterStatus;
-  //   return matchesSearch && matchesStatus;
-  // });
-  const filteredRooms = rooms;
+  const filteredRooms = useMemo(() => {
+    return [...rooms].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  }, [rooms]);
 
-  const { buildingId } = useParams(); //Nếu có buildingId thì lọc theo buildingId và status (status được truyền trong state) - tham khảo useBuildings - handleClickRoomStatusCount
+  const { buildingId } = useParams();
   console.log('buildingId: ', buildingId);
 
   const filteredUsers = tenants;
@@ -156,7 +157,7 @@ export const useRooms = () => {
         onError: () => {
           setAssignConfirmOpen(false);
         },
-      }
+      },
     );
   };
 

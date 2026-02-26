@@ -16,6 +16,8 @@ export interface Room {
     name: string;
   };
   description?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface RoomListResponse {
