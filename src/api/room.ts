@@ -88,3 +88,39 @@ export const useAssignTenantMutation = () => {
     onError: handleHttpError,
   });
 };
+
+export const useDeleteRoomMutation = () => {
+  const queryClient = useQueryClient();
+  const handleHttpError = useHandleHttpError();
+
+  return useMutation({
+    mutationFn: async ({ roomId, buildingId }: { roomId: string; buildingId: string }) => {
+      const response = await http.delete(`/rooms/${roomId}`, {
+        data: { buildingId }
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
+    },
+    onError: handleHttpError,
+  });
+};
+
+export const useRemoveTenantMutation = () => {
+  const queryClient = useQueryClient();
+  const handleHttpError = useHandleHttpError();
+
+  return useMutation({
+    mutationFn: async (roomId: string) => {
+      const response = await http.post(`/rooms/${roomId}/remove-tenant`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
+    },
+    onError: handleHttpError,
+  });
+};

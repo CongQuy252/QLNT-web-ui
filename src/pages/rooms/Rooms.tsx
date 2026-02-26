@@ -41,8 +41,11 @@ const Rooms = () => {
     setEditRoom,
     handleUpdateRoom,
     updateRoomMutation,
+    deleteRoomMutation,
+    removeTenantMutation,
     handleAssignTenant,
     handleConfirmAssign,
+    handleRemoveTenant,
     assignConfirmOpen,
     setAssignConfirmOpen,
     searchTerm,
@@ -311,7 +314,18 @@ const Rooms = () => {
 
                   {tenant && room.status === RoomStatus.occupied && (
                     <div className="p-3 bg-slate-50 rounded-lg">
-                      <p className="text-xs text-slate-600 mb-1">Người thuê hiện tại</p>
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="text-xs text-slate-600">Người thuê hiện tại</p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleRemoveTenant(room)}
+                          disabled={removeTenantMutation.isPending}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                       <p className="font-semibold text-slate-900">{tenant.name}</p>
                       <p className="text-xs text-slate-600 mt-1">{tenant.email}</p>
                     </div>
@@ -496,6 +510,7 @@ const Rooms = () => {
           confirmText="Xoá"
           onConfirm={handleConfirmDelete}
           onCancel={() => setConfirmOpen(false)}
+          loading={deleteRoomMutation.isPending}
         />
       )}
       
