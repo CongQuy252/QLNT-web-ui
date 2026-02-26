@@ -1,9 +1,10 @@
 import { queryClient } from '@/lib/reactQuery';
 import { CreditCard } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
+import { useGetTenantQueries } from '@/api/tenant';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,14 +15,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
+import { LocalStorageKey, Path, TenantStatus, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
 import CreateInvoiceDialog from '@/pages/payment/components/CreatePaymentDialog';
 import PaymentCard from '@/pages/payment/components/PaymentCard';
 import PaymentSummary from '@/pages/payment/components/PaymentSummary';
 import {
-  getAllTenants,
   getPaymentsByOwner,
   getPaymentsByTenant,
   getRoomById,
@@ -41,6 +41,17 @@ export default function Payment() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
+
+  const getTenantQueries = useGetTenantQueries(
+    {
+      status: TenantStatus.active,
+      page: currentPage,
+      limit: 10,
+    },
+    true,
+  );
+
+  const allTenants = useMemo(() => getTenantQueries.data?.data ?? [], [getTenantQueries.data]);
 
   const handleLogout = useCallback(() => {
     queryClient.clear();
@@ -68,8 +79,6 @@ export default function Payment() {
 
   const payments =
     user.role === UserRole.admin ? getPaymentsByOwner() : getPaymentsByTenant(user._id);
-
-  const allTenants = getAllTenants();
 
   const filteredPayments = payments.filter((payment) => {
     const tenant = getTenantById(payment.tenantId);
@@ -125,95 +134,6 @@ export default function Payment() {
                 <DialogTitle>Lập hóa đơn mới</DialogTitle>
               </DialogHeader>
               <div className="flex-1 overflow-y-auto space-y-4 p-0.5">
-                {/* <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Chọn người thuê</label>
-                  <select
-                    value={newInvoice.tenantId}
-                    onChange={(e) => handleSelectTenant(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  >
-                    <option value="">-- Chọn người thuê --</option>
-                    {allTenants.map((tenant) => (
-                      <option key={tenant.userId._id} value={tenant.userId._id}>
-                        {tenant.userId.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {newInvoice.roomId && (
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <p className="text-sm text-slate-600">Phòng:</p>
-                    <p className="text-base font-semibold text-slate-900">
-                      {getRoomById(newInvoice.roomId)
-                        ? `${getRoomById(newInvoice.roomId)?.number} - Tòa ${
-                            getRoomById(newInvoice.roomId)?.building
-                          }`
-                        : '-'}
-                    </p>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Tháng thanh toán</label>
-                    <Input
-                      type="month"
-                      value={newInvoice.month}
-                      onChange={(e) => setNewInvoice({ ...newInvoice, month: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Hạn thanh toán</label>
-                    <Input
-                      type="date"
-                      value={newInvoice.dueDate}
-                      onChange={(e) => setNewInvoice({ ...newInvoice, dueDate: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Số tiền (VNĐ)</label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="100000"
-                    value={newInvoice.amount}
-                    onChange={(e) =>
-                      setNewInvoice({ ...newInvoice, amount: Number(e.target.value) })
-                    }
-                    placeholder="0"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Ghi chú</label>
-                  <Textarea
-                    placeholder="Ghi chú thêm (tùy chọn)"
-                    value={newInvoice.notes}
-                    onChange={(e) => setNewInvoice({ ...newInvoice, notes: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-none"
-                    rows={4}
-                  />
-                </div>
-
-                <div className="flex gap-2 pt-4 border-t border-slate-200">
-                  <Button
-                    variant="outline"
-                    className="flex-1 text-slate-700 border-slate-300 bg-transparent"
-                    onClick={() => setIsInvoiceDialogOpen(false)}
-                  >
-                    Huỷ
-                  </Button>
-                  <Button
-                    className="flex-1 bg-slate-900 hover:bg-slate-800 text-white"
-                    onClick={handleCreateInvoice}
-                  >
-                    Tạo hoá đơn
-                  </Button>
-                </div> */}
                 <CreateInvoiceDialog
                   tenants={allTenants}
                   getRoomById={getRoomById}
