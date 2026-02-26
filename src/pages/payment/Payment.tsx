@@ -1,7 +1,10 @@
+import { queryClient } from '@/lib/reactQuery';
 import { CreditCard } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
+import { useNavigate } from 'react-router-dom';
 
+import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,9 +14,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { UserRole } from '@/constants/appConstants';
+import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
+import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
+import CreateInvoiceDialog from '@/pages/payment/components/CreatePaymentDialog';
 import PaymentCard from '@/pages/payment/components/PaymentCard';
 import PaymentSummary from '@/pages/payment/components/PaymentSummary';
 import {
@@ -26,67 +30,46 @@ import {
 } from '@/pages/payment/paymentConstants';
 
 export default function Payment() {
-  // const { user } = useAuth();
+  const navigator = useNavigate();
   const isMobile = useMobile();
-  const user = {
-    id: 'tenant-1',
-    name: 'Nguyễn Văn A',
-    email: 'vana@gmail.com',
-    phone: '0900000001',
-    idNumber: '079123456789',
-    roomId: 'room-101',
-    role: 1,
-    moveInDate: '2025-01-01',
-    contractEndDate: '2025-12-31',
-    status: 'active',
-    emergencyContact: '0901111111',
-  };
+  const { show, hide } = useLoading();
+  const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
+
+  const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
-  const [newInvoice, setNewInvoice] = useState({
-    tenantId: '',
-    roomId: '',
-    month: new Date().toISOString().slice(0, 7),
-    amount: 0,
-    dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    notes: '',
-  });
 
-  if (!user) return null;
+  const handleLogout = useCallback(() => {
+    queryClient.clear();
+    localStorage.clear();
+    navigator(Path.login, { replace: true });
+  }, [navigator]);
+
+  useEffect(() => {
+    if (isLoading) {
+      show();
+    } else {
+      hide();
+    }
+  }, [hide, isLoading, show]);
+
+  useEffect(() => {
+    if (!isLoading && (isError || !user)) {
+      handleLogout();
+    }
+  }, [isLoading, isError, user, handleLogout]);
+
+  if (!user) {
+    return null;
+  }
 
   const payments =
-    user.role === UserRole.admin ? getPaymentsByOwner() : getPaymentsByTenant(user.id);
+    user.role === UserRole.admin ? getPaymentsByOwner() : getPaymentsByTenant(user._id);
 
   const allTenants = getAllTenants();
-
-  const handleCreateInvoice = () => {
-    if (newInvoice.tenantId && newInvoice.roomId && newInvoice.amount && newInvoice.dueDate) {
-      setNewInvoice({
-        tenantId: '',
-        roomId: '',
-        month: new Date().toISOString().slice(0, 7),
-        amount: 0,
-        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        notes: '',
-      });
-      setIsInvoiceDialogOpen(false);
-    }
-  };
-
-  const handleSelectTenant = (tenantId: string) => {
-    const tenant = getTenantById(tenantId);
-    if (tenant) {
-      const room = getRoomById(tenant.room._id);
-      setNewInvoice({
-        ...newInvoice,
-        tenantId,
-        roomId: tenant.room._id,
-        amount: room?.price || 0,
-      });
-    }
-  };
 
   const filteredPayments = payments.filter((payment) => {
     const tenant = getTenantById(payment.tenantId);
@@ -142,7 +125,7 @@ export default function Payment() {
                 <DialogTitle>Lập hóa đơn mới</DialogTitle>
               </DialogHeader>
               <div className="flex-1 overflow-y-auto space-y-4 p-0.5">
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Chọn người thuê</label>
                   <select
                     value={newInvoice.tenantId}
@@ -230,7 +213,15 @@ export default function Payment() {
                   >
                     Tạo hoá đơn
                   </Button>
-                </div>
+                </div> */}
+                <CreateInvoiceDialog
+                  tenants={allTenants}
+                  getRoomById={getRoomById}
+                  onSubmit={(invoice) => {
+                    console.log('Invoice created:', invoice);
+                    setIsInvoiceDialogOpen(false);
+                  }}
+                />
               </div>
             </DialogContent>
           </Dialog>
