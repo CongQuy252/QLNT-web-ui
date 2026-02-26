@@ -78,11 +78,11 @@ export default function Payment() {
   const handleSelectTenant = (tenantId: string) => {
     const tenant = getTenantById(tenantId);
     if (tenant) {
-      const room = getRoomById(tenant.room._id);
+      const room = getRoomById(tenant.roomId._id);
       setNewInvoice({
         ...newInvoice,
         tenantId,
-        roomId: tenant.room._id,
+        roomId: tenant.roomId._id,
         amount: room?.price || 0,
       });
     }
@@ -91,7 +91,7 @@ export default function Payment() {
   const filteredPayments = payments.filter((payment) => {
     const tenant = getTenantById(payment.tenantId);
     const matchesSearch =
-      tenant?.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tenant?.userId.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       false ||
       payment.month.includes(searchTerm);
     const matchesStatus = filterStatus === 'all' || payment.status === filterStatus;
@@ -151,8 +151,8 @@ export default function Payment() {
                   >
                     <option value="">-- Chọn người thuê --</option>
                     {allTenants.map((tenant) => (
-                      <option key={tenant.user._id} value={tenant.user._id}>
-                        {tenant.user.name}
+                      <option key={tenant.userId._id} value={tenant.userId._id}>
+                        {tenant.userId.name}
                       </option>
                     ))}
                   </select>
