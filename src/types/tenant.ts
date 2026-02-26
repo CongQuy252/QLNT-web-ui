@@ -4,16 +4,35 @@ import type { Room } from '@/types/room';
 import type { User } from '@/types/user';
 
 export interface Tenant {
-  user: Pick<User, '_id' | 'name' | 'email' | 'phone' | 'cccd'>;
-  room: Pick<Room, '_id' | 'number'>;
+  _id: string;
+  userId: Pick<User, '_id' | 'name' | 'email' | 'phone' | 'cccd'>;
+  roomId: Pick<Room, '_id' | 'number' | 'floor' | 'area' | 'price' | 'buildingId'>;
   moveInDate: string;
   contractEndDate: string;
   status: TenantStatus;
   emergencyContact?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Add user info for backward compatibility with frontend
+  name?: string;
+  email?: string;
+  phone?: string;
+  cccd?: string;
+  cccdImages?: {
+    front: {
+      url: string;
+      publicId: string;
+    };
+    back: {
+      url: string;
+      publicId: string;
+    };
+  };
+  role?: number;
 }
 
 export interface UserResponse {
-  cccdImages: {
+  cccdImages?: {
     front: {
       url: string;
       publicId: string;
@@ -34,6 +53,6 @@ export interface UserResponse {
 
 export interface GetTenantListResponse {
   message: string;
-  data: UserResponse[];
+  data: Tenant[];
   pagination: Pagination;
 }

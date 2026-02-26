@@ -70,70 +70,97 @@ export const rooms: Room[] = [
 
 export const tenants: Tenant[] = [
   {
-    user: {
+    _id: 't1',
+    userId: {
       _id: 't1',
       name: 'Nguyễn Văn An',
       email: 'an.nguyen@gmail.com',
       phone: '0901234567',
       cccd: '079203001234',
     },
-    room: {
+    roomId: {
       _id: 'r1',
       number: '101',
+      floor: 1,
+      area: 20,
+      price: 1500000,
+      buildingId: 'A',
     },
     moveInDate: '2025-10-01',
     contractEndDate: '2026-10-01',
     status: TenantStatus.active,
     emergencyContact: '0909999999',
+    createdAt: '2025-10-01T00:00:00Z',
+    updatedAt: '2025-10-01T00:00:00Z',
   },
   {
-    user: {
+    _id: 't2',
+    userId: {
       _id: 't2',
       name: 'Trần Thị Bình',
       email: 'binh.tran@gmail.com',
       phone: '0912345678',
       cccd: '079203009999',
     },
-    room: {
+    roomId: {
       _id: 'r2',
       number: '102',
+      floor: 1,
+      area: 22,
+      price: 1600000,
+      buildingId: 'A',
     },
     moveInDate: '2025-11-15',
     contractEndDate: '2026-11-15',
     status: TenantStatus.active,
+    createdAt: '2025-11-15T00:00:00Z',
+    updatedAt: '2025-11-15T00:00:00Z',
   },
   {
-    user: {
+    _id: 't3',
+    userId: {
       _id: 't3',
       name: 'Lê Minh Châu',
       email: 'chau.le@gmail.com',
       phone: '0923456789',
       cccd: '079203008888',
     },
-
-    room: {
+    roomId: {
       _id: 'r5',
       number: '301',
+      floor: 3,
+      area: 30,
+      price: 2300000,
+      buildingId: 'C',
     },
     moveInDate: '2025-09-01',
     contractEndDate: '2026-09-01',
     status: TenantStatus.active,
+    createdAt: '2025-09-01T00:00:00Z',
+    updatedAt: '2025-09-01T00:00:00Z',
   },
   {
-    user: {
+    _id: 't4',
+    userId: {
       _id: 't4',
       name: 'Phạm Quốc Dũng',
       email: 'dung.pham@gmail.com',
       phone: '0934567890',
       cccd: '079203007777',
     },
-    room: {
+    roomId: {
       _id: 'r3',
       number: '201',
+      floor: 2,
+      area: 25,
+      price: 1800000,
+      buildingId: 'B',
     },
     moveInDate: '2024-01-01',
     contractEndDate: '2025-01-01',
     status: TenantStatus.inactive,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
   },
 ];
 

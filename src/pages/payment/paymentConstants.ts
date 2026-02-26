@@ -10,10 +10,10 @@ export const getRoomById = (id: string) => rooms.find((r) => r._id === id);
 
 export const getAllTenants = () => tenants;
 
-export const getTenantById = (id: string) => tenants.find((t) => t.user._id === id);
+export const getTenantById = (id: string) => tenants.find((t) => t.userId._id === id);
 
 export const getTenantByRoom = (roomId: string) =>
-  tenants.find((t) => t.room._id === roomId && t.status === 'active');
+  tenants.find((t) => t.roomId._id === roomId && t.status === 'active');
 
 export const getPaymentsByOwner = () => payments;
 
