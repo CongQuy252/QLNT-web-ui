@@ -8,6 +8,7 @@ export enum Path {
   buildingId = ':buildingId',
   roomId = ':roomId',
   userId = ':userId',
+  paymentId = ':paymentId',
 }
 
 export enum Breadcrumb {
@@ -55,4 +56,10 @@ export enum TenantStatus {
   all = 'all',
   active = 'active',
   inactive = 'inactive',
+}
+
+export enum PaymentStatus {
+  PENDING = 'pending',
+  PAID = 'paid',
+  OVERDUE = 'overdue',
 }

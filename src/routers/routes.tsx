@@ -1,12 +1,12 @@
 import { lazy } from 'react';
 import { Navigate, type RouteObject } from 'react-router-dom';
 
-import { Mode, Path } from '@/constants/appConstants';
+import { Path } from '@/constants/appConstants';
 import HomeSidebar from '@/pages/HomeSidebar/HomeSidebar';
 import Buildings from '@/pages/buildings/Buildings';
 import Home from '@/pages/home/Home';
 import Payment from '@/pages/payment/Payment';
-import RoomDetails from '@/pages/roomDetails/RoomDetails';
+import PaymentViewTenant from '@/pages/payment/PaymentViewTenant';
 import Rooms from '@/pages/rooms/Rooms';
 import Tenant from '@/pages/tenant/Tenant';
 
@@ -35,18 +35,18 @@ export const routes: RouteObject[] = [
             path: `/${Path.tenants}`,
             element: <Tenant />,
           },
-          {
-            path: `/${[Path.rooms, Path.roomId, Path.tenants, Path.userId].join('/')}`,
-            element: <RoomDetails mode={Mode.tenant} />,
-          },
-          {
-            path: `/${[Path.buildings, Path.buildingId, Path.rooms, Path.roomId].join('/')}`,
-            element: <RoomDetails mode={Mode.owner} />,
-          },
-          {
-            path: `/${[Path.rooms, Path.roomId].join('/')}`,
-            element: <RoomDetails mode={Mode.owner} />,
-          },
+          // {
+          //   path: `/${[Path.rooms, Path.roomId, Path.tenants, Path.userId].join('/')}`,
+          //   element: <RoomDetails mode={Mode.tenant} />,
+          // },
+          // {
+          //   path: `/${[Path.buildings, Path.buildingId, Path.rooms, Path.roomId].join('/')}`,
+          //   element: <RoomDetails mode={Mode.owner} />,
+          // },
+          // {
+          //   path: `/${[Path.rooms, Path.roomId].join('/')}`,
+          //   element: <RoomDetails mode={Mode.owner} />,
+          // },
           {
             path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}`,
             element: <Rooms />,
@@ -62,6 +62,10 @@ export const routes: RouteObject[] = [
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: `/${Path.payments}/${Path.paymentId}`,
+    element: <PaymentViewTenant />,
   },
   {
     path: '*',

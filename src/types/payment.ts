@@ -1,13 +1,41 @@
 import type { PaymentStatus } from '@/pages/payment/paymentConstants';
 
 export interface Payment {
-  id: string;
-  tenantId: string;
-  roomId: string;
-  month: string; // YYYY-MM
-  amount: number;
-  dueDate: string; // YYYY-MM-DD
+  _id: string;
+  tenantId: string; //
+  roomId: string; //
+  month: string; //
+
+  roomFee: number; //
+
+  electricityUnitPrice: number; //
+  electricityPrevious: number; //
+  electricityCurrent: number; //
+  electricityAmount: number; //
+
+  waterUnitPrice: number; //
+  waterPrevious: number; //
+  waterCurrent: number; //
+  waterAmount: number; //
+
+  internetFee?: number; //
+  serviceFee?: number; //
+
+  amount: number; //
+
+  dueDate: string; //
   paidDate?: string;
+
   status: PaymentStatus;
-  notes?: string;
+}
+
+export type PaymentItem = Payment;
+
+export type InvoiceForm = Omit<Payment, '_id' | 'status' | 'paidDate'>;
+
+export interface TenantOption {
+  user: {
+    _id: string;
+    name: string;
+  };
 }
