@@ -1,5 +1,5 @@
 import { Edit, Mail, Phone, Users } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
 import { LiaIdCard } from 'react-icons/lia';
 
@@ -14,9 +14,9 @@ import UpdateTenantDialog from '@/pages/tenant/dialogs/UpdateTenantDialog';
 import type { UpdateTenantRequest } from '@/types/user';
 
 const Tenant = () => {
-  const getTenantQueries = useGetTenantQueries();
   const pageSize = 10;
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<TenantStatus>(TenantStatus.all);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<UpdateTenantRequest>();
@@ -24,6 +24,23 @@ const Tenant = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [imageList, setImageList] = useState<string[]>([]);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchTerm]);
+
+  const getTenantQueries = useGetTenantQueries({
+    status: filterStatus !== TenantStatus.all ? filterStatus : undefined,
+    page: currentPage,
+    limit: pageSize,
+  }, true);
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) =>
@@ -36,20 +53,28 @@ const Tenant = () => {
       getTenantQueries.data?.data?.map((b) => ({
         ...b,
         id: b._id,
+        // Flatten user data for backward compatibility
+        name: b.name || b.userId?.name || '',
+        email: b.email || b.userId?.email || '',
+        phone: b.phone || b.userId?.phone || '',
+        cccd: b.cccd || b.userId?.cccd || '',
+        cccdImages: b.cccdImages,
+        role: b.role,
       })) ?? []
     );
   }, [getTenantQueries.data]);
 
   const pagination = getTenantQueries.data?.pagination;
 
-  const filteredTenants = tenants.filter((tenant) => {
-    const matchesSearch =
-      tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tenant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tenant.phone.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === TenantStatus.all || tenant.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredTenants = useMemo(() => {
+    return tenants.filter((tenant) => {
+      const matchesSearch =
+        tenant.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        tenant.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        tenant.phone.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+      return matchesSearch;
+    });
+  }, [tenants, debouncedSearchTerm]);
 
   const getStatusBadge = (status: string) => {
     return status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
@@ -180,7 +205,7 @@ const Tenant = () => {
                     <div
                       className="flex items-center gap-2 cursor-pointer"
                       onClick={() =>
-                        handleOpenImageViewer({
+                        tenant.cccdImages && handleOpenImageViewer({
                           front: tenant.cccdImages.front.url,
                           back: tenant.cccdImages.back.url,
                         })
@@ -195,13 +220,13 @@ const Tenant = () => {
                       size="sm"
                       onClick={() => {
                         setEditingTenant({
-                          name: tenant.name,
-                          phone: tenant.phone,
-                          email: tenant.email,
-                          role: tenant.role,
+                          name: tenant.name || '',
+                          phone: tenant.phone || '',
+                          email: tenant.email || '',
+                          role: tenant.role || UserRole.tenant,
                           cccd: tenant.cccd ?? '',
-                          cccdImagesFront: tenant.cccdImages?.front?.url,
-                          cccdImagesBack: tenant.cccdImages?.back?.url,
+                          cccdImagesFront: tenant.cccdImages?.front?.url || '',
+                          cccdImagesBack: tenant.cccdImages?.back?.url || '',
                         });
                         setIsEditOpen(true);
                       }}

@@ -32,7 +32,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
       >
         <div>
           {user.role === UserRole.admin && (
-            <p className="text-sm text-slate-500">{tenant?.user.name}</p>
+            <p className="text-sm text-slate-500">{tenant?.userId.name}</p>
           )}
 
           <p className="font-semibold text-slate-900">
