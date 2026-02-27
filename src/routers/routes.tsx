@@ -6,7 +6,7 @@ import HomeSidebar from '@/pages/HomeSidebar/HomeSidebar';
 import Buildings from '@/pages/buildings/Buildings';
 import Home from '@/pages/home/Home';
 import Payment from '@/pages/payment/Payment';
-import PaymentViewTenant from '@/pages/payment/PaymentViewTenant';
+import PaymentDetail from '@/pages/paymentDetail/PaymentDetail';
 import Rooms from '@/pages/rooms/Rooms';
 import Tenant from '@/pages/tenant/Tenant';
 
@@ -65,7 +65,7 @@ export const routes: RouteObject[] = [
   },
   {
     path: `/${Path.payments}/${Path.paymentId}`,
-    element: <PaymentViewTenant />,
+    element: <PaymentDetail />,
   },
   {
     path: '*',

@@ -2,31 +2,33 @@ import type { PaymentStatus } from '@/pages/payment/paymentConstants';
 
 export interface Payment {
   _id: string;
-  tenantId: string; //
-  roomId: string; //
-  month: string; //
+  tenantId: string;
+  roomId: string;
+  month: string;
 
-  roomFee: number; //
+  roomFee: number;
 
-  electricityUnitPrice: number; //
-  electricityPrevious: number; //
-  electricityCurrent: number; //
-  electricityAmount: number; //
+  electricityUnitPrice: number;
+  electricityPrevious: number;
+  electricityCurrent: number;
+  electricityAmount: number;
 
-  waterUnitPrice: number; //
-  waterPrevious: number; //
-  waterCurrent: number; //
-  waterAmount: number; //
+  waterUnitPrice: number;
+  waterPrevious: number;
+  waterCurrent: number;
+  waterAmount: number;
 
-  internetFee?: number; //
-  serviceFee?: number; //
+  internetFee?: number;
+  serviceFee?: number;
+  amount: number;
 
-  amount: number; //
-
-  dueDate: string; //
+  dueDate: string;
   paidDate?: string;
 
   status: PaymentStatus;
+
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type PaymentItem = Payment;

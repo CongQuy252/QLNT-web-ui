@@ -3,9 +3,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QueriesKey, RoomStatus } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type { PutRoomRequest, PutRoomResponse, Room, RoomListResponse } from '@/types/room';
+import type {
+  GetRoomByIdResponse,
+  PutRoomRequest,
+  PutRoomResponse,
+  Room,
+  RoomListResponse,
+} from '@/types/room';
 
-export const useGetRoomsQueries = (page = 1, limit = 10, search = '', status = '', isEnabled = true) => {
+export const useGetRoomsQueries = (
+  page = 1,
+  limit = 10,
+  search = '',
+  status = '',
+  isEnabled = true,
+) => {
   const handleHttpError = useHandleHttpError();
   return useQuery({
     queryKey: [QueriesKey.rooms, page, limit, search, status],
@@ -14,10 +26,10 @@ export const useGetRoomsQueries = (page = 1, limit = 10, search = '', status = '
         page: page.toString(),
         limit: limit.toString(),
       });
-      
+
       if (search) params.append('search', search);
       if (status && status !== RoomStatus.all) params.append('status', status);
-      
+
       const response = await http.get<RoomListResponse>(`/rooms?${params.toString()}`);
       const rooms: Room[] =
         response.data.rooms?.map((room) => ({
@@ -86,5 +98,20 @@ export const useAssignTenantMutation = () => {
       queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
     },
     onError: handleHttpError,
+  });
+};
+
+export const useGetRoomByIdQuery = (roomId?: string, isEnable = true) => {
+  const handleHttpError = useHandleHttpError();
+  return useQuery({
+    queryKey: [QueriesKey.room, roomId],
+    queryFn: async () => {
+      const response = await http.get<GetRoomByIdResponse>(`/rooms/${roomId}`);
+      return response.data;
+    },
+    meta: {
+      handleError: handleHttpError,
+    },
+    enabled: isEnable || !!roomId,
   });
 };

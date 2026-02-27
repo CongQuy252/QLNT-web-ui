@@ -5,7 +5,7 @@ export interface Room {
   _id: string;
   number: string;
   building: string;
-  buildingId?: string; // Add buildingId for backend compatibility
+  buildingId?: string;
   floor: number;
   area: number;
   price: number;
@@ -16,8 +16,8 @@ export interface Room {
     name: string;
   };
   description?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface RoomListResponse {
@@ -61,3 +61,8 @@ export interface PutRoomResponse {
 }
 
 export type PutRoomRequest = Omit<PutRoom, 'id'>;
+
+export interface GetRoomByIdResponse {
+  message: string;
+  room: GetRoom;
+}
