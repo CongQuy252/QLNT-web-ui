@@ -1,23 +1,25 @@
 import { queryClient } from '@/lib/reactQuery';
-import { AlertCircle, ArrowLeft, Check, Clock, Download, Edit, Printer } from 'lucide-react';
+import { AlertCircle, Check, Clock } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { get } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGetPaymentByIdQuery } from '@/api/payment';
 import { useGetRoomByIdQuery } from '@/api/room';
-import { useGetTenantQueries } from '@/api/tenant';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LocalStorageKey, Path, PaymentStatus, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
+import PaymentEditDialog from '@/pages/paymentDetail/PaymentEditDialog';
 import { formatCurrency } from '@/utils/utils';
 
 export default function PaymentDetail() {
   const { paymentId } = useParams();
   const navigator = useNavigate();
   const { show, hide } = useLoading();
+
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
   const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
@@ -26,16 +28,14 @@ export default function PaymentDetail() {
     getPaymentByIdQuery.data?.roomId,
     !!getPaymentByIdQuery.data?.roomId,
   );
-  // const getTenantById = useGetTenantQueries({ userId: getPaymentByIdQuery.data?.tenantId });
+
   const getTenantById = useUserQuery(
     getPaymentByIdQuery.data?.tenantId,
     !!getPaymentByIdQuery.data?.tenantId,
   );
 
-  const [isMarkedAsPaid, setIsMarkedAsPaid] = useState(false);
-
   const handleMarkAsPaid = () => {
-    setIsMarkedAsPaid(true);
+    console.log();
   };
 
   const handleLogout = useCallback(() => {
@@ -150,27 +150,14 @@ export default function PaymentDetail() {
   const today = new Date().toLocaleDateString('vi-VN');
 
   return (
-    <div className="space-y-6 p-4 md:p-8">
-      {/* Header */}
-      {/* <div className="flex items-center justify-between mb-6">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            className="gap-2 text-slate-700 border-slate-300 bg-transparent"
-          >
-            <Download className="w-4 h-4" />
-            Tải PDF
-          </Button>
-        </div>
-      </div> */}
-
+    <div className="space-y-6 md:p-8">
       {/* Invoice Card */}
-      <Card className="bg-white p-8">
+      <Card className="bg-white p-4">
         {/* Company Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8 pb-8 border-b border-slate-200">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">QLNT</h1>
-            <p className="text-slate-600 mt-2">Website quản lý phòng trọ</p>
+            <p className="text-slate-600 mt-2">Website quản lý nhà trọ</p>
             <p className="text-slate-600 text-sm">Điện thoại: 0901234567</p>
             <p className="text-slate-600 text-sm">Email: info@gmail.com</p>
           </div>
@@ -215,7 +202,7 @@ export default function PaymentDetail() {
         </div>
 
         {/* Tenant Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8 pb-8 border-b border-slate-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 pb-4 border-b border-slate-200">
           <div>
             <h3 className="text-sm font-semibold text-slate-600 uppercase mb-4">Người thuê</h3>
             <div className="space-y-2">
@@ -235,7 +222,6 @@ export default function PaymentDetail() {
               </p>
               <p className="text-sm text-slate-600">Diện tích: {room?.area}m²</p>
               <p className="text-sm text-slate-600">Tầng: {room?.floor}</p>
-              {/* <p className="text-sm text-slate-600">Ngày bắt đầu: {tenant?.moveInDate}</p> */}
             </div>
           </div>
         </div>
@@ -257,7 +243,7 @@ export default function PaymentDetail() {
                 <td className="py-4 px-4">
                   <p className="font-medium text-slate-900">Tiền thuê phòng {payment?.month}</p>
                   <p className="text-sm text-slate-600">
-                    Phòng {room?.number} - Tòa {room?.building}
+                    Phòng {room?.number} - Tòa {room?.buildingId?.name}
                   </p>
                 </td>
                 <td className="text-right py-4 px-4">
@@ -330,14 +316,14 @@ export default function PaymentDetail() {
               )}
 
               {/* Gửi xe */}
-              {payment?.serviceFee !== undefined && payment.serviceFee > 0 && (
+              {payment?.parkingFee !== undefined && payment?.parkingFee > 0 && (
                 <tr className="border-b border-slate-200">
                   <td className="py-4 px-4">
                     <p className="font-medium text-slate-900">Tiền gửi xe</p>
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-medium text-slate-900">
-                      {formatCurrency(payment.serviceFee)}
+                      {formatCurrency(payment?.parkingFee)}
                     </p>
                   </td>
                   <td className="text-right py-4 px-4">
@@ -345,13 +331,13 @@ export default function PaymentDetail() {
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-semibold text-slate-900">
-                      {formatCurrency(payment.serviceFee)}
+                      {formatCurrency(payment?.parkingFee)}
                     </p>
                   </td>
                 </tr>
               )}
 
-              {/* Rác */}
+              {/* Internet */}
               {payment?.internetFee !== undefined && payment.internetFee > 0 && (
                 <tr className="border-b border-slate-200">
                   <td className="py-4 px-4">
@@ -372,32 +358,84 @@ export default function PaymentDetail() {
                   </td>
                 </tr>
               )}
+
+              {payment?.serviceFee !== undefined && payment.serviceFee > 0 && (
+                <tr className="border-b border-slate-200">
+                  <td className="py-4 px-4">
+                    <p className="font-medium text-slate-900">Tiền internet</p>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <p className="font-medium text-slate-900">
+                      {formatCurrency(payment.serviceFee)}
+                    </p>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <p className="font-medium text-slate-900">1</p>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <p className="font-semibold text-slate-900">
+                      {formatCurrency(payment.serviceFee)}
+                    </p>
+                  </td>
+                </tr>
+              )}
+
+              {payment?.otherFee !== undefined && payment.otherFee > 0 && (
+                <tr className="border-b border-slate-200">
+                  <td className="py-4 px-4">
+                    <p className="font-medium text-slate-900">Tiền khác</p>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <p className="font-medium text-slate-900">{formatCurrency(payment.otherFee)}</p>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <p className="font-medium text-slate-900">1</p>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <p className="font-semibold text-slate-900">
+                      {formatCurrency(payment.otherFee)}
+                    </p>
+                  </td>
+                </tr>
+              )}
+
+              {payment?.note !== undefined && payment.note.length > 0 && (
+                <tr className="border-b border-slate-200">
+                  <td className="py-4 px-4">
+                    <p className="font-medium text-slate-900">Ghi chú</p>
+                    <p className="font-medium text-slate-900">{payment.note}</p>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
-        <div className="md:hidden space-y-4 mb-8">
+
+        <div className="md:hidden space-y-4 mb-4">
           {/* Tiền phòng */}
           <div className="p-4 border rounded-lg bg-slate-50">
             <div className="flex justify-between font-semibold">
-              <span>Tiền thuê phòng {payment?.month}</span>
-              <span>{formatCurrency(payment?.roomFee || 0)}</span>
+              <span className="text-sm">Tiền cọc {payment?.month}</span>
+              <span className="text-sm">{formatCurrency(payment?.roomFee || 0)}</span>
             </div>
-            <p className="text-sm text-slate-600 mt-1">
-              Phòng {room?.number} - Tòa {room?.buildingId?.name}
-            </p>
           </div>
 
           {/* Điện */}
           {payment && payment?.electricityAmount > 0 && (
             <div className="p-4 border rounded-lg">
               <div className="flex justify-between font-semibold">
-                <span>Tiền điện</span>
-                <span>{formatCurrency(payment?.electricityAmount)}</span>
+                <span className="text-sm">Tiền điện</span>
+                <span className="text-sm">{formatCurrency(payment?.electricityAmount)}</span>
               </div>
-              <p className="text-sm text-slate-600 mt-1">
-                {(payment?.electricityCurrent || 0) - (payment?.electricityPrevious || 0)} kWh ×{' '}
-                {formatCurrency(payment?.electricityUnitPrice || 0)}
-              </p>
+
+              <div className="text-xs text-slate-600 mt-1 space-y-1">
+                <p>
+                  {(payment?.electricityCurrent || 0) - (payment?.electricityPrevious || 0)} kWh ×{' '}
+                  {formatCurrency(payment?.electricityUnitPrice || 0)}
+                </p>
+
+                <p>Đơn giá: {formatCurrency(payment?.electricityUnitPrice || 0)} / kWh</p>
+              </div>
             </div>
           )}
 
@@ -405,35 +443,91 @@ export default function PaymentDetail() {
           {payment && payment.waterAmount > 0 && (
             <div className="p-4 border rounded-lg">
               <div className="flex justify-between font-semibold">
-                <span>Tiền nước</span>
-                <span>{formatCurrency(payment.waterAmount)}</span>
+                <span className="text-sm">Tiền nước</span>
+                <span className="text-sm">{formatCurrency(payment.waterAmount)}</span>
               </div>
-              <p className="text-sm text-slate-600 mt-1">
-                {payment.waterCurrent - payment.waterPrevious} m³
-              </p>
+
+              <div className="text-xs text-slate-600 mt-1 space-y-1">
+                <p>
+                  {payment.waterCurrent - payment.waterPrevious} m³ ×{' '}
+                  {formatCurrency(payment.waterUnitPrice || 0)}
+                </p>
+
+                <p>Đơn giá: {formatCurrency(payment.waterUnitPrice || 0)} / m³</p>
+              </div>
             </div>
           )}
 
-          {/* Dịch vụ khác tương tự */}
+          {payment?.internetFee !== undefined && payment.internetFee > 0 && (
+            <div className="p-4 border rounded-lg">
+              <div className="flex justify-between font-semibold">
+                <span className="text-sm">Tiền internet</span>
+                <span className="text-sm">{formatCurrency(payment.internetFee)} / tháng</span>
+              </div>
+            </div>
+          )}
+
+          {payment?.serviceFee !== undefined && payment.serviceFee > 0 && (
+            <div className="p-4 border rounded-lg">
+              <div className="flex justify-between font-semibold">
+                <span className="text-sm">Tiền dịch vụ</span>
+                <span className="text-sm">{formatCurrency(payment.serviceFee)} / tháng</span>
+              </div>
+            </div>
+          )}
+
+          {payment?.otherFee !== undefined && payment.otherFee > 0 && (
+            <div className="p-4 border rounded-lg">
+              <div className="flex justify-between font-semibold">
+                <span className="text-sm">Tiền khác</span>
+                <span className="text-sm">{formatCurrency(payment.otherFee)}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Note */}
+          {payment?.note && (
+            <div className="p-4 border rounded-lg">
+              <p className="text-sm text-slate-600 mt-1">{payment.note}</p>
+            </div>
+          )}
         </div>
 
         {/* Totals */}
-        <div className="flex justify-end mb-8 pb-8 border-b border-slate-200">
+        <div className="flex justify-end pb-8 border-b border-slate-200">
           <div className="w-full md:w-64">
             <div className="flex justify-between mb-2 pb-2 border-b border-slate-200">
-              <span className="text-slate-600">Tổng tiền:</span>
-              <span className="font-semibold text-slate-900">
+              <span className="text-slate-600 text-sm">Tổng tiền:</span>
+              <span className="font-semibold text-slate-900 text-sm">
                 {formatCurrency(payment?.amount ?? 0)}
               </span>
             </div>
-            <div className="flex justify-between">
+            <div className=" mt-2 flex justify-between">
               <span className="text-lg font-bold text-slate-900">Cần thanh toán:</span>
-              <span className="text-xl font-bold text-slate-900">
+              <span className="text-xl font-bold text-red-500">
                 {formatCurrency(payment?.amount ?? 0)}
               </span>
             </div>
           </div>
         </div>
+
+        {payment?.status !== PaymentStatus.PAID && (
+          <div className="flex flex-col items-center gap-4">
+            <h3 className="text-lg font-semibold text-slate-900">Quét mã QR để thanh toán</h3>
+
+            <div className="p-4 border rounded-lg bg-white">
+              <img
+                src={`https://img.vietqr.io/image/970426-0358361511-JH8r4kY.jpg?amount=${payment?.amount ?? 0}&addInfo=${payment?.roomId}&accountName=Nguyen%20cong%20quy`}
+                alt="QR Thanh toán"
+                className="w-48 h-48 object-contain"
+              />
+            </div>
+
+            <p className="text-sm text-slate-600 text-center">
+              Nội dung chuyển khoản: <b>{payment?.roomId}</b>
+            </p>
+          </div>
+        )}
 
         {user.role === UserRole.admin && payment?.status !== PaymentStatus.PAID && (
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -446,12 +540,28 @@ export default function PaymentDetail() {
             <Button
               variant="outline"
               className="gap-2 text-slate-700 border-slate-300 bg-transparent"
+              onClick={() => setIsEditOpen(true)}
             >
               Chỉnh sửa hóa đơn
             </Button>
           </div>
         )}
+
+        {payment?.status === PaymentStatus.PAID && (
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <span>Hoá đơn đã được thanh toán</span>
+          </div>
+        )}
       </Card>
+      <PaymentEditDialog
+        open={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        payment={payment}
+        onSubmit={(data) => {
+          console.log('Update payment:', data);
+          // gọi mutation update API ở đây
+        }}
+      />
     </div>
   );
 }

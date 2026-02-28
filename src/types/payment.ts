@@ -19,8 +19,12 @@ export interface Payment {
   waterAmount: number;
 
   internetFee?: number;
+  parkingFee?: number;
   serviceFee?: number;
+  otherFee?: number;
   amount: number;
+
+  note?: string;
 
   dueDate: string;
   paidDate?: string;
