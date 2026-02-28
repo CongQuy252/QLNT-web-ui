@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { AxiosError } from 'axios';
 
 import { useLoginMutation } from '@/api/auth';
 import { Button } from '@/components/ui/button';
@@ -35,12 +36,17 @@ const LoginPage = () => {
 
     loginMutation.mutate(data, {
       onSuccess: () => {
-        // Backend sẽ set httpOnly cookie chứa JWT
         navigate('/');
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onError: (error: any) => {
-        setErrorMessage(error?.response?.data?.message ?? 'Email hoặc mật khẩu không đúng');
+
+      onError: (error: unknown) => {
+        if (error instanceof AxiosError) {
+          setErrorMessage(
+            error.status === 401
+              ? 'Email hoặc mật khẩu không đúng'
+              : 'Đã xảy ra lỗi khi đăng nhập, vui lòng thử lại',
+          );
+        }
       },
     });
   };
