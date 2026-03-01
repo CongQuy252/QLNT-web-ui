@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
-import { useGetPaymentsQuery, useCreatePaymentMutation } from '@/api/payment';
+import { useCreatePaymentMutation, useGetPaymentsQuery } from '@/api/payment';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,12 +18,10 @@ import { Input } from '@/components/ui/input';
 import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
-import PaymentDialogWrapper from '@/pages/payment/components/PaymentDialogWrapper';
 import PaymentCard from '@/pages/payment/components/PaymentCard';
+import PaymentDialogWrapper from '@/pages/payment/components/PaymentDialogWrapper';
 import PaymentSummary from '@/pages/payment/components/PaymentSummary';
-import {
-  maxItemPerPage,
-} from '@/pages/payment/paymentConstants';
+import { maxItemPerPage } from '@/pages/payment/paymentConstants';
 
 export default function Payment() {
   const navigator = useNavigate();
@@ -43,7 +41,7 @@ export default function Payment() {
     maxItemPerPage,
     searchTerm,
     filterStatus === 'all' ? '' : filterStatus,
-    !!userId && !isLoading && !isError && !!user
+    !!userId && !isLoading && !isError && !!user,
   );
 
   const createPaymentMutation = useCreatePaymentMutation();
@@ -189,8 +187,8 @@ export default function Payment() {
       {pagination && payments.length > 0 && (
         <div className="flex items-center justify-between p-4">
           <div className="text-sm text-slate-600">
-            {(pagination.page - 1) * pagination.limit + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} /{' '}
-            {pagination.total}
+            {(pagination.page - 1) * pagination.limit + 1} -{' '}
+            {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total}
           </div>
 
           <div className="flex items-center gap-2">

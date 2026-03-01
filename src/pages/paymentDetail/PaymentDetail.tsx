@@ -248,7 +248,7 @@ export default function PaymentDetail() {
                 </td>
                 <td className="text-right py-4 px-4">
                   <p className="font-medium text-slate-900">
-                    {formatCurrency(payment?.roomFee || 0)}
+                    {formatCurrency(payment?.rentAmount || 0)}
                   </p>
                 </td>
                 <td className="text-right py-4 px-4">
@@ -256,7 +256,7 @@ export default function PaymentDetail() {
                 </td>
                 <td className="text-right py-4 px-4">
                   <p className="font-semibold text-slate-900">
-                    {formatCurrency(payment?.roomFee || 0)}
+                    {formatCurrency(payment?.rentAmount || 0)}
                   </p>
                 </td>
               </tr>
@@ -269,7 +269,7 @@ export default function PaymentDetail() {
                     <p className="text-sm text-slate-600">
                       CSĐ cũ: {payment?.electricityPrevious} | CSĐ mới:{' '}
                       {payment?.electricityCurrent} | Giá:{' '}
-                      {formatCurrency(payment?.electricityUnitPrice || 0)}/kWh
+                      {formatCurrency(room?.electricityUnitPrice || 0)}/kWh
                     </p>
                   </td>
                   <td className="text-right py-4 px-4">
@@ -284,7 +284,7 @@ export default function PaymentDetail() {
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-semibold text-slate-900">
-                      {formatCurrency(payment?.electricityAmount || 0)}
+                      {formatCurrency(payment?.electricityAmount ?? 0)}
                     </p>
                   </td>
                 </tr>
@@ -301,7 +301,7 @@ export default function PaymentDetail() {
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-medium text-slate-900">
-                      {formatCurrency(payment.waterUnitPrice)}
+                      {formatCurrency(room?.waterUnitPrice ?? 0)}
                     </p>
                   </td>
                   <td className="text-right py-4 px-4">
@@ -316,14 +316,14 @@ export default function PaymentDetail() {
               )}
 
               {/* Gửi xe */}
-              {payment?.parkingFee !== undefined && payment?.parkingFee > 0 && (
+              {payment?.parkingFeeAmount !== undefined && payment?.parkingFeeAmount > 0 && (
                 <tr className="border-b border-slate-200">
                   <td className="py-4 px-4">
                     <p className="font-medium text-slate-900">Tiền gửi xe</p>
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-medium text-slate-900">
-                      {formatCurrency(payment?.parkingFee)}
+                      {formatCurrency(room?.parkingFee ?? 0)}
                     </p>
                   </td>
                   <td className="text-right py-4 px-4">
@@ -331,21 +331,21 @@ export default function PaymentDetail() {
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-semibold text-slate-900">
-                      {formatCurrency(payment?.parkingFee)}
+                      {formatCurrency(payment?.parkingFeeAmount)}
                     </p>
                   </td>
                 </tr>
               )}
 
               {/* Internet */}
-              {payment?.internetFee !== undefined && payment.internetFee > 0 && (
+              {payment?.internetFeeAmount !== undefined && payment?.internetFeeAmount > 0 && (
                 <tr className="border-b border-slate-200">
                   <td className="py-4 px-4">
                     <p className="font-medium text-slate-900">Tiền internet</p>
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-medium text-slate-900">
-                      {formatCurrency(payment.internetFee)}
+                      {formatCurrency(room?.internetFee ?? 0)}
                     </p>
                   </td>
                   <td className="text-right py-4 px-4">
@@ -353,20 +353,20 @@ export default function PaymentDetail() {
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-semibold text-slate-900">
-                      {formatCurrency(payment.internetFee)}
+                      {formatCurrency(payment?.internetFeeAmount ?? 0)}
                     </p>
                   </td>
                 </tr>
               )}
 
-              {payment?.serviceFee !== undefined && payment.serviceFee > 0 && (
+              {payment?.serviceFeeAmount !== undefined && payment?.serviceFeeAmount > 0 && (
                 <tr className="border-b border-slate-200">
                   <td className="py-4 px-4">
                     <p className="font-medium text-slate-900">Tiền internet</p>
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-medium text-slate-900">
-                      {formatCurrency(payment.serviceFee)}
+                      {formatCurrency(room?.serviceFee ?? 0)}
                     </p>
                   </td>
                   <td className="text-right py-4 px-4">
@@ -374,7 +374,7 @@ export default function PaymentDetail() {
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-semibold text-slate-900">
-                      {formatCurrency(payment.serviceFee)}
+                      {formatCurrency(payment?.serviceFeeAmount)}
                     </p>
                   </td>
                 </tr>
@@ -399,11 +399,11 @@ export default function PaymentDetail() {
                 </tr>
               )}
 
-              {payment?.note !== undefined && payment.note.length > 0 && (
+              {payment?.notes !== undefined && payment?.notes.length > 0 && (
                 <tr className="border-b border-slate-200">
                   <td className="py-4 px-4">
                     <p className="font-medium text-slate-900">Ghi chú</p>
-                    <p className="font-medium text-slate-900">{payment.note}</p>
+                    <p className="font-medium text-slate-900">{payment?.notes}</p>
                   </td>
                 </tr>
               )}
@@ -416,7 +416,7 @@ export default function PaymentDetail() {
           <div className="p-4 border rounded-lg bg-slate-50">
             <div className="flex justify-between font-semibold">
               <span className="text-sm">Tiền cọc {payment?.month}</span>
-              <span className="text-sm">{formatCurrency(payment?.roomFee || 0)}</span>
+              <span className="text-sm">{formatCurrency(payment?.rentAmount || 0)}</span>
             </div>
           </div>
 
@@ -431,10 +431,10 @@ export default function PaymentDetail() {
               <div className="text-xs text-slate-600 mt-1 space-y-1">
                 <p>
                   {(payment?.electricityCurrent || 0) - (payment?.electricityPrevious || 0)} kWh ×{' '}
-                  {formatCurrency(payment?.electricityUnitPrice || 0)}
+                  {formatCurrency(payment?.electricityAmount || 0)}
                 </p>
 
-                <p>Đơn giá: {formatCurrency(payment?.electricityUnitPrice || 0)} / kWh</p>
+                <p>Đơn giá: {formatCurrency(room?.electricityUnitPrice || 0)} / kWh</p>
               </div>
             </div>
           )}
@@ -450,28 +450,28 @@ export default function PaymentDetail() {
               <div className="text-xs text-slate-600 mt-1 space-y-1">
                 <p>
                   {payment.waterCurrent - payment.waterPrevious} m³ ×{' '}
-                  {formatCurrency(payment.waterUnitPrice || 0)}
+                  {formatCurrency(payment.waterAmount || 0)}
                 </p>
 
-                <p>Đơn giá: {formatCurrency(payment.waterUnitPrice || 0)} / m³</p>
+                <p>Đơn giá: {formatCurrency(room?.waterUnitPrice || 0)} / m³</p>
               </div>
             </div>
           )}
 
-          {payment?.internetFee !== undefined && payment.internetFee > 0 && (
+          {payment?.internetFeeAmount !== undefined && payment?.internetFeeAmount > 0 && (
             <div className="p-4 border rounded-lg">
               <div className="flex justify-between font-semibold">
                 <span className="text-sm">Tiền internet</span>
-                <span className="text-sm">{formatCurrency(payment.internetFee)} / tháng</span>
+                <span className="text-sm">{formatCurrency(payment.internetFeeAmount)} / tháng</span>
               </div>
             </div>
           )}
 
-          {payment?.serviceFee !== undefined && payment.serviceFee > 0 && (
+          {payment?.serviceFeeAmount !== undefined && payment?.serviceFeeAmount > 0 && (
             <div className="p-4 border rounded-lg">
               <div className="flex justify-between font-semibold">
                 <span className="text-sm">Tiền dịch vụ</span>
-                <span className="text-sm">{formatCurrency(payment.serviceFee)} / tháng</span>
+                <span className="text-sm">{formatCurrency(payment.serviceFeeAmount)} / tháng</span>
               </div>
             </div>
           )}
@@ -486,9 +486,9 @@ export default function PaymentDetail() {
           )}
 
           {/* Note */}
-          {payment?.note && (
+          {payment?.notes && (
             <div className="p-4 border rounded-lg">
-              <p className="text-sm text-slate-600 mt-1">{payment.note}</p>
+              <p className="text-sm text-slate-600 mt-1">{payment.notes}</p>
             </div>
           )}
         </div>
