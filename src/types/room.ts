@@ -37,7 +37,10 @@ export interface RoomListResponse {
 export interface GetRoom {
   _id: string;
   number: string;
-  buildingId: string;
+  buildingId: {
+    _id: string;
+    name: string;
+  };
   floor: number;
   area: number;
   price: number;

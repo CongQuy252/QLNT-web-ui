@@ -1,13 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { QueriesKey, RoomStatus } from '@/constants/appConstants';
+import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type {
   GetRoomByIdResponse,
   PutRoomRequest,
   PutRoomResponse,
-  Room,
   RoomListResponse,
 } from '@/types/room';
 
@@ -28,37 +27,12 @@ export const useGetRoomsQueries = (
       });
 
       if (search) params.append('search', search);
-      if (status && status !== RoomStatus.all) params.append('status', status);
+      if (status && status !== '0') params.append('status', status);
 
       const response = await http.get<RoomListResponse>(`/rooms?${params.toString()}`);
-      const rooms: Room[] =
-        response.data.rooms?.map((room) => ({
-          _id: room._id,
-          number: room.number,
-          buildingId: room.buildingId,
-          floor: room.floor,
-          area: room.area,
-          price: room.price,
-          electricityUnitPrice: room.electricityUnitPrice,
-          waterUnitPrice: room.waterUnitPrice,
-          internetFee: room.internetFee,
-          parkingFee: room.parkingFee,
-          serviceFee: room.serviceFee,
-          status: room.status,
-          currentTenant: room.currentTenant
-            ? {
-                _id: room.currentTenant._id,
-                name: room.currentTenant.name ?? '',
-                email: room.currentTenant.email ?? '',
-              }
-            : undefined,
-          description: room.description,
-          createdAt: room.createdAt || new Date().toISOString(),
-          updatedAt: room.updatedAt || new Date().toISOString(),
-        })) || [];
 
       return {
-        rooms,
+        rooms: response.data.rooms,
         pagination: response.data.pagination,
       };
     },
@@ -136,6 +110,42 @@ export const useAssignTenantMutation = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
+    },
+    onError: handleHttpError,
+  });
+};
+
+export const useDeleteRoomMutation = () => {
+  const queryClient = useQueryClient();
+  const handleHttpError = useHandleHttpError();
+
+  return useMutation({
+    mutationFn: async ({ roomId, buildingId }: { roomId: string; buildingId: string }) => {
+      const response = await http.delete(`/rooms/${roomId}`, {
+        data: { buildingId },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
+    },
+    onError: handleHttpError,
+  });
+};
+
+export const useRemoveTenantMutation = () => {
+  const queryClient = useQueryClient();
+  const handleHttpError = useHandleHttpError();
+
+  return useMutation({
+    mutationFn: async (roomId: string) => {
+      const response = await http.post(`/rooms/${roomId}/remove-tenant`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
     },
     onError: handleHttpError,
   });

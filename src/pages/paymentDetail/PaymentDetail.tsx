@@ -25,7 +25,7 @@ export default function PaymentDetail() {
   const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
   const getPaymentByIdQuery = useGetPaymentByIdQuery(paymentId, !!paymentId);
   const getRoomById = useGetRoomByIdQuery(
-    getPaymentByIdQuery.data?.roomId,
+    getPaymentByIdQuery.data?.roomId ?? '',
     !!getPaymentByIdQuery.data?.roomId,
   );
 

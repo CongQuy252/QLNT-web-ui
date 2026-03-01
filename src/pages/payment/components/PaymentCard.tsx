@@ -36,7 +36,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
           )}
 
           <p className="font-semibold text-slate-900">
-            {room ? `${room.number} (Tòa ${room.building})` : '-'}
+            {room ? `${room.number} (Tòa ${room.buildingId})` : '-'}
           </p>
 
           <p className="text-sm text-slate-500">
