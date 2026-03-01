@@ -3,9 +3,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useGetBuildingById } from '@/api/building';
-import { useAssignTenantMutation, useGetRoomsQueries, useUpdateRoomMutation } from '@/api/room';
+import { useGetRoomsQueries, useUpdateRoomMutation, useAssignTenantMutation, useDeleteRoomMutation, useRemoveTenantMutation } from '@/api/room';
 import { useNonTenantUsersQuery } from '@/api/user';
-import { QueriesKey, RoomStatus } from '@/constants/appConstants';
+import { QueriesKey } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
 import type { Room } from '@/types/room';
@@ -16,19 +16,29 @@ export const useRooms = () => {
   const { success } = useToast();
   const { hide, show } = useLoading();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('0');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
-  const { data, isLoading, error } = useGetRoomsQueries(
-    currentPage,
-    pageSize,
-    searchTerm,
-    filterStatus,
-  );
-  const rooms = useMemo(() => data?.rooms || [], [data]);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchTerm]);
+
+  const { data, isLoading, error } = useGetRoomsQueries(currentPage, pageSize, debouncedSearchTerm, filterStatus);
+  const rooms = data?.rooms || [];
   const pagination = data?.pagination;
   const updateRoomMutation = useUpdateRoomMutation();
   const assignTenantMutation = useAssignTenantMutation();
+  const deleteRoomMutation = useDeleteRoomMutation();
+  const removeTenantMutation = useRemoveTenantMutation();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
   const [editRoom, setEditRoom] = useState<Room>();
   const [roomSelected, setRoomSelected] = useState<Room>();
@@ -40,14 +50,8 @@ export const useRooms = () => {
   const [assignConfirmOpen, setAssignConfirmOpen] = useState(false);
   const { data: usersData } = useNonTenantUsersQuery({ phone: phoneSearch || undefined }, true);
   const tenants = usersData?.data || [];
-
-  const filteredRooms = useMemo(() => {
-    return [...rooms].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-  }, [rooms]);
-
-  const { buildingId } = useParams();
+  const filteredRooms = rooms;
+  const { buildingId } = useParams(); //Nếu có buildingId thì lọc theo buildingId và status (status được truyền trong state) - tham khảo useBuildings - handleClickRoomStatusCount
   console.log('buildingId: ', buildingId);
 
   const filteredUsers = tenants;
@@ -68,14 +72,12 @@ export const useRooms = () => {
             floor: editRoom.floor,
             area: editRoom.area,
             price: editRoom.price,
-            status:
-              editRoom.status === RoomStatus.available
-                ? RoomStatus.available
-                : editRoom.status === RoomStatus.maintenance
-                  ? RoomStatus.maintenance
-                  : editRoom.status === RoomStatus.occupied
-                    ? RoomStatus.occupied
-                    : RoomStatus.available,
+            electricityUnitPrice: editRoom.electricityUnitPrice,
+            waterUnitPrice: editRoom.waterUnitPrice,
+            internetFee: editRoom.internetFee,
+            parkingFee: editRoom.parkingFee,
+            serviceFee: editRoom.serviceFee,
+            status: editRoom.status,
             description: editRoom.description,
           },
         },
@@ -115,10 +117,18 @@ export const useRooms = () => {
       return;
     }
 
-    // await deleteBuildingMutation.mutateAsync(building._id);
-    // queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
-    console.log('room deleted');
-    setConfirmOpen(false);
+    try {
+      await deleteRoomMutation.mutateAsync({
+        roomId: roomSelected._id,
+        buildingId: roomSelected.buildingId || '',
+      });
+      
+      success(`Đã xóa phòng ${roomSelected.number} thành công!`);
+      setConfirmOpen(false);
+      setRoomSelected(undefined);
+    } catch (error) {
+      console.error('Error deleting room:', error);
+    }
   };
 
   const handleOpenAddTenant = (room: Room) => {
@@ -161,6 +171,19 @@ export const useRooms = () => {
     );
   };
 
+  const handleRemoveTenant = async (room: Room) => {
+    if (!room) {
+      return;
+    }
+
+    try {
+      await removeTenantMutation.mutateAsync(room._id);
+      success(`Đã gỡ người thuê khỏi phòng ${room.number} thành công!`);
+    } catch (error) {
+      console.error('Error removing tenant:', error);
+    }
+  };
+
   return {
     totalItems,
     isLoading,
@@ -170,10 +193,13 @@ export const useRooms = () => {
     setEditRoom,
     handleUpdateRoom,
     updateRoomMutation,
+    deleteRoomMutation,
+    removeTenantMutation,
     handleOpenAddTenant,
     assignTenantMutation,
     handleAssignTenant,
     handleConfirmAssign,
+    handleRemoveTenant,
     assignConfirmOpen,
     setAssignConfirmOpen,
     searchTerm,

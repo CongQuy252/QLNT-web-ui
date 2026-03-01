@@ -58,7 +58,7 @@ const Tenant = () => {
         email: b.email || b.userId?.email || '',
         phone: b.phone || b.userId?.phone || '',
         cccd: b.cccd || b.userId?.cccd || '',
-        cccdImages: b.cccdImages,
+        cccdImages: b.cccdImages || b.userId?.cccdImages,
         role: b.role,
       })) ?? []
     );
