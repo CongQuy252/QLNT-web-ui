@@ -1,6 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useGetBuildingById } from '@/api/building';
 import { useGetRoomsQueries, useUpdateRoomMutation, useAssignTenantMutation, useDeleteRoomMutation, useRemoveTenantMutation } from '@/api/room';
@@ -51,13 +50,16 @@ export const useRooms = () => {
   const { data: usersData } = useNonTenantUsersQuery({ phone: phoneSearch || undefined }, true);
   const tenants = usersData?.data || [];
   const filteredRooms = rooms;
-  const { buildingId } = useParams(); //Nếu có buildingId thì lọc theo buildingId và status (status được truyền trong state) - tham khảo useBuildings - handleClickRoomStatusCount
-  console.log('buildingId: ', buildingId);
 
   const filteredUsers = tenants;
 
   const handleEditRoom = (room: Room) => {
-    setEditRoom(room);
+    // Normalize buildingId to always be string
+    const normalizedRoom = {
+      ...room,
+      buildingId: (room.buildingId as any)?._id || room.buildingId
+    };
+    setEditRoom(normalizedRoom);
     setIsEditDialogOpen(true);
   };
 

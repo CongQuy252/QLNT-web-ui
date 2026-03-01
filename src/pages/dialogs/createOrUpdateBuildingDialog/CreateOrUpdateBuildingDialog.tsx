@@ -83,7 +83,11 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
 
   const selectedCityCode = watch('city');
   const districtsQuery = useDistrictsQuery(selectedCityCode);
-  const wards = districtsQuery.data?.wards;
+  const wards = districtsQuery.data?.wards || [];
+  
+  // Debug: log the data structure
+  console.log('Districts query data:', districtsQuery.data);
+  console.log('Wards:', wards);
 
   const getCityName = useCallback(
     (cityCode: string) => {
@@ -344,109 +348,131 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
             </div>
 
             {/* Default Room Pricing Section */}
-            <div className="border-t pt-4">
-              <h3 className="text-sm font-medium text-slate-700 mb-3">Giá Phòng Mặc Định</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="defaultRoomPrice" className="text-sm font-medium text-slate-700">
-                    Giá Phòng (VNĐ/tháng)
-                  </Label>
-                  <Input
-                    type="number"
-                    {...register('defaultRoomPrice')}
-                    placeholder="5000000"
-                    className="mt-1"
-                  />
-                  {errors.defaultRoomPrice && (
-                    <p className="text-xs text-red-500">{errors.defaultRoomPrice.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="defaultElectricityUnitPrice" className="text-sm font-medium text-slate-700">
-                    Giá Điện (VNĐ/kWh)
-                  </Label>
-                  <Input
-                    type="number"
-                    {...register('defaultElectricityUnitPrice')}
-                    placeholder="3000"
-                    className="mt-1"
-                  />
-                  {errors.defaultElectricityUnitPrice && (
-                    <p className="text-xs text-red-500">{errors.defaultElectricityUnitPrice.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="defaultWaterUnitPrice" className="text-sm font-medium text-slate-700">
-                    Giá Nước (VNĐ/m³)
-                  </Label>
-                  <Input
-                    type="number"
-                    {...register('defaultWaterUnitPrice')}
-                    placeholder="15000"
-                    className="mt-1"
-                  />
-                  {errors.defaultWaterUnitPrice && (
-                    <p className="text-xs text-red-500">{errors.defaultWaterUnitPrice.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="defaultInternetFee" className="text-sm font-medium text-slate-700">
-                    Phí Internet (VNĐ/tháng)
-                  </Label>
-                  <Input
-                    type="number"
-                    {...register('defaultInternetFee')}
-                    placeholder="200000"
-                    className="mt-1"
-                  />
-                  {errors.defaultInternetFee && (
-                    <p className="text-xs text-red-500">{errors.defaultInternetFee.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="defaultParkingFee" className="text-sm font-medium text-slate-700">
-                    Phí Gửi Xe (VNĐ/tháng)
-                  </Label>
-                  <Input
-                    type="number"
-                    {...register('defaultParkingFee')}
-                    placeholder="100000"
-                    className="mt-1"
-                  />
-                  {errors.defaultParkingFee && (
-                    <p className="text-xs text-red-500">{errors.defaultParkingFee.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="defaultServiceFee" className="text-sm font-medium text-slate-700">
-                    Phí Dịch Vụ (VNĐ/tháng)
-                  </Label>
-                  <Input
-                    type="number"
-                    {...register('defaultServiceFee')}
-                    placeholder="50000"
-                    className="mt-1"
-                  />
-                  {errors.defaultServiceFee && (
-                    <p className="text-xs text-red-500">{errors.defaultServiceFee.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="defaultArea" className="text-sm font-medium text-slate-700">
-                    Diện Tích Phòng (m²)
-                  </Label>
-                  <Input
-                    type="number"
-                    {...register('defaultArea')}
-                    placeholder="25"
-                    className="mt-1"
-                  />
-                  {errors.defaultArea && (
-                    <p className="text-xs text-red-500">{errors.defaultArea.message}</p>
-                  )}
+            {!building && (
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-medium text-slate-700 mb-3">Giá Phòng Mặc Định</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label
+                      htmlFor="defaultRoomPrice"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Giá Phòng (VNĐ/tháng)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultRoomPrice')}
+                      placeholder="5000000"
+                      className="mt-1"
+                    />
+                    {errors.defaultRoomPrice && (
+                      <p className="text-xs text-red-500">{errors.defaultRoomPrice.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="defaultElectricityUnitPrice"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Giá Điện (VNĐ/kWh)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultElectricityUnitPrice')}
+                      placeholder="3000"
+                      className="mt-1"
+                    />
+                    {errors.defaultElectricityUnitPrice && (
+                      <p className="text-xs text-red-500">
+                        {errors.defaultElectricityUnitPrice.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="defaultWaterUnitPrice"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Giá Nước (VNĐ/m³)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultWaterUnitPrice')}
+                      placeholder="15000"
+                      className="mt-1"
+                    />
+                    {errors.defaultWaterUnitPrice && (
+                      <p className="text-xs text-red-500">{errors.defaultWaterUnitPrice.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="defaultInternetFee"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Phí Internet (VNĐ/tháng)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultInternetFee')}
+                      placeholder="200000"
+                      className="mt-1"
+                    />
+                    {errors.defaultInternetFee && (
+                      <p className="text-xs text-red-500">{errors.defaultInternetFee.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="defaultParkingFee"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Phí Gửi Xe (VNĐ/tháng)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultParkingFee')}
+                      placeholder="100000"
+                      className="mt-1"
+                    />
+                    {errors.defaultParkingFee && (
+                      <p className="text-xs text-red-500">{errors.defaultParkingFee.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="defaultServiceFee"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Phí Dịch Vụ (VNĐ/tháng)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultServiceFee')}
+                      placeholder="50000"
+                      className="mt-1"
+                    />
+                    {errors.defaultServiceFee && (
+                      <p className="text-xs text-red-500">{errors.defaultServiceFee.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="defaultArea" className="text-sm font-medium text-slate-700">
+                      Diện Tích Phòng (m²)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultArea')}
+                      placeholder="25"
+                      className="mt-1"
+                    />
+                    {errors.defaultArea && (
+                      <p className="text-xs text-red-500">{errors.defaultArea.message}</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <div>
               <Label htmlFor="description" className="text-sm font-medium text-slate-700">

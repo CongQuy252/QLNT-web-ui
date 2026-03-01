@@ -16,6 +16,10 @@ export interface Payment {
   waterCurrent: number;
   waterAmount: number;
   otherFee?: number;
+  rentAmount: number;
+  internetFeeAmount: number;
+  parkingFeeAmount: number;
+  serviceFeeAmount: number;
   amount: number;
   dueDate: string;
   paidDate?: string;

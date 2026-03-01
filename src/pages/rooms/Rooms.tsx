@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { RoomStatus } from '@/constants/appConstants';
+import { ROOMSTATUS } from '@/types/room';
 import { useMobile } from '@/hooks/useMobile';
 import { useToast } from '@/hooks/useToast';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
@@ -85,11 +85,11 @@ const Rooms = () => {
           <p className="text-slate-600 mt-2">{`Tổng cộng ${totalItems} phòng`}</p>
         </div>
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col">
-            <DialogHeader>
+          <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col max-h-[90vh]">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle>Chỉnh sửa phòng {editRoom?.number}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Số phòng</label>
                 <Input
@@ -147,13 +147,87 @@ const Rooms = () => {
                 </div>
               </div>
 
+              {/* Pricing Section */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-slate-800 border-b pb-2">Cấu hình giá dịch vụ</h4>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Giá điện (VNĐ/kWh)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="100"
+                      value={editRoom?.electricityUnitPrice || 0}
+                      onChange={(e) =>
+                        editRoom && setEditRoom({ ...editRoom, electricityUnitPrice: Number(e.target.value) })
+                      }
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Giá nước (VNĐ/m³)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      value={editRoom?.waterUnitPrice || 0}
+                      onChange={(e) =>
+                        editRoom && setEditRoom({ ...editRoom, waterUnitPrice: Number(e.target.value) })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Internet (VNĐ/tháng)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="10000"
+                      value={editRoom?.internetFee || 0}
+                      onChange={(e) =>
+                        editRoom && setEditRoom({ ...editRoom, internetFee: Number(e.target.value) })
+                      }
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Gửi xe (VNĐ/tháng)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="10000"
+                      value={editRoom?.parkingFee || 0}
+                      onChange={(e) =>
+                        editRoom && setEditRoom({ ...editRoom, parkingFee: Number(e.target.value) })
+                      }
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Dịch vụ (VNĐ/tháng)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="10000"
+                      value={editRoom?.serviceFee || 0}
+                      onChange={(e) =>
+                        editRoom && setEditRoom({ ...editRoom, serviceFee: Number(e.target.value) })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-700">Trạng thái</Label>
 
                 <Select
-                  value={editRoom?.status ?? RoomStatus.available}
+                  value={editRoom?.status ?? ROOMSTATUS.AVAILABLE}
                   onValueChange={(value) =>
-                    editRoom && setEditRoom({ ...editRoom, status: value as RoomStatus })
+                    editRoom && setEditRoom({ ...editRoom, status: value as ROOMSTATUS })
                   }
                 >
                   <SelectTrigger>
@@ -161,16 +235,16 @@ const Rooms = () => {
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value={RoomStatus.available}>
-                      {getStatusLabel(RoomStatus.available)}
+                    <SelectItem value={ROOMSTATUS.AVAILABLE}>
+                      {getStatusLabel(ROOMSTATUS.AVAILABLE)}
                     </SelectItem>
 
-                    <SelectItem value={RoomStatus.maintenance}>
-                      {getStatusLabel(RoomStatus.maintenance)}
+                    <SelectItem value={ROOMSTATUS.MAINTENANCE}>
+                      {getStatusLabel(ROOMSTATUS.MAINTENANCE)}
                     </SelectItem>
 
-                    <SelectItem value={RoomStatus.occupied}>
-                      {getStatusLabel(RoomStatus.occupied)}
+                    <SelectItem value={ROOMSTATUS.OCCUPIED}>
+                      {getStatusLabel(ROOMSTATUS.OCCUPIED)}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -190,7 +264,7 @@ const Rooms = () => {
                 />
               </div>
 
-              <div className="flex gap-2 pt-4 border-t border-slate-200">
+              <div className="flex gap-2 pt-4 border-t border-slate-200 flex-shrink-0">
                 <Button
                   variant="outline"
                   className="flex-1 text-slate-700 border-slate-300 bg-transparent"
@@ -237,7 +311,7 @@ const Rooms = () => {
         </div>
 
         <div className="flex gap-2 mb-5 w-full overflow-x-auto">
-          {[RoomStatus.all, RoomStatus.available, RoomStatus.maintenance, RoomStatus.occupied].map(
+          {['0', ROOMSTATUS.AVAILABLE, ROOMSTATUS.MAINTENANCE, ROOMSTATUS.OCCUPIED].map(
             (status) => (
               <Button
                 key={status}
@@ -285,7 +359,7 @@ const Rooms = () => {
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold text-slate-900">{room.number}</h3>
                       <p className="text-sm text-slate-600">
-                        Tòa {room.building} - Tầng {room.floor}
+                        Tòa {(room.buildingId as any)?.name || room.buildingId} - Tầng {room.floor}
                       </p>
                     </div>
                   </div>
@@ -312,7 +386,7 @@ const Rooms = () => {
                     </span>
                   </div>
 
-                  {tenant && room.status === RoomStatus.occupied && (
+                  {tenant && room.status === ROOMSTATUS.OCCUPIED && (
                     <div className="p-3 bg-slate-50 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <p className="text-xs text-slate-600">Người thuê hiện tại</p>
@@ -336,7 +410,7 @@ const Rooms = () => {
                   )}
 
                   <div className="flex gap-2 pt-4 border-t border-slate-200">
-                    {room.status === RoomStatus.available && (
+                    {room.status === ROOMSTATUS.AVAILABLE && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -354,7 +428,7 @@ const Rooms = () => {
                       onClick={() => handleEditRoom(room)}
                     />
 
-                    {room.status !== RoomStatus.occupied && (
+                    {room.status !== ROOMSTATUS.OCCUPIED && (
                       <Button
                         variant="outline"
                         size="sm"

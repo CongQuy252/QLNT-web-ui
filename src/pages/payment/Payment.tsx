@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
+import { useGetPaymentsQuery, useCreatePaymentMutation } from '@/api/payment';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,9 +22,6 @@ import PaymentDialogWrapper from '@/pages/payment/components/PaymentDialogWrappe
 import PaymentCard from '@/pages/payment/components/PaymentCard';
 import PaymentSummary from '@/pages/payment/components/PaymentSummary';
 import {
-  getPaymentsByOwner,
-  getPaymentsByTenant,
-  getTenantById,
   maxItemPerPage,
 } from '@/pages/payment/paymentConstants';
 
@@ -40,6 +38,19 @@ export default function Payment() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
 
+  const { data: paymentsData, isLoading: paymentsLoading } = useGetPaymentsQuery(
+    currentPage,
+    maxItemPerPage,
+    searchTerm,
+    filterStatus === 'all' ? '' : filterStatus,
+    !!userId && !isLoading && !isError && !!user
+  );
+
+  const createPaymentMutation = useCreatePaymentMutation();
+
+  const payments = paymentsData?.payments || [];
+  const pagination = paymentsData?.pagination;
+
   const handleLogout = useCallback(() => {
     queryClient.clear();
     localStorage.clear();
@@ -47,12 +58,12 @@ export default function Payment() {
   }, [navigator]);
 
   useEffect(() => {
-    if (isLoading) {
+    if (isLoading || paymentsLoading) {
       show();
     } else {
       hide();
     }
-  }, [hide, isLoading, show]);
+  }, [hide, isLoading, paymentsLoading, show]);
 
   useEffect(() => {
     if (!isLoading && (isError || !user)) {
@@ -64,26 +75,11 @@ export default function Payment() {
     return null;
   }
 
-  const payments =
-    user.role === UserRole.admin ? getPaymentsByOwner() : getPaymentsByTenant(user._id);
-
-  const filteredPayments = payments.filter((payment) => {
-    const tenant = getTenantById(payment.tenantId);
-    const matchesSearch =
-      tenant?.userId.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      false ||
-      payment.month.includes(searchTerm);
-    const matchesStatus = filterStatus === 'all' || payment.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
-
-  const totalPages = Math.ceil(filteredPayments.length / maxItemPerPage);
-  const startIndex = (currentPage - 1) * maxItemPerPage;
-  const endIndex = startIndex + maxItemPerPage;
-  const paginatedPayments = filteredPayments.slice(startIndex, endIndex);
+  // Remove client-side filtering since API handles it
+  const paginatedPayments = payments;
 
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
+    if (pagination && page >= 1 && page <= pagination.totalPages) {
       setCurrentPage(page);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -122,9 +118,14 @@ export default function Payment() {
               </DialogHeader>
               <div className="flex-1 overflow-y-auto space-y-4 p-0.5">
                 <PaymentDialogWrapper
-                  onSubmit={(invoice) => {
-                    console.log('Invoice created:', invoice);
-                    setIsInvoiceDialogOpen(false);
+                  onSubmit={async (invoice) => {
+                    try {
+                      await createPaymentMutation.mutateAsync(invoice);
+                      setIsInvoiceDialogOpen(false);
+                      // Optionally show success message or refresh
+                    } catch (error) {
+                      console.error('Error creating payment:', error);
+                    }
                   }}
                 />
               </div>
@@ -185,11 +186,11 @@ export default function Payment() {
       </div>
 
       {/* Pagination */}
-      {filteredPayments.length > 0 && (
+      {pagination && payments.length > 0 && (
         <div className="flex items-center justify-between p-4">
           <div className="text-sm text-slate-600">
-            {startIndex + 1} - {Math.min(endIndex, filteredPayments.length)} /{' '}
-            {filteredPayments.length}
+            {(pagination.page - 1) * pagination.limit + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} /{' '}
+            {pagination.total}
           </div>
 
           <div className="flex items-center gap-2">
@@ -197,20 +198,20 @@ export default function Payment() {
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
+              disabled={currentPage === 1 || !pagination.hasPrev}
             >
               Trước
             </Button>
 
             <span className="text-sm text-slate-600">
-              {currentPage} / {totalPages}
+              {pagination.page} / {pagination.totalPages}
             </span>
 
             <Button
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === pagination.totalPages || !pagination.hasNext}
             >
               Sau
             </Button>
@@ -218,7 +219,7 @@ export default function Payment() {
         </div>
       )}
 
-      {filteredPayments.length === 0 && (
+      {payments.length === 0 && !paymentsLoading && (
         <div className="py-12 text-center">
           <CreditCard className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-600">Không tìm thấy khoản thanh toán nào phù hợp</p>

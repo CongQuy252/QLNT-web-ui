@@ -10,6 +10,7 @@ import {
 } from '@/pages/payment/paymentConstants';
 import type { Payment } from '@/types/payment';
 import { formatCurrency } from '@/utils/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface PaymentCardProps {
   payment: Payment;
@@ -23,6 +24,11 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
   const tenant = getTenantById(payment.tenantId);
   const room = getRoomById(payment.roomId);
 
+  const navigate = useNavigate();
+  const handleGoDetail = () => {
+    navigate(`/payments/${payment._id}`); // nhớ check đúng field id
+  };
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm gap-3 mb-4">
       {/* HEADER */}
@@ -30,7 +36,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left p-4 flex justify-between items-center hover:bg-slate-50"
       >
-        <div>
+        <div onClick={handleGoDetail} className="cursor-pointer flex-1">
           {user.role === UserRole.admin && (
             <p className="text-sm text-slate-500">{tenant?.userId.name}</p>
           )}
