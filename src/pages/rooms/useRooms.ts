@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import { useGetBuildingById } from '@/api/building';
 import { useGetRoomsQueries, useUpdateRoomMutation, useAssignTenantMutation, useDeleteRoomMutation, useRemoveTenantMutation } from '@/api/room';
 import { useNonTenantUsersQuery } from '@/api/user';
-import { QueriesKey, RoomStatus } from '@/constants/appConstants';
+import { QueriesKey } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
 import type { Room } from '@/types/room';
@@ -17,7 +17,7 @@ export const useRooms = () => {
   const { hide, show } = useLoading();
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
+  const [filterStatus, setFilterStatus] = useState<string>('0');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
 
@@ -72,14 +72,12 @@ export const useRooms = () => {
             floor: editRoom.floor,
             area: editRoom.area,
             price: editRoom.price,
-            status:
-              editRoom.status === RoomStatus.available
-                ? RoomStatus.available
-                : editRoom.status === RoomStatus.maintenance
-                  ? RoomStatus.maintenance
-                  : editRoom.status === RoomStatus.occupied
-                    ? RoomStatus.occupied
-                    : RoomStatus.available,
+            electricityUnitPrice: editRoom.electricityUnitPrice,
+            waterUnitPrice: editRoom.waterUnitPrice,
+            internetFee: editRoom.internetFee,
+            parkingFee: editRoom.parkingFee,
+            serviceFee: editRoom.serviceFee,
+            status: editRoom.status,
             description: editRoom.description,
           },
         },
@@ -171,19 +169,6 @@ export const useRooms = () => {
         },
       },
     );
-  };
-
-  const handleRemoveTenant = async (room: Room) => {
-    if (!room) {
-      return;
-    }
-
-    try {
-      await removeTenantMutation.mutateAsync(room._id);
-      success(`Đã gỡ người thuê khỏi phòng ${room.number} thành công!`);
-    } catch (error) {
-      console.error('Error removing tenant:', error);
-    }
   };
 
   const handleRemoveTenant = async (room: Room) => {

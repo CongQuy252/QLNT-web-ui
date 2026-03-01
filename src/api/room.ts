@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { QueriesKey, RoomStatus } from '@/constants/appConstants';
+import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type { PutRoomRequest, PutRoomResponse, Room, RoomListResponse } from '@/types/room';
@@ -16,27 +16,24 @@ export const useGetRoomsQueries = (page = 1, limit = 10, search = '', status = '
       });
       
       if (search) params.append('search', search);
-      if (status && status !== RoomStatus.all) params.append('status', status);
+      if (status && status !== '0') params.append('status', status);
       
       const response = await http.get<RoomListResponse>(`/rooms?${params.toString()}`);
       const rooms: Room[] =
         response.data.rooms?.map((room) => ({
           _id: room._id,
           number: room.number,
-          building: room.buildingId?.name || '',
-          buildingId: room.buildingId?._id || '',
+          buildingId: room.buildingId,
           floor: room.floor,
           area: room.area,
           price: room.price,
-          status:
-            room.status === 'available'
-              ? RoomStatus.available
-              : room.status === 'maintenance'
-                ? RoomStatus.maintenance
-                : room.status === 'occupied'
-                  ? RoomStatus.occupied
-                  : RoomStatus.available,
-          currentTenant: room.currentTenant?._id
+          electricityUnitPrice: room.electricityUnitPrice,
+          waterUnitPrice: room.waterUnitPrice,
+          internetFee: room.internetFee,
+          parkingFee: room.parkingFee,
+          serviceFee: room.serviceFee,
+          status: room.status,
+          currentTenant: room.currentTenant
             ? {
                 _id: room.currentTenant._id,
                 name: room.currentTenant.name ?? '',
@@ -44,6 +41,8 @@ export const useGetRoomsQueries = (page = 1, limit = 10, search = '', status = '
               }
             : undefined,
           description: room.description,
+          createdAt: room.createdAt || new Date().toISOString(),
+          updatedAt: room.updatedAt || new Date().toISOString(),
         })) || [];
 
       return {

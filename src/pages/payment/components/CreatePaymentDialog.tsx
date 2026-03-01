@@ -31,18 +31,13 @@ export default function CreateInvoiceDialog({ tenants, getRoomById, onSubmit }: 
 
     electricityAmount: 0,
     waterAmount: 0,
-    internetFee: 0,
-    serviceFee: 0,
+    otherFee: 0,
 
-    electricityUnitPrice: 0,
     electricityPrevious: 0,
     electricityCurrent: 0,
 
-    waterUnitPrice: 0,
     waterPrevious: 0,
     waterCurrent: 0,
-
-    roomFee: 0,
 
     services: {
       electricity: { price: 0, quantity: 0 },
@@ -63,11 +58,9 @@ export default function CreateInvoiceDialog({ tenants, getRoomById, onSubmit }: 
     const waterAmount = water.price * water.quantity;
 
     const serviceFee = invoice.services.garbage.price * invoice.services.garbage.quantity;
-
     const internetFee = invoice.services.wifi.price * invoice.services.wifi.quantity;
 
     const roomFee = getRoomById(invoice.roomId)?.price ?? 0;
-
     const total = roomFee + electricityAmount + waterAmount + serviceFee + internetFee;
 
     return {
@@ -75,20 +68,15 @@ export default function CreateInvoiceDialog({ tenants, getRoomById, onSubmit }: 
       roomId: invoice.roomId,
       month: invoice.month,
 
-      roomFee,
-
-      electricityUnitPrice: electricity.price,
       electricityPrevious: 0,
       electricityCurrent: electricity.quantity,
       electricityAmount,
 
-      waterUnitPrice: water.price,
       waterPrevious: 0,
       waterCurrent: water.quantity,
       waterAmount,
 
-      internetFee,
-      serviceFee,
+      otherFee: invoice.services.garbage.price * invoice.services.garbage.quantity + invoice.services.parking.price * invoice.services.parking.quantity,
 
       amount: total,
 

@@ -13,6 +13,13 @@ export const buildingSchema = z.object({
     .transform((val) => (val === '' ? undefined : val))
     .optional(),
   description: z.string().optional(),
+  defaultRoomPrice: z.coerce.number().min(0, { error: 'Giá phòng phải lớn hơn hoặc bằng 0' }).optional(),
+  defaultElectricityUnitPrice: z.coerce.number().min(0, { error: 'Giá điện phải lớn hơn hoặc bằng 0' }).optional(),
+  defaultWaterUnitPrice: z.coerce.number().min(0, { error: 'Giá nước phải lớn hơn hoặc bằng 0' }).optional(),
+  defaultInternetFee: z.coerce.number().min(0, { error: 'Phí internet phải lớn hơn hoặc bằng 0' }).optional(),
+  defaultParkingFee: z.coerce.number().min(0, { error: 'Phí gửi xe phải lớn hơn hoặc bằng 0' }).optional(),
+  defaultServiceFee: z.coerce.number().min(0, { error: 'Phí dịch vụ phải lớn hơn hoặc bằng 0' }).optional(),
+  defaultArea: z.coerce.number().min(0, { error: 'Diện tích phải lớn hơn 0' }).optional(),
 });
 
 export type BuildingFormInput = z.input<typeof buildingSchema>;
