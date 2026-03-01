@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type { PutRoomRequest, PutRoomResponse, Room, RoomListResponse } from '@/types/room';
+import type { PutRoomRequest, PutRoomResponse, Room, RoomListResponse, GetRoom } from '@/types/room';
 
 export const useGetRoomsQueries = (page = 1, limit = 10, search = '', status = '', isEnabled = true) => {
   const handleHttpError = useHandleHttpError();
@@ -53,6 +53,41 @@ export const useGetRoomsQueries = (page = 1, limit = 10, search = '', status = '
     enabled: isEnabled,
     meta: { handleError: handleHttpError },
     placeholderData: (prev) => prev,
+  });
+};
+
+export const useGetOccupiedRoomsQueries = (page = 1, limit = 10, buildingId = '', floor?: number, isEnabled = true) => {
+  const handleHttpError = useHandleHttpError();
+  return useQuery({
+    queryKey: ['occupied-rooms', page, limit, buildingId, floor],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+      
+      if (buildingId) params.append('buildingId', buildingId);
+      if (floor !== undefined) params.append('floor', floor.toString());
+      
+      const response = await http.get<RoomListResponse>(`/rooms/occupied?${params.toString()}`);
+      return response.data;
+    },
+    enabled: isEnabled,
+    meta: { handleError: handleHttpError },
+    placeholderData: (prev) => prev,
+  });
+};
+
+export const useGetRoomByIdQuery = (roomId: string, isEnabled = true) => {
+  const handleHttpError = useHandleHttpError();
+  return useQuery({
+    queryKey: ['room', roomId],
+    queryFn: async () => {
+      const response = await http.get<GetRoom>(`/rooms/${roomId}`);
+      return response.data;
+    },
+    enabled: isEnabled && !!roomId,
+    meta: { handleError: handleHttpError },
   });
 };
 

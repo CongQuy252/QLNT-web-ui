@@ -1,10 +1,9 @@
 import { queryClient } from '@/lib/reactQuery';
 import { CreditCard } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
-import { useGetTenantQueries } from '@/api/tenant';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,16 +14,15 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { LocalStorageKey, Path, TenantStatus, UserRole } from '@/constants/appConstants';
+import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
-import CreateInvoiceDialog from '@/pages/payment/components/CreatePaymentDialog';
+import PaymentDialogWrapper from '@/pages/payment/components/PaymentDialogWrapper';
 import PaymentCard from '@/pages/payment/components/PaymentCard';
 import PaymentSummary from '@/pages/payment/components/PaymentSummary';
 import {
   getPaymentsByOwner,
   getPaymentsByTenant,
-  getRoomById,
   getTenantById,
   maxItemPerPage,
 } from '@/pages/payment/paymentConstants';
@@ -41,17 +39,6 @@ export default function Payment() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
-
-  const getTenantQueries = useGetTenantQueries(
-    {
-      status: TenantStatus.active,
-      page: currentPage,
-      limit: 10,
-    },
-    true,
-  );
-
-  const allTenants = useMemo(() => getTenantQueries.data?.data ?? [], [getTenantQueries.data]);
 
   const handleLogout = useCallback(() => {
     queryClient.clear();
@@ -134,9 +121,7 @@ export default function Payment() {
                 <DialogTitle>Lập hóa đơn mới</DialogTitle>
               </DialogHeader>
               <div className="flex-1 overflow-y-auto space-y-4 p-0.5">
-                <CreateInvoiceDialog
-                  tenants={allTenants}
-                  getRoomById={getRoomById}
+                <PaymentDialogWrapper
                   onSubmit={(invoice) => {
                     console.log('Invoice created:', invoice);
                     setIsInvoiceDialogOpen(false);
