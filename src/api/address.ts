@@ -35,6 +35,7 @@ export const useDistrictsQuery = (provinceCode: string) => {
     queryKey: [QueriesKey.districts, provinceCode],
     queryFn: async () => {
       const response = await addressApi.get(`p/${provinceCode}?depth=2`);
+      console.log('Districts API response:', response.data);
       return response.data as Province;
     },
     meta: { handleError: handleHttpError },

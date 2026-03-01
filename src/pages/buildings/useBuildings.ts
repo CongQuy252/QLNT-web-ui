@@ -53,6 +53,17 @@ export const useBuildings = () => {
   const handleSave = async (data: BuildingFormInput) => {
     try {
       if (isEditMode && editingBuilding) {
+        // Check if building has any occupied rooms before updating
+        const occupiedRooms = editingBuilding.roomStatus?.occupied ?? 0;
+        
+        if (occupiedRooms > 0) {
+          setInfoMessage(
+            `Không thể cập nhật "${editingBuilding.name}" vì còn ${occupiedRooms} phòng đang có người thuê. Vui lòng chuyển hết người thuê trước khi cập nhật.`,
+          );
+          setInfoOpen(true);
+          return;
+        }
+
         await updateBuildingMutation.mutateAsync({
           id: editingBuilding._id,
           data,

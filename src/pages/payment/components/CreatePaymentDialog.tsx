@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,33 +7,34 @@ import { Textarea } from '@/components/ui/textarea';
 import type { InvoiceForm } from '@/types/payment';
 import type { Room } from '@/types/room';
 
-type ServiceItem = {
-  price: number;
-  quantity: number;
-};
-
 type Props = {
   occupiedRooms: Room[];
   getRoomById: (id: string) => Room | undefined;
   onSubmit: (invoice: InvoiceForm) => void;
 };
 
+type InvoiceState = {
+  tenantId: string;
+  roomId: string;
+  month: string;
+  dueDate: string;
+  notes?: string;
+
+  electricityPrevious: number;
+  electricityCurrent: number;
+
+  waterPrevious: number;
+  waterCurrent: number;
+
+  otherFee: number;
+};
+
 export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubmit }: Props) {
-  const { register } = useForm<InvoiceForm>();
-  const [invoice, setInvoice] = useState<
-    InvoiceForm & {
-      services: Record<string, ServiceItem>;
-    }
-  >({
+  const [invoice, setInvoice] = useState<InvoiceState>({
     tenantId: '',
     roomId: '',
     month: new Date().toISOString().slice(0, 7),
-    dueDate: new Date().toISOString().split('T')[0],
-    amount: 0,
-
-    electricityAmount: 0,
-    waterAmount: 0,
-    otherFee: 0,
+    dueDate: new Date().toISOString().slice(0, 10),
 
     electricityPrevious: 0,
     electricityCurrent: 0,
@@ -42,74 +42,101 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
     waterPrevious: 0,
     waterCurrent: 0,
 
-    notes: '',
+    otherFee: 0,
 
-    services: {
-      electricity: { price: 0, quantity: 0 },
-      water: { price: 0, quantity: 0 },
-      parking: { price: 0, quantity: 0 },
-      wifi: { price: 0, quantity: 0 },
-      garbage: { price: 0, quantity: 0 },
-    },
+    notes: '',
   });
 
+  const selectedRoom = useMemo(() => getRoomById(invoice.roomId), [invoice.roomId, getRoomById]);
+
+  const totalAmount = useMemo(() => {
+    const room = getRoomById(invoice.roomId);
+    if (!room) return 0;
+
+    const electricityUsage = invoice.electricityCurrent - invoice.electricityPrevious;
+
+    const waterUsage = invoice.waterCurrent - invoice.waterPrevious;
+
+    const electricityAmount = Math.max(electricityUsage, 0) * (room.electricityUnitPrice || 0);
+
+    const waterAmount = Math.max(waterUsage, 0) * (room.waterUnitPrice || 0);
+
+    const internetFee = room.internetFee || 0;
+
+    const parkingFee = room.parkingFee || 0;
+
+    const serviceFee = room.serviceFee || 0;
+
+    return (
+      room.price +
+      electricityAmount +
+      waterAmount +
+      internetFee +
+      parkingFee +
+      serviceFee +
+      invoice.otherFee
+    );
+  }, [
+    getRoomById,
+    invoice.electricityCurrent,
+    invoice.electricityPrevious,
+    invoice.otherFee,
+    invoice.roomId,
+    invoice.waterCurrent,
+    invoice.waterPrevious,
+  ]);
+
   const buildInvoicePayload = (): InvoiceForm => {
-    const electricity = invoice.services.electricity;
-    const water = invoice.services.water;
+    const room = getRoomById(invoice.roomId);
+    if (!room) throw new Error('Room not found');
 
-    const electricityUsage = electricity.quantity - invoice.electricityPrevious;
+    const electricityUsage = invoice.electricityCurrent - invoice.electricityPrevious;
 
-    const electricityAmount = electricity.price * Math.max(electricityUsage, 0);
-    const waterAmount = water.price * water.quantity;
+    const waterUsage = invoice.waterCurrent - invoice.waterPrevious;
 
-    const otherFee = (invoice.otherFee || 0) + 
-      invoice.services.garbage.price * invoice.services.garbage.quantity + 
-      invoice.services.parking.price * invoice.services.parking.quantity +
-      invoice.services.wifi.price * invoice.services.wifi.quantity;
+    const electricityAmount = Math.max(electricityUsage, 0) * (room.electricityUnitPrice || 0);
 
-    const roomFee = getRoomById(invoice.roomId)?.price ?? 0;
-    const total = roomFee + electricityAmount + waterAmount + otherFee;
+    const waterAmount = Math.max(waterUsage, 0) * (room.waterUnitPrice || 0);
+
+    const internetFee = room.internetFee || 0;
+
+    const parkingFee = room.parkingFee || 0;
+
+    const serviceFee = room.serviceFee || 0;
+
+    const total =
+      room.price +
+      electricityAmount +
+      waterAmount +
+      internetFee +
+      parkingFee +
+      serviceFee +
+      invoice.otherFee;
 
     return {
       tenantId: invoice.tenantId,
       roomId: invoice.roomId,
       month: invoice.month,
+      dueDate: invoice.dueDate,
+      notes: invoice.notes,
+
+      rentAmount: room.price,
 
       electricityPrevious: invoice.electricityPrevious,
-      electricityCurrent: electricity.quantity,
+      electricityCurrent: invoice.electricityCurrent,
       electricityAmount,
 
       waterPrevious: invoice.waterPrevious,
-      waterCurrent: water.quantity,
+      waterCurrent: invoice.waterCurrent,
       waterAmount,
 
-      otherFee,
+      internetFeeAmount: internetFee,
+      parkingFeeAmount: parkingFee,
+      serviceFeeAmount: serviceFee,
+      otherFee: invoice.otherFee,
 
       amount: total,
-
-      dueDate: invoice.dueDate,
-      notes: invoice.notes,
     };
-  };
-
-  const calculateTotal = (services: Record<string, ServiceItem>, roomFee: number) =>
-    Object.values(services).reduce((sum, s) => sum + s.price * s.quantity, 0) + roomFee;
-
-  const handleServiceChange = (key: string, field: 'price' | 'quantity', value: number) => {
-    setInvoice((prev) => {
-      const updated = {
-        ...prev.services,
-        [key]: { ...prev.services[key], [field]: value },
-      };
-
-      const roomFee = getRoomById(prev.roomId)?.price ?? 0;
-
-      return {
-        ...prev,
-        services: updated,
-        amount: calculateTotal(updated, roomFee),
-      };
-    });
   };
 
   const handleSelectRoom = (roomId: string) => {
@@ -120,46 +147,23 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
       ...prev,
       roomId,
       tenantId: room.currentTenant?._id || '',
-      // Update service prices from room
-      services: {
-        ...prev.services,
-        electricity: { 
-          ...prev.services.electricity, 
-          price: room.electricityUnitPrice || 0 
-        },
-        water: { 
-          ...prev.services.water, 
-          price: room.waterUnitPrice || 0 
-        },
-        // Update other services from room
-        wifi: { 
-          ...prev.services.wifi, 
-          price: room.internetFee || 0 
-        },
-        garbage: { 
-          ...prev.services.garbage, 
-          price: room.serviceFee || 0 
-        },
-        parking: { 
-          ...prev.services.parking, 
-          price: room.parkingFee || 0 
-        },
-      },
+
+      // reset lại chỉ số khi đổi phòng
+      electricityPrevious: 0,
+      electricityCurrent: 0,
+      waterPrevious: 0,
+      waterCurrent: 0,
+
+      otherFee: 0,
     }));
   };
 
   const handleSubmit = () => {
     if (!invoice.roomId || !invoice.tenantId) return;
 
-    onSubmit(buildInvoicePayload());
-  };
+    const payload = buildInvoicePayload();
 
-  const labels: Record<string, string> = {
-    electricity: 'Tiền điện',
-    water: 'Tiền nước',
-    parking: 'Gửi xe',
-    wifi: 'Wifi',
-    garbage: 'Rác',
+    onSubmit(payload);
   };
 
   return (
@@ -187,7 +191,7 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
 
       {/* Room Info Card */}
       {invoice.roomId && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 shadow-sm">
+        <div className="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-bold">🏠</span>
@@ -201,15 +205,21 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
             </div>
             <div>
               <span className="text-slate-600">Giá phòng:</span>
-              <span className="ml-2 font-medium">{getRoomById(invoice.roomId)?.price?.toLocaleString()} VNĐ</span>
+              <span className="ml-2 font-medium">
+                {getRoomById(invoice.roomId)?.price?.toLocaleString()} VNĐ
+              </span>
             </div>
             <div>
               <span className="text-slate-600">Giá điện:</span>
-              <span className="ml-2 font-medium">{getRoomById(invoice.roomId)?.electricityUnitPrice?.toLocaleString()} VNĐ/kWh</span>
+              <span className="ml-2 font-medium">
+                {getRoomById(invoice.roomId)?.electricityUnitPrice?.toLocaleString()} VNĐ/kWh
+              </span>
             </div>
             <div>
               <span className="text-slate-600">Giá nước:</span>
-              <span className="ml-2 font-medium">{getRoomById(invoice.roomId)?.waterUnitPrice?.toLocaleString()} VNĐ/m³</span>
+              <span className="ml-2 font-medium">
+                {getRoomById(invoice.roomId)?.waterUnitPrice?.toLocaleString()} VNĐ/m³
+              </span>
             </div>
           </div>
         </div>
@@ -220,7 +230,9 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
         <Label className="text-sm font-semibold text-slate-700">Kỳ thanh toán</Label>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="month" className="text-xs text-slate-600">Tháng</Label>
+            <Label htmlFor="month" className="text-xs text-slate-600">
+              Tháng
+            </Label>
             <Input
               id="month"
               type="month"
@@ -230,7 +242,9 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
             />
           </div>
           <div>
-            <Label htmlFor="due-date" className="text-xs text-slate-600">Hạn thanh toán</Label>
+            <Label htmlFor="due-date" className="text-xs text-slate-600">
+              Hạn thanh toán
+            </Label>
             <Input
               id="due-date"
               type="date"
@@ -245,7 +259,7 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
       {/* Services Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-slate-800">Chi tiết dịch vụ</h3>
-        
+
         {/* ELECTRICITY */}
         <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3 mb-4">
@@ -256,12 +270,13 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
               <h4 className="font-semibold text-slate-800">Tiền điện</h4>
               {invoice.roomId && getRoomById(invoice.roomId)?.electricityUnitPrice && (
                 <p className="text-xs text-slate-600">
-                  Giá mặc định: {getRoomById(invoice.roomId)?.electricityUnitPrice?.toLocaleString()} VNĐ/kWh
+                  Giá mặc định:{' '}
+                  {getRoomById(invoice.roomId)?.electricityUnitPrice?.toLocaleString()} VNĐ/kWh
                 </p>
               )}
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs text-slate-600">Chỉ số cũ</Label>
@@ -280,8 +295,10 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
               <Input
                 type="number"
                 placeholder="0"
-                value={invoice.services.electricity.quantity}
-                onChange={(e) => handleServiceChange('electricity', 'quantity', Number(e.target.value))}
+                value={invoice.electricityCurrent}
+                onChange={(e) =>
+                  setInvoice({ ...invoice, electricityCurrent: Number(e.target.value) })
+                }
                 className="mt-1"
               />
             </div>
@@ -298,12 +315,13 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
               <h4 className="font-semibold text-slate-800">Tiền nước</h4>
               {invoice.roomId && getRoomById(invoice.roomId)?.waterUnitPrice && (
                 <p className="text-xs text-slate-600">
-                  Giá mặc định: {getRoomById(invoice.roomId)?.waterUnitPrice?.toLocaleString()} VNĐ/m³
+                  Giá mặc định: {getRoomById(invoice.roomId)?.waterUnitPrice?.toLocaleString()}{' '}
+                  VNĐ/m³
                 </p>
               )}
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs text-slate-600">Chỉ số cũ</Label>
@@ -311,9 +329,7 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
                 type="number"
                 placeholder="0"
                 value={invoice.waterPrevious}
-                onChange={(e) =>
-                  setInvoice({ ...invoice, waterPrevious: Number(e.target.value) })
-                }
+                onChange={(e) => setInvoice({ ...invoice, waterPrevious: Number(e.target.value) })}
                 className="mt-1"
               />
             </div>
@@ -322,8 +338,8 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
               <Input
                 type="number"
                 placeholder="0"
-                value={invoice.services.water.quantity}
-                onChange={(e) => handleServiceChange('water', 'quantity', Number(e.target.value))}
+                value={invoice.waterCurrent}
+                onChange={(e) => setInvoice({ ...invoice, waterCurrent: Number(e.target.value) })}
                 className="mt-1"
               />
             </div>
@@ -359,42 +375,44 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
               </div>
             </div>
 
-            {['wifi', 'garbage', 'parking'].map((key) => {
-              const getDefaultPrice = () => {
-                if (!invoice.roomId) return 0;
-                const room = getRoomById(invoice.roomId);
-                switch (key) {
-                  case 'wifi': return room?.internetFee || 0;
-                  case 'garbage': return room?.serviceFee || 0;
-                  case 'parking': return room?.parkingFee || 0;
-                  default: return 0;
-                }
-              };
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="w-24 text-sm font-medium">Wifi</span>
+                {selectedRoom?.internetFee ? (
+                  <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                    {selectedRoom.internetFee.toLocaleString()} VNĐ
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-400">Không áp dụng</span>
+                )}
+              </div>
+            </div>
 
-              const defaultPrice = getDefaultPrice();
-              
-              return (
-                <div key={key} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="w-16 text-sm font-medium">{labels[key]}</span>
-                    {defaultPrice > 0 && (
-                      <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
-                        {defaultPrice.toLocaleString()} VNĐ
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      placeholder="Số lượng"
-                      value={invoice.services[key].quantity}
-                      onChange={(e) => handleServiceChange(key, 'quantity', Number(e.target.value))}
-                      className="w-20"
-                    />
-                  </div>
-                </div>
-              );
-            })}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="w-24 text-sm font-medium">Gửi xe</span>
+                {selectedRoom?.parkingFee ? (
+                  <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                    {selectedRoom.parkingFee.toLocaleString()} VNĐ
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-400">Không áp dụng</span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="w-24 text-sm font-medium">Phí dịch vụ</span>
+                {selectedRoom?.serviceFee ? (
+                  <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                    {selectedRoom.serviceFee.toLocaleString()} VNĐ
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-400">Không áp dụng</span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -405,7 +423,7 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
           <div className="flex justify-between items-center">
             <span className="text-lg font-semibold text-slate-800">Tổng cộng:</span>
             <span className="text-2xl font-bold text-blue-600">
-              {invoice.amount.toLocaleString()} VNĐ
+              {totalAmount.toLocaleString()} VNĐ
             </span>
           </div>
         </div>
@@ -417,7 +435,8 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
           Ghi chú
         </Label>
         <Textarea
-          {...register('notes')}
+          value={invoice.notes}
+          onChange={(e) => setInvoice({ ...invoice, notes: e.target.value })}
           placeholder="Nhập ghi chú về thanh toán (không bắt buộc)..."
           className="mt-1 h-20 resize-none border-slate-300"
           maxLength={200}
@@ -425,8 +444,8 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
       </div>
 
       {/* Submit Button */}
-      <Button 
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors" 
+      <Button
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
         onClick={handleSubmit}
       >
         Tạo hóa đơn
