@@ -5,10 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { InvoiceForm } from '@/types/payment';
-import type { Room } from '@/types/room';
+import type { GetRoom, Room } from '@/types/room';
 
 type Props = {
-  occupiedRooms: Room[];
+  occupiedRooms: GetRoom[];
   getRoomById: (id: string) => Room | undefined;
   onSubmit: (invoice: InvoiceForm) => void;
 };

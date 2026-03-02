@@ -179,7 +179,7 @@ export default function Payment() {
 
       <div className="overflow-x-auto">
         {paginatedPayments.map((payment) => (
-          <PaymentCard key={payment._id} payment={payment} />
+          <PaymentCard key={payment._id} payment={payment} user={user} />
         ))}
       </div>
 
