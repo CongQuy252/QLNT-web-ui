@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type { Payment } from '@/types/payment';
+import type { GetPaymentByUserId, Payment } from '@/types/payment';
 
 export const useGetPaymentByIdQuery = (paymentId?: string, isEnable = true) => {
   const handleHttpError = useHandleHttpError();
@@ -17,6 +17,21 @@ export const useGetPaymentByIdQuery = (paymentId?: string, isEnable = true) => {
       handleError: handleHttpError,
     },
     enabled: isEnable || !!paymentId,
+  });
+};
+
+export const useGetPaymentByUserId = (userId?: string, isEnable = true) => {
+  const handleHttpError = useHandleHttpError();
+  return useQuery({
+    queryKey: [QueriesKey.payment, userId],
+    queryFn: async () => {
+      const response = await http.get<GetPaymentByUserId[]>(`/payments/tenant/${userId}`);
+      return response.data[0];
+    },
+    meta: {
+      handleError: handleHttpError,
+    },
+    enabled: isEnable || !!userId,
   });
 };
 

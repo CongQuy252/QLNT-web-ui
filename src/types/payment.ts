@@ -39,3 +39,35 @@ export interface TenantOption {
     name: string;
   };
 }
+
+export interface GetPaymentByUserId {
+  _id: string;
+  tenantId: string;
+  roomId: {
+    _id: string;
+    number: string;
+    buildingId: {
+      _id: string;
+      name: string;
+    };
+    floor: number;
+  };
+  month: string;
+  electricityPrevious: number;
+  electricityCurrent: number;
+  electricityAmount: number;
+  waterPrevious: number;
+  waterCurrent: number;
+  waterAmount: number;
+  otherFee: number;
+  rentAmount: number;
+  internetFeeAmount: number;
+  parkingFeeAmount: number;
+  serviceFeeAmount: number;
+  amount: number;
+  dueDate: string;
+  status: PaymentStatus;
+  createdAt: string;
+  updatedAt: string;
+  __v: 0;
+}

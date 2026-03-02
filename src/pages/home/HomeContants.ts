@@ -1,8 +1,8 @@
-import { CreditCard, DoorOpen, Home, Users } from 'lucide-react';
+import { CreditCard, DoorOpen, Users } from 'lucide-react';
 import type { IconType } from 'react-icons/lib';
 import { MdApartment } from 'react-icons/md';
 
-import { Path } from '@/constants/appConstants';
+import { Path, PaymentStatus } from '@/constants/appConstants';
 
 export interface NavigationItem {
   rowId: string;
@@ -51,18 +51,10 @@ export const ownerListFunctions: NavigationItem[] = [
 export const tenantListFunctions: NavigationItem[] = [
   {
     rowId: '2',
-    title: 'Thông Tin Phòng',
-    description: 'Xem thông tin phòng của bạn',
-    icon: Home,
-    path: `/${[Path.rooms, Path.roomId, Path.tenants, Path.userId].join('/')}`,
-    color: 'from-blue-500 to-blue-600',
-  },
-  {
-    rowId: '3',
     title: 'Thanh Toán Tiền Phòng',
     description: 'Xem và quản lý các khoản thanh toán',
     icon: CreditCard,
-    path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}/${Path.roomId}/${Path.payments}`,
+    path: `/${Path.payments}`,
     color: 'from-green-500 to-green-600',
   },
 ];
@@ -78,3 +70,16 @@ export enum ownerIcon {
   owner = '👤',
   tenant = '🚪',
 }
+
+export const getPaymentStatus = (status?: PaymentStatus) => {
+  switch (status) {
+    case PaymentStatus.PAID:
+      return '✓ Đã thanh toán';
+    case PaymentStatus.PENDING:
+      return '⏳ Chờ thanh toán';
+    case PaymentStatus.OVERDUE:
+      return '⚠ Quá hạn';
+    default:
+      return 'Không rõ';
+  }
+};
