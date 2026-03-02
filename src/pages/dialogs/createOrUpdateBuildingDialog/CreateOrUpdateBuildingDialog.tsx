@@ -302,7 +302,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            {/* <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="floors" className="text-sm font-medium text-slate-700" isRequired>
                   Số Tầng
@@ -345,7 +345,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   <p className="text-xs text-red-500">{errors.yearBuilt.message}</p>
                 )}
               </div>
-            </div>
+            </div> */}
 
             {/* Default Room Pricing Section */}
             {!building && (
