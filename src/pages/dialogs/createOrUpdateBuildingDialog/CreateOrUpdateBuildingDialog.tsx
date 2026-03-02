@@ -56,7 +56,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
     watch,
     setValue,
@@ -84,10 +84,6 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
   const selectedCityCode = watch('city');
   const districtsQuery = useDistrictsQuery(selectedCityCode);
   const wards = districtsQuery.data?.wards || [];
-  
-  // Debug: log the data structure
-  console.log('Districts query data:', districtsQuery.data);
-  console.log('Wards:', wards);
 
   const getCityName = useCallback(
     (cityCode: string) => {
@@ -97,32 +93,43 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
     [cities],
   );
 
-  const getCityCode = useCallback(
-    (cityName: string) => {
-      const city = cities?.find((p) => p.name === cityName);
-      return city?.code.toString() || '';
-    },
-    [cities],
-  );
-
-  const getDistrictCode = useCallback((districtName: string) => {
-    return districtName;
-  }, []);
+  useEffect(() => {
+    if (isOpen && !isEditMode && !building) {
+      // Reset form to empty values when opening create dialog
+      reset({
+        name: '',
+        address: '',
+        city: '',
+        district: '',
+        totalFloors: undefined,
+        totalRooms: undefined,
+        yearBuilt: undefined,
+        description: '',
+        defaultRoomPrice: undefined,
+        defaultElectricityUnitPrice: undefined,
+        defaultWaterUnitPrice: undefined,
+        defaultInternetFee: undefined,
+        defaultParkingFee: undefined,
+        defaultServiceFee: undefined,
+        defaultArea: undefined,
+      });
+    }
+  }, [isOpen, isEditMode, building, reset]);
 
   useEffect(() => {
     if (isOpen && isEditMode && building) {
-      const cityCode = getCityCode(building.city);
-      const districtCode = getDistrictCode(building.district);
-
+      // Populate form with building data when editing
+      const cityCode = cities?.find((c) => c.name === building.city)?.code.toString() || '';
+      
       reset({
-        name: building.name,
-        address: building.address,
+        name: building.name || '',
+        address: building.address || '',
         city: cityCode,
-        district: districtCode,
+        district: '', // Will be set by another useEffect after districts load
         totalFloors: building.totalFloors,
         totalRooms: building.totalRooms,
         yearBuilt: building.yearBuilt,
-        description: building.description ?? '',
+        description: building.description || '',
         defaultRoomPrice: building.defaultRoomPrice,
         defaultElectricityUnitPrice: building.defaultElectricityUnitPrice,
         defaultWaterUnitPrice: building.defaultWaterUnitPrice,
@@ -132,7 +139,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         defaultArea: building.defaultArea,
       });
     }
-  }, [isOpen, isEditMode, building, reset, getCityCode, getDistrictCode]);
+  }, [isOpen, isEditMode, building, cities, reset]);
 
   useEffect(() => {
     if (isOpen && isEditMode && building && districtsQuery.data && building.district) {
@@ -147,12 +154,19 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
 
   const onSubmit = useCallback<SubmitHandler<BuildingFormInput>>(
     (data) => {
+      console.log('Form submitted with data:', data);
+      console.log('Form errors:', errors);
+      console.log('Form is valid:', isValid);
+
       const cityName = getCityName(data.city);
+      console.log('City name resolved:', cityName);
 
       const districtName =
         wards?.find((w) => w.code.toString() === data.district)?.name || data.district;
+      console.log('District name resolved:', districtName);
 
       if (!districtName.trim()) {
+        console.error('District name is empty');
         return;
       }
 
@@ -162,12 +176,18 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         district: districtName,
       };
 
-      const parsed = buildingSchema.parse(processedData);
-      handleSave(parsed);
-      setIsOpen(false);
-      reset();
+      console.log('Processed data:', processedData);
+
+      try {
+        const parsed = buildingSchema.parse(processedData);
+        console.log('Schema parsed successfully:', parsed);
+        handleSave(parsed);
+        setIsOpen(false);
+      } catch (validationError) {
+        console.error('Schema validation failed:', validationError);
+      }
     },
-    [getCityName, wards, handleSave, setIsOpen, reset],
+    [getCityName, wards, errors, isValid, handleSave, setIsOpen],
   );
 
   return (
@@ -302,50 +322,52 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
               </div>
             </div>
 
-            {/* <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="floors" className="text-sm font-medium text-slate-700" isRequired>
-                  Số Tầng
-                </Label>
-                <Input
-                  type="number"
-                  {...register('totalFloors')}
-                  placeholder="5"
-                  className="mt-1"
-                />
-                {errors.totalFloors && (
-                  <p className="text-xs text-red-500">{errors.totalFloors.message}</p>
-                )}
+            {!building && (
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="floors" className="text-sm font-medium text-slate-700" isRequired>
+                    Số Tầng
+                  </Label>
+                  <Input
+                    type="number"
+                    {...register('totalFloors')}
+                    placeholder="5"
+                    className="mt-1"
+                  />
+                  {errors.totalFloors && (
+                    <p className="text-xs text-red-500">{errors.totalFloors.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="rooms" className="text-sm font-medium text-slate-700" isRequired>
+                    Số Phòng
+                  </Label>
+                  <Input
+                    type="number"
+                    {...register('totalRooms')}
+                    placeholder="20"
+                    className="mt-1"
+                  />
+                  {errors.totalRooms && (
+                    <p className="text-xs text-red-500">{errors.totalRooms.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="year" className="text-sm font-medium text-slate-700">
+                    Năm Xây
+                  </Label>
+                  <Input
+                    type="number"
+                    {...register('yearBuilt')}
+                    placeholder="2025"
+                    className="mt-1"
+                  />
+                  {errors.yearBuilt && (
+                    <p className="text-xs text-red-500">{errors.yearBuilt.message}</p>
+                  )}
+                </div>
               </div>
-              <div>
-                <Label htmlFor="rooms" className="text-sm font-medium text-slate-700" isRequired>
-                  Số Phòng
-                </Label>
-                <Input
-                  type="number"
-                  {...register('totalRooms')}
-                  placeholder="20"
-                  className="mt-1"
-                />
-                {errors.totalRooms && (
-                  <p className="text-xs text-red-500">{errors.totalRooms.message}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="year" className="text-sm font-medium text-slate-700">
-                  Năm Xây
-                </Label>
-                <Input
-                  type="number"
-                  {...register('yearBuilt')}
-                  placeholder="2025"
-                  className="mt-1"
-                />
-                {errors.yearBuilt && (
-                  <p className="text-xs text-red-500">{errors.yearBuilt.message}</p>
-                )}
-              </div>
-            </div> */}
+            )}
 
             {/* Default Room Pricing Section */}
             {!building && (
