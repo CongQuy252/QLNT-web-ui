@@ -3,11 +3,11 @@ import { useState } from 'react';
 
 import { UserRole } from '@/constants/appConstants';
 import {
-  getRoomById,
   getStatusBadge,
   getStatusLabel,
   getTenantById,
 } from '@/pages/payment/paymentConstants';
+import { useGetRoomByIdQuery } from '@/api/room';
 import type { Payment } from '@/types/payment';
 import { formatCurrency } from '@/utils/utils';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +22,14 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
   const user = { role: 1 };
 
   const tenant = getTenantById(payment.tenantId);
-  const room = getRoomById(payment.roomId);
+  
+  // Normalize roomId to handle both string and object cases
+  const normalizedRoomId = typeof payment.roomId === 'string' 
+    ? payment.roomId 
+    : (payment.roomId as any)?._id || payment.roomId;
+    
+  const { data: roomData } = useGetRoomByIdQuery(normalizedRoomId);
+  const room = roomData?.room;
 
   const navigate = useNavigate();
   const handleGoDetail = () => {
@@ -42,7 +49,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
           )}
 
           <p className="font-semibold text-slate-900">
-            {room ? `${room.number} (Tòa ${room.buildingId})` : '-'}
+            {room ? `${room.number} (Tòa ${(room.buildingId as any)?.name || room.buildingId})` : '-'}
           </p>
 
           <p className="text-sm text-slate-500">

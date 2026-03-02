@@ -6,8 +6,6 @@ export type PaymentStatus = 'paid' | 'pending' | 'overdue';
 
 export const getAllRooms = () => rooms;
 
-export const getRoomById = (id: string) => rooms.find((r) => r._id === id);
-
 export const getAllTenants = () => tenants;
 
 export const getTenantById = (id: string) => tenants.find((t) => t.userId._id === id);
