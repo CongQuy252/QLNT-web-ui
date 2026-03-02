@@ -6,7 +6,7 @@ import HomeSidebar from '@/pages/HomeSidebar/HomeSidebar';
 import Buildings from '@/pages/buildings/Buildings';
 import Home from '@/pages/home/Home';
 import Payment from '@/pages/payment/Payment';
-import PaymentViewTenant from '@/pages/payment/PaymentViewTenant';
+import PaymentDetail from '@/pages/paymentDetail/PaymentDetail';
 import Rooms from '@/pages/rooms/Rooms';
 import Tenant from '@/pages/tenant/Tenant';
 
@@ -35,18 +35,6 @@ export const routes: RouteObject[] = [
             path: `/${Path.tenants}`,
             element: <Tenant />,
           },
-          // {
-          //   path: `/${[Path.rooms, Path.roomId, Path.tenants, Path.userId].join('/')}`,
-          //   element: <RoomDetails mode={Mode.tenant} />,
-          // },
-          // {
-          //   path: `/${[Path.buildings, Path.buildingId, Path.rooms, Path.roomId].join('/')}`,
-          //   element: <RoomDetails mode={Mode.owner} />,
-          // },
-          // {
-          //   path: `/${[Path.rooms, Path.roomId].join('/')}`,
-          //   element: <RoomDetails mode={Mode.owner} />,
-          // },
           {
             path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}`,
             element: <Rooms />,
@@ -54,6 +42,10 @@ export const routes: RouteObject[] = [
           {
             path: `/${Path.payments}`,
             element: <Payment />,
+          },
+          {
+            path: `/${Path.payments}/${Path.paymentId}`,
+            element: <PaymentDetail />,
           },
         ],
       },
@@ -63,10 +55,7 @@ export const routes: RouteObject[] = [
     path: '/login',
     element: <LoginPage />,
   },
-  {
-    path: `/${Path.payments}/${Path.paymentId}`,
-    element: <PaymentViewTenant />,
-  },
+
   {
     path: '*',
     element: <Navigate to="/" replace />,

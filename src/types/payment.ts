@@ -1,7 +1,7 @@
 export enum PaymentStatus {
-  PENDING = "pending",
-  PAID = "paid",
-  OVERDUE = "overdue",
+  PENDING = 'pending',
+  PAID = 'paid',
+  OVERDUE = 'overdue',
 }
 
 export interface Payment {

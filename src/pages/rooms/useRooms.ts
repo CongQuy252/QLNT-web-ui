@@ -1,8 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useGetBuildingById } from '@/api/building';
-import { useGetRoomsQueries, useUpdateRoomMutation, useAssignTenantMutation, useDeleteRoomMutation, useRemoveTenantMutation } from '@/api/room';
+import {
+  useAssignTenantMutation,
+  useDeleteRoomMutation,
+  useGetRoomsQueries,
+  useRemoveTenantMutation,
+  useUpdateRoomMutation,
+} from '@/api/room';
 import { useNonTenantUsersQuery } from '@/api/user';
 import { QueriesKey } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
@@ -31,7 +38,12 @@ export const useRooms = () => {
     };
   }, [searchTerm]);
 
-  const { data, isLoading, error } = useGetRoomsQueries(currentPage, pageSize, debouncedSearchTerm, filterStatus);
+  const { data, isLoading, error } = useGetRoomsQueries(
+    currentPage,
+    pageSize,
+    debouncedSearchTerm,
+    filterStatus,
+  );
   const rooms = data?.rooms || [];
   const pagination = data?.pagination;
   const updateRoomMutation = useUpdateRoomMutation();
@@ -57,7 +69,7 @@ export const useRooms = () => {
     // Normalize buildingId to always be string
     const normalizedRoom = {
       ...room,
-      buildingId: (room.buildingId as any)?._id || room.buildingId
+      buildingId: (room.buildingId as any)?._id || room.buildingId,
     };
     setEditRoom(normalizedRoom);
     setIsEditDialogOpen(true);
@@ -124,7 +136,7 @@ export const useRooms = () => {
         roomId: roomSelected._id,
         buildingId: roomSelected.buildingId || '',
       });
-      
+
       success(`Đã xóa phòng ${roomSelected.number} thành công!`);
       setConfirmOpen(false);
       setRoomSelected(undefined);

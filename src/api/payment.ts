@@ -1,8 +1,24 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
+import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type { Payment } from '@/types/payment';
+
+export const useGetPaymentByIdQuery = (paymentId?: string, isEnable = true) => {
+  const handleHttpError = useHandleHttpError();
+  return useQuery({
+    queryKey: [QueriesKey.payment, paymentId],
+    queryFn: async () => {
+      const response = await http.get<Payment>(`/payments/${paymentId}`);
+      return response.data;
+    },
+    meta: {
+      handleError: handleHttpError,
+    },
+    enabled: isEnable || !!paymentId,
+  });
+};
 
 export interface PaymentListResponse {
   payments: Payment[];
@@ -16,7 +32,13 @@ export interface PaymentListResponse {
   };
 }
 
-export const useGetPaymentsQuery = (page = 1, limit = 10, search = '', status = '', isEnabled = true) => {
+export const useGetPaymentsQuery = (
+  page = 1,
+  limit = 10,
+  search = '',
+  status = '',
+  isEnabled = true,
+) => {
   const handleHttpError = useHandleHttpError();
   return useQuery({
     queryKey: ['payments', page, limit, search, status],
@@ -25,10 +47,10 @@ export const useGetPaymentsQuery = (page = 1, limit = 10, search = '', status = 
         page: page.toString(),
         limit: limit.toString(),
       });
-      
+
       if (search) params.append('search', search);
       if (status && status !== 'all') params.append('status', status);
-      
+
       const response = await http.get<PaymentListResponse>(`/payments?${params.toString()}`);
       return response.data;
     },
@@ -41,7 +63,9 @@ export const useCreatePaymentMutation = () => {
   const handleHttpError = useHandleHttpError();
 
   return useMutation({
-    mutationFn: async (paymentData: Omit<Payment, '_id' | 'status' | 'paidDate' | 'createdAt' | 'updatedAt'>) => {
+    mutationFn: async (
+      paymentData: Omit<Payment, '_id' | 'status' | 'paidDate' | 'createdAt' | 'updatedAt'>,
+    ) => {
       const response = await http.post<Payment>('/payments', paymentData);
       return response.data;
     },

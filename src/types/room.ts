@@ -25,8 +25,8 @@ export interface Room {
     name: string;
   };
   description?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface RoomListResponse {
@@ -37,7 +37,10 @@ export interface RoomListResponse {
 export interface GetRoom {
   _id: string;
   number: string;
-  buildingId: string;
+  buildingId: {
+    _id: string;
+    name: string;
+  };
   floor: number;
   area: number;
   price: number;
@@ -79,3 +82,8 @@ export interface PutRoomResponse {
 }
 
 export type PutRoomRequest = Omit<PutRoom, 'id'>;
+
+export interface GetRoomByIdResponse {
+  message: string;
+  room: GetRoom;
+}
