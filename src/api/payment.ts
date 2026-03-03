@@ -21,6 +21,21 @@ export const useGetPaymentByIdQuery = (paymentId?: string, isEnable = true) => {
   });
 };
 
+export const useGetPaymentByUserId = (userId?: string, isEnable = true) => {
+  const handleHttpError = useHandleHttpError();
+  return useQuery({
+    queryKey: [QueriesKey.payment, userId],
+    queryFn: async () => {
+      const response = await http.get<GetPaymentByUserId[]>(`/payments/tenant/${userId}`);
+      return response.data[0];
+    },
+    meta: {
+      handleError: handleHttpError,
+    },
+    enabled: isEnable || !!userId,
+  });
+};
+
 export interface PaymentListResponse {
   payments: Payment[];
   pagination: {

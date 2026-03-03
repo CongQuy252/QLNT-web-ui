@@ -22,7 +22,7 @@ export default function PaymentDialogWrapper({ onSubmit }: Props) {
 
   return (
     <CreateInvoiceDialog
-      occupiedRooms={occupiedRooms as Room[]}
+      occupiedRooms={occupiedRooms}
       getRoomById={getRoomById}
       onSubmit={onSubmit}
     />

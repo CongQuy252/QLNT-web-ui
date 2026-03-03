@@ -1,6 +1,8 @@
 import { ChevronDown, ChevronUp, Trash } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
+import { useGetRoomByIdQuery } from '@/api/room';
 import { UserRole } from '@/constants/appConstants';
 import {
   getStatusBadge,
@@ -57,12 +59,12 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
         className="w-full text-left p-4 flex justify-between items-center hover:bg-slate-50 cursor-pointer"
       >
         <div onClick={handleGoDetail} className="cursor-pointer flex-1">
-          {user.role === UserRole.admin && (
-            <p className="text-sm text-slate-500">{tenant?.userId.name}</p>
-          )}
+          {user.role === UserRole.admin && <p className="text-sm text-slate-500">{user.name}</p>}
 
           <p className="font-semibold text-slate-900">
-            {room ? `${room.number} (Tòa ${(room.buildingId as any)?.name || room.buildingId})` : '-'}
+            {room
+              ? `${room.number} (Tòa ${(room.buildingId as any)?.name || room.buildingId})`
+              : '-'}
           </p>
 
           <p className="text-sm text-slate-500">
@@ -101,7 +103,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
         <div className="border-t border-slate-100 px-4 py-4 space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-slate-500">Hạn thanh toán</span>
-            <span className="font-medium">{payment.dueDate}</span>
+            <span className="font-medium">{formatDate(payment.dueDate)}</span>
           </div>
 
           <div className="flex justify-between">
@@ -113,7 +115,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
             <span className="text-slate-500">Ghi chú</span>
             <span className="text-right">
               {payment.paidDate && payment.status === 'paid'
-                ? `Thanh toán ngày ${payment.paidDate}`
+                ? `Thanh toán ngày ${formatDate(payment.paidDate)}`
                 : payment.notes || '-'}
             </span>
           </div>

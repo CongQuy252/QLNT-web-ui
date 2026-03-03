@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card';
 import { LocalStorageKey, Path, PaymentStatus, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import PaymentEditDialog from '@/pages/paymentDetail/PaymentEditDialog';
-import { formatCurrency } from '@/utils/utils';
+import { formatCurrency, formatDate } from '@/utils/utils';
 
 export default function PaymentDetail() {
   const { paymentId } = useParams();
@@ -190,13 +190,19 @@ export default function PaymentDetail() {
           <div>
             <p className="font-semibold text-slate-900">{getStatusText(payment?.status)}</p>
             {payment?.status === 'paid' && payment.paidDate && (
-              <p className="text-sm text-slate-600">Thanh toán vào {payment.paidDate}</p>
+              <p className="text-sm text-slate-600">
+                Thanh toán vào {formatDate(payment.paidDate)}
+              </p>
             )}
             {payment?.status === 'overdue' && (
-              <p className="text-sm text-slate-600">Hạn thanh toán: {payment.dueDate}</p>
+              <p className="text-sm text-slate-600">
+                Hạn thanh toán: {formatDate(payment.dueDate)}
+              </p>
             )}
             {payment?.status === 'pending' && (
-              <p className="text-sm text-slate-600">Hạn thanh toán: {payment.dueDate}</p>
+              <p className="text-sm text-slate-600">
+                Hạn thanh toán: {formatDate(payment.dueDate)}
+              </p>
             )}
           </div>
         </div>

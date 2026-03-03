@@ -5,3 +5,10 @@ export const formatCurrency = (amount: number) => {
     minimumFractionDigits: 0,
   }).format(amount);
 };
+
+export const formatDate = (isoString: string): string => {
+  if (!isoString) return '';
+
+  const date = new Date(isoString);
+  return date.toLocaleDateString('vi-VN');
+};

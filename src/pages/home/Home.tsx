@@ -4,6 +4,7 @@ import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useGetBuildingQueries } from '@/api/building';
+import { useGetPaymentByUserId } from '@/api/payment';
 import { useGetRoomsQueries } from '@/api/room';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
 import {
+  getPaymentStatus,
   ownerIcon,
   ownerListFunctions,
   tenantListFunctions,
@@ -35,6 +37,7 @@ const Home = () => {
   const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
   const getBuildings = useGetBuildingQueries();
   const getRooms = useGetRoomsQueries();
+  const getPayment = useGetPaymentByUserId(userId, !!userId);
 
   const handleNavigate = (path: string) => navigator(path);
 
@@ -45,12 +48,12 @@ const Home = () => {
   }, [navigator]);
 
   useEffect(() => {
-    if (isLoading && getBuildings.isLoading && getRooms.isLoading) {
+    if (isLoading && getBuildings.isLoading && getRooms.isLoading && getPayment.isLoading) {
       show();
     } else {
       hide();
     }
-  }, [isLoading, show, hide, getBuildings.isLoading, getRooms.isLoading]);
+  }, [isLoading, show, hide, getBuildings.isLoading, getRooms.isLoading, getPayment.isLoading]);
 
   useEffect(() => {
     if (!isLoading && (isError || !user)) {
@@ -70,11 +73,13 @@ const Home = () => {
     { label: 'Email', value: user.email },
     isOwner
       ? { label: 'Số tòa nhà', value: getBuildings.data?.pagination.total.toString() ?? '0' }
-      : { label: 'Toà nhà', value: '1' },
+      : { label: 'Toà nhà', value: getPayment.data?.roomId.buildingId.name ?? '' },
     isOwner
       ? { label: 'Tổng số phòng', value: getRooms.data?.pagination.total.toString() ?? '0' }
-      : { label: 'Số phòng', value: 'B212' },
-    !isOwner ? { label: 'Tình trạng tiền', value: 'Đã thanh toán' } : { label: '', value: '' },
+      : { label: 'Phòng', value: getPayment.data?.roomId.number ?? '0' },
+    !isOwner
+      ? { label: 'Tình trạng tiền', value: getPaymentStatus(getPayment.data?.status) }
+      : { label: '', value: '' },
   ];
 
   const renderInfomationCards = () => {
@@ -166,7 +171,13 @@ const Home = () => {
                 <Card
                   key={item.path}
                   className={`w-full group overflow-hidden cursor-pointer ${isLastOdd ? 'md:col-span-2' : ''}`}
-                  onClick={() => handleNavigate(item.path)}
+                  onClick={() => {
+                    if (!isOwner) {
+                      navigator(`/${Path.payments}/${getPayment.data?._id}`);
+                    } else {
+                      handleNavigate(item.path);
+                    }
+                  }}
                 >
                   <div className="p-6 space-y-4 h-full flex flex-col">
                     <div className="flex items-start justify-between">
