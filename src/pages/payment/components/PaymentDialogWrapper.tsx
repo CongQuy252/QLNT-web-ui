@@ -11,7 +11,10 @@ type Props = {
 export default function PaymentDialogWrapper({ onSubmit }: Props) {
   const { data: occupiedRoomsData } = useGetOccupiedRoomsQueries(1, 100, '', undefined, true);
 
-  const occupiedRooms = occupiedRoomsData?.rooms || [];
+  const occupiedRooms = (occupiedRoomsData?.rooms || []).map((room) => ({
+    ...room,
+    buildingId: room.buildingId._id,
+  })) as Room[];
 
   const getRoomById = (roomId: string): Room | undefined => {
     return occupiedRooms.find((room) => room._id === roomId) as Room | undefined;

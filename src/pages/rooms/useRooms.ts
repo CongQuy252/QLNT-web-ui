@@ -61,7 +61,10 @@ export const useRooms = () => {
   const [assignConfirmOpen, setAssignConfirmOpen] = useState(false);
   const { data: usersData } = useNonTenantUsersQuery({ phone: phoneSearch || undefined }, true);
   const tenants = usersData?.data || [];
-  const filteredRooms = rooms;
+  const filteredRooms = rooms.map((room) => ({
+    ...room,
+    buildingId: room.buildingId._id,
+  })) as Room[];
 
   const filteredUsers = tenants;
 

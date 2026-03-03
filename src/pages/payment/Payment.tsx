@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
-import { useCreatePaymentMutation, useGetPaymentsQuery } from '@/api/payment';
+import { useCreatePaymentMutation, useDeletePaymentMutation, useGetPaymentsQuery } from '@/api/payment';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
+import { useToast } from '@/hooks/useToast';
 import { useMobile } from '@/hooks/useMobile';
 import PaymentCard from '@/pages/payment/components/PaymentCard';
 import PaymentDialogWrapper from '@/pages/payment/components/PaymentDialogWrapper';
@@ -27,6 +28,7 @@ export default function Payment() {
   const navigator = useNavigate();
   const isMobile = useMobile();
   const { show, hide } = useLoading();
+  const { success } = useToast();
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
   const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
@@ -45,6 +47,8 @@ export default function Payment() {
   );
 
   const createPaymentMutation = useCreatePaymentMutation();
+
+  const deletePaymentMutation = useDeletePaymentMutation();
 
   const payments = paymentsData?.payments || [];
   const pagination = paymentsData?.pagination;
@@ -179,7 +183,11 @@ export default function Payment() {
 
       <div className="overflow-x-auto">
         {paginatedPayments.map((payment) => (
-          <PaymentCard key={payment._id} payment={payment} />
+          <PaymentCard
+            key={payment._id}
+            payment={payment}
+            onDelete={(id) => deletePaymentMutation.mutate(id, { onSuccess: () => success('Xóa thanh toán thành công') })}
+          />
         ))}
       </div>
 

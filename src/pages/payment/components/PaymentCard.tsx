@@ -1,27 +1,38 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trash } from 'lucide-react';
 import { useState } from 'react';
 
 import { UserRole } from '@/constants/appConstants';
 import {
   getStatusBadge,
   getStatusLabel,
-  getTenantById,
 } from '@/pages/payment/paymentConstants';
 import { useGetRoomByIdQuery } from '@/api/room';
+import { useGetTenantByIdQuery } from '@/api/tenant';
 import type { Payment } from '@/types/payment';
 import { formatCurrency } from '@/utils/utils';
 import { useNavigate } from 'react-router-dom';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface PaymentCardProps {
   payment: Payment;
+  onDelete?: (id: string) => void;
 }
 
-export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
+export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const user = { role: 1 };
 
-  const tenant = getTenantById(payment.tenantId);
+  const { data: tenant } = useGetTenantByIdQuery(payment.tenantId, true);
   
   // Normalize roomId to handle both string and object cases
   const normalizedRoomId = typeof payment.roomId === 'string' 
@@ -32,16 +43,18 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
   const room = roomData?.room;
 
   const navigate = useNavigate();
-  const handleGoDetail = () => {
+  const handleGoDetail = (e: React.MouseEvent) => {
+    e.stopPropagation();
     navigate(`/payments/${payment._id}`); // nhớ check đúng field id
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm gap-3 mb-4">
+    <>
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm gap-3 mb-4">
       {/* HEADER */}
-      <button
+      <div
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left p-4 flex justify-between items-center hover:bg-slate-50"
+        className="w-full text-left p-4 flex justify-between items-center hover:bg-slate-50 cursor-pointer"
       >
         <div onClick={handleGoDetail} className="cursor-pointer flex-1">
           {user.role === UserRole.admin && (
@@ -66,9 +79,22 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
             {getStatusLabel(payment.status)}
           </span>
 
+          {user.role === UserRole.admin && onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent expanding
+                setIsConfirmOpen(true);
+              }}
+              className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+              title="Xóa thanh toán"
+            >
+              <Trash size={16} />
+            </button>
+          )}
+
           {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         </div>
-      </button>
+      </div>
 
       {/* BODY */}
       {expanded && (
@@ -94,6 +120,32 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
         </div>
       )}
     </div>
+
+    <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Xác nhận xóa</DialogTitle>
+          <DialogDescription>
+            Bạn có chắc muốn xóa thanh toán này? Hành động này không thể hoàn tác.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>
+            Hủy
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              onDelete?.(payment._id);
+              setIsConfirmOpen(false);
+            }}
+          >
+            Xóa
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 

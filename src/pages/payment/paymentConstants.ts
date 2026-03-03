@@ -1,32 +1,8 @@
-import { payments, rooms, tenants } from '@/pages/payment/mockData/paymentMockData';
+
 
 export const maxItemPerPage = 10;
 
 export type PaymentStatus = 'paid' | 'pending' | 'overdue';
-
-export const getAllRooms = () => rooms;
-
-export const getAllTenants = () => tenants;
-
-export const getTenantById = (id: string) => tenants.find((t) => t.userId._id === id);
-
-export const getTenantByRoom = (roomId: string) =>
-  tenants.find((t) => t.roomId._id === roomId && t.status === 'active');
-
-export const getPaymentsByOwner = () => payments;
-
-export const getPaymentsByTenant = (tenantId: string) =>
-  payments.filter((p) => p.tenantId === tenantId);
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createPayment = (payment: any) => {
-  payments.unshift({
-    id: crypto.randomUUID(),
-    status: 'pending',
-    ...payment,
-  });
-};
-
 export const getStatusBadge = (status: string) => {
   switch (status) {
     case 'paid':
