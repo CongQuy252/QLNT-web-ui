@@ -8,11 +8,11 @@ import {
   getStatusBadge,
   getStatusLabel,
 } from '@/pages/payment/paymentConstants';
-import { useGetRoomByIdQuery } from '@/api/room';
+
 import { useGetTenantByIdQuery } from '@/api/tenant';
 import type { Payment } from '@/types/payment';
-import { formatCurrency } from '@/utils/utils';
-import { useNavigate } from 'react-router-dom';
+import { formatCurrency, formatDate } from '@/utils/utils';
+
 import {
   Dialog,
   DialogContent,
@@ -59,7 +59,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
         className="w-full text-left p-4 flex justify-between items-center hover:bg-slate-50 cursor-pointer"
       >
         <div onClick={handleGoDetail} className="cursor-pointer flex-1">
-          {user.role === UserRole.admin && <p className="text-sm text-slate-500">{user.name}</p>}
+          {user.role === UserRole.admin && <p className="text-sm text-slate-500">{tenant?.userId.name}</p>}
 
           <p className="font-semibold text-slate-900">
             {room

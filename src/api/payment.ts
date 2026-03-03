@@ -26,7 +26,7 @@ export const useGetPaymentByUserId = (userId?: string, isEnable = true) => {
   return useQuery({
     queryKey: [QueriesKey.payment, userId],
     queryFn: async () => {
-      const response = await http.get<GetPaymentByUserId[]>(`/payments/tenant/${userId}`);
+      const response = await http.get<Payment[]>(`/payments/tenant/${userId}`);
       return response.data[0];
     },
     meta: {
