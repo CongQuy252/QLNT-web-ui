@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useGetBuildingQueries } from '@/api/building';
 import { useGetPaymentByUserId } from '@/api/payment';
-import { useGetRoomsQueries } from '@/api/room';
+import { useGetRoomByUserIDQuery, useGetRoomsQueries } from '@/api/room';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -37,6 +37,7 @@ const Home = () => {
   const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
   const getBuildings = useGetBuildingQueries();
   const getRooms = useGetRoomsQueries();
+  const roomTenant = useGetRoomByUserIDQuery(userId, !!userId);
   const getPayment = useGetPaymentByUserId(userId, !!userId);
 
   const handleNavigate = (path: string) => navigator(path);
@@ -48,12 +49,26 @@ const Home = () => {
   }, [navigator]);
 
   useEffect(() => {
-    if (isLoading && getBuildings.isLoading && getRooms.isLoading && getPayment.isLoading) {
+    if (
+      isLoading &&
+      getBuildings.isLoading &&
+      getRooms.isLoading &&
+      getPayment.isLoading &&
+      roomTenant.isLoading
+    ) {
       show();
     } else {
       hide();
     }
-  }, [isLoading, show, hide, getBuildings.isLoading, getRooms.isLoading, getPayment.isLoading]);
+  }, [
+    isLoading,
+    show,
+    hide,
+    getBuildings.isLoading,
+    getRooms.isLoading,
+    getPayment.isLoading,
+    roomTenant.isLoading,
+  ]);
 
   useEffect(() => {
     if (!isLoading && (isError || !user)) {
@@ -73,10 +88,10 @@ const Home = () => {
     { label: 'Email', value: user.email },
     isOwner
       ? { label: 'Số tòa nhà', value: getBuildings.data?.pagination.total.toString() ?? '0' }
-      : { label: 'Toà nhà', value: getPayment.data?.roomId.buildingId.name ?? '' },
+      : { label: 'Toà nhà', value: roomTenant.data?.room.buildingId.name ?? '0' },
     isOwner
       ? { label: 'Tổng số phòng', value: getRooms.data?.pagination.total.toString() ?? '0' }
-      : { label: 'Phòng', value: getPayment.data?.roomId.number ?? '0' },
+      : { label: 'Phòng', value: roomTenant.data?.room.number ?? '0' },
     !isOwner
       ? { label: 'Tình trạng tiền', value: getPaymentStatus(getPayment.data?.status) }
       : { label: '', value: '' },

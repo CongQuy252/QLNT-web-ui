@@ -150,3 +150,16 @@ export const useRemoveTenantMutation = () => {
     onError: handleHttpError,
   });
 };
+
+export const useGetRoomByUserIDQuery = (userId?: string, isEnabled = true) => {
+  const handleHttpError = useHandleHttpError();
+  return useQuery({
+    queryKey: [QueriesKey.room, userId],
+    queryFn: async () => {
+      const response = await http.get<GetRoomByIdResponse>(`/rooms/tenant/${userId}`);
+      return response.data;
+    },
+    enabled: isEnabled && !!userId,
+    meta: { handleError: handleHttpError },
+  });
+};

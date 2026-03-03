@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { Navigate, type RouteObject } from 'react-router-dom';
 
-import { Path } from '@/constants/appConstants';
+import { Path, UserRole } from '@/constants/appConstants';
 import HomeSidebar from '@/pages/HomeSidebar/HomeSidebar';
 import Buildings from '@/pages/buildings/Buildings';
 import Home from '@/pages/home/Home';
@@ -17,40 +17,55 @@ const LoginPage = lazy(() => import('@/pages/login/Login'));
 export const routes: RouteObject[] = [
   {
     path: '/',
-    element: <PrivateRoute />,
+    element: <PrivateRoute />, // ✅ chỉ check login
     children: [
       { index: true, element: <Home /> },
+
       {
         element: <HomeSidebar />,
         children: [
+          // ================= ADMIN ONLY =================
           {
-            path: `/${Path.buildings}`,
-            element: <Buildings />,
+            element: <PrivateRoute allowedRoles={[UserRole.admin]} />,
+            children: [
+              {
+                path: `/${Path.buildings}`,
+                element: <Buildings />,
+              },
+              {
+                path: `/${Path.rooms}`,
+                element: <Rooms />,
+              },
+              {
+                path: `/${Path.tenants}`,
+                element: <Tenant />,
+              },
+              {
+                path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}`,
+                element: <Rooms />,
+              },
+            ],
           },
+
+          // ================= ADMIN + TENANT =================
           {
-            path: `/${Path.rooms}`,
-            element: <Rooms />,
-          },
-          {
-            path: `/${Path.tenants}`,
-            element: <Tenant />,
-          },
-          {
-            path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}`,
-            element: <Rooms />,
-          },
-          {
-            path: `/${Path.payments}`,
-            element: <Payment />,
-          },
-          {
-            path: `/${Path.payments}/${Path.paymentId}`,
-            element: <PaymentDetail />,
+            element: <PrivateRoute allowedRoles={[UserRole.admin, UserRole.tenant]} />,
+            children: [
+              {
+                path: `/${Path.payments}`,
+                element: <Payment />,
+              },
+              {
+                path: `/${Path.payments}/${Path.paymentId}`,
+                element: <PaymentDetail />,
+              },
+            ],
           },
         ],
       },
     ],
   },
+
   {
     path: '/login',
     element: <LoginPage />,
