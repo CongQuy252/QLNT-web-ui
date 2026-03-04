@@ -49,3 +49,17 @@ export const useGetTenantQueries = (params?: GetAllTenantsParams, enable?: boole
     meta: { handleError: handleHttpError },
   });
 };
+
+export const useGetTenantByIdQuery = (tenantId: string, enable?: boolean) => {
+  const handleHttpError = useHandleHttpError();
+
+  return useQuery({
+    queryKey: [QueriesKey.users, 'byUserId', tenantId],
+    queryFn: async () => {
+      const response = await http.get<GetTenantListResponse>(`/tenants?userId=${tenantId}&limit=1`);
+      return response.data.data[0];
+    },
+    enabled: enable && !!tenantId,
+    meta: { handleError: handleHttpError },
+  });
+};

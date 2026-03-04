@@ -1,6 +1,6 @@
 import { useGetOccupiedRoomsQueries } from '@/api/room';
 import type { InvoiceForm } from '@/types/payment';
-import type { Room } from '@/types/room';
+import type { GetRoom } from '@/types/room';
 
 import CreateInvoiceDialog from './CreatePaymentDialog';
 
@@ -13,8 +13,8 @@ export default function PaymentDialogWrapper({ onSubmit }: Props) {
 
   const occupiedRooms = occupiedRoomsData?.rooms || [];
 
-  const getRoomById = (roomId: string): Room | undefined => {
-    return occupiedRooms.find((room) => room._id === roomId) as Room | undefined;
+  const getRoomById = (roomId: string): GetRoom | undefined => {
+    return occupiedRooms.find((room) => room._id === roomId);
   };
 
   return (

@@ -3,7 +3,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type { GetPaymentByUserId, Payment } from '@/types/payment';
+import { queryClient } from '@/lib/reactQuery';
+import type { Payment } from '@/types/payment';
 
 export const useGetPaymentByIdQuery = (paymentId?: string, isEnable = true) => {
   const handleHttpError = useHandleHttpError();
@@ -25,7 +26,7 @@ export const useGetPaymentByUserId = (userId?: string, isEnable = true) => {
   return useQuery({
     queryKey: [QueriesKey.payment, userId],
     queryFn: async () => {
-      const response = await http.get<GetPaymentByUserId[]>(`/payments/tenant/${userId}`);
+      const response = await http.get<Payment[]>(`/payments/tenant/${userId}`);
       return response.data[0];
     },
     meta: {
@@ -107,6 +108,10 @@ export const useDeletePaymentMutation = () => {
     mutationFn: async (id: string) => {
       await http.delete(`/payments/${id}`);
       return id;
+    },
+    onSuccess: () => {
+      // Invalidate payments query
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
     onError: handleHttpError,
   });

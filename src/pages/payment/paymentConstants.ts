@@ -1,7 +1,8 @@
+
+
 export const maxItemPerPage = 10;
 
 export type PaymentStatus = 'paid' | 'pending' | 'overdue';
-
 export const getStatusBadge = (status: string) => {
   switch (status) {
     case 'paid':

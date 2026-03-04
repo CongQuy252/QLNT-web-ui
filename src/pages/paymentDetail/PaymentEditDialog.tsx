@@ -44,10 +44,12 @@ export default function PaymentEditDialog({ open, onClose, payment, onSubmit }: 
         <div className="overflow-y-auto">
           {/* Tiền phòng */}
           <div>
-            <label className="text-sm font-medium">Tiền phòng</label>
+            <label htmlFor="roomFee" className="text-sm font-medium">Tiền phòng</label>
             <input
+              id="roomFee"
               type="number"
               className="w-full border p-2 rounded"
+              placeholder="Nhập tiền phòng"
               value={form.roomFee || 0}
               onChange={(e) => handleChange('roomFee', Number(e.target.value))}
             />
@@ -55,30 +57,36 @@ export default function PaymentEditDialog({ open, onClose, payment, onSubmit }: 
 
           {/* Điện */}
           <div>
-            <label className="text-sm font-medium">Chỉ số điện cũ</label>
+            <label htmlFor="electricityPrevious" className="text-sm font-medium">Chỉ số điện cũ</label>
             <input
+              id="electricityPrevious"
               type="number"
               className="w-full border p-2 rounded"
+              placeholder="Nhập chỉ số điện cũ"
               value={form.electricityPrevious || 0}
               onChange={(e) => handleChange('electricityPrevious', Number(e.target.value))}
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Chỉ số điện mới</label>
+            <label htmlFor="electricityCurrent" className="text-sm font-medium">Chỉ số điện mới</label>
             <input
+              id="electricityCurrent"
               type="number"
               className="w-full border p-2 rounded"
+              placeholder="Nhập chỉ số điện mới"
               value={form.electricityCurrent || 0}
               onChange={(e) => handleChange('electricityCurrent', Number(e.target.value))}
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Đơn giá điện</label>
+            <label htmlFor="electricityUnitPrice" className="text-sm font-medium">Đơn giá điện</label>
             <input
+              id="electricityUnitPrice"
               type="number"
               className="w-full border p-2 rounded"
+              placeholder="Nhập đơn giá điện"
               value={form.electricityUnitPrice || 0}
               onChange={(e) => handleChange('electricityUnitPrice', Number(e.target.value))}
             />
@@ -86,69 +94,83 @@ export default function PaymentEditDialog({ open, onClose, payment, onSubmit }: 
 
           {/* Nước */}
           <div>
-            <label className="text-sm font-medium">Chỉ số nước cũ</label>
+            <label htmlFor="waterPrevious" className="text-sm font-medium">Chỉ số nước cũ</label>
             <input
+              id="waterPrevious"
               type="number"
               className="w-full border p-2 rounded"
+              placeholder="Nhập chỉ số nước cũ"
               value={form.waterPrevious || 0}
               onChange={(e) => handleChange('waterPrevious', Number(e.target.value))}
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Chỉ số nước mới</label>
+            <label htmlFor="waterCurrent" className="text-sm font-medium">Chỉ số nước mới</label>
             <input
+              id="waterCurrent"
               type="number"
               className="w-full border p-2 rounded"
+              placeholder="Nhập chỉ số nước mới"
               value={form.waterCurrent || 0}
               onChange={(e) => handleChange('waterCurrent', Number(e.target.value))}
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Đơn giá nước</label>
+            <label htmlFor="waterUnitPrice" className="text-sm font-medium">Đơn giá nước</label>
             <input
+              id="waterUnitPrice"
               type="number"
               className="w-full border p-2 rounded"
+              placeholder="Nhập đơn giá nước"
               value={form.waterUnitPrice || 0}
               onChange={(e) => handleChange('waterUnitPrice', Number(e.target.value))}
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Phí internet mới</label>
+            <label htmlFor="internetFee" className="text-sm font-medium">Phí internet mới</label>
             <input
+              id="internetFee"
               type="number"
               className="w-full border p-2 rounded"
+              placeholder="Nhập phí internet"
               value={form.internetFee || 0}
-              onChange={(e) => handleChange('waterUnitPrice', Number(e.target.value))}
+              onChange={(e) => handleChange('internetFee', Number(e.target.value))}
             />
           </div>
 
           <div className="mt-4">
-            <label className="text-sm font-medium">Phí gửi xe mới</label>
+            <label htmlFor="parkingFee" className="text-sm font-medium">Phí gửi xe mới</label>
             <input
+              id="parkingFee"
               type="number"
               className="w-full border p-2 rounded"
-              value={form.internetFee || 0}
+              placeholder="Nhập phí gửi xe"
+              value={form.parkingFee || 0}
               onChange={(e) => handleChange('parkingFee', Number(e.target.value))}
             />
           </div>
 
           <div className="mt-4">
-            <label className="text-sm font-medium">Phí khác</label>
+            <label htmlFor="otherFee" className="text-sm font-medium">Phí khác</label>
             <input
+              id="otherFee"
               type="number"
               className="w-full border p-2 rounded"
+              placeholder="Nhập phí khác"
               value={form.otherFee || 0}
               onChange={(e) => handleChange('otherFee', Number(e.target.value))}
             />
           </div>
 
           <div className="mt-4">
-            <label className="text-sm font-medium">Ghi chú</label>
+            <label htmlFor="note" className="text-sm font-medium">Ghi chú</label>
             <textarea
+              id="note"
               className="w-full border p-2 rounded"
+              placeholder="Nhập ghi chú"
               value={form.note || ''}
               onChange={(e) => handleChange('note', e.target.value)}
             />
