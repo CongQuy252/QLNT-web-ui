@@ -56,7 +56,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
     watch,
     setValue,
@@ -71,12 +71,19 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
       totalRooms: undefined,
       yearBuilt: undefined,
       description: '',
+      defaultRoomPrice: undefined,
+      defaultElectricityUnitPrice: undefined,
+      defaultWaterUnitPrice: undefined,
+      defaultInternetFee: undefined,
+      defaultParkingFee: undefined,
+      defaultServiceFee: undefined,
+      defaultArea: undefined,
     },
   });
 
   const selectedCityCode = watch('city');
   const districtsQuery = useDistrictsQuery(selectedCityCode);
-  const wards = districtsQuery.data?.wards;
+  const wards = districtsQuery.data?.wards || [];
 
   const getCityName = useCallback(
     (cityCode: string) => {
@@ -86,35 +93,53 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
     [cities],
   );
 
-  const getCityCode = useCallback(
-    (cityName: string) => {
-      const city = cities?.find((p) => p.name === cityName);
-      return city?.code.toString() || '';
-    },
-    [cities],
-  );
-
-  const getDistrictCode = useCallback((districtName: string) => {
-    return districtName;
-  }, []);
+  useEffect(() => {
+    if (isOpen && !isEditMode && !building) {
+      // Reset form to empty values when opening create dialog
+      reset({
+        name: '',
+        address: '',
+        city: '',
+        district: '',
+        totalFloors: undefined,
+        totalRooms: undefined,
+        yearBuilt: undefined,
+        description: '',
+        defaultRoomPrice: undefined,
+        defaultElectricityUnitPrice: undefined,
+        defaultWaterUnitPrice: undefined,
+        defaultInternetFee: undefined,
+        defaultParkingFee: undefined,
+        defaultServiceFee: undefined,
+        defaultArea: undefined,
+      });
+    }
+  }, [isOpen, isEditMode, building, reset]);
 
   useEffect(() => {
     if (isOpen && isEditMode && building) {
-      const cityCode = getCityCode(building.city);
-      const districtCode = getDistrictCode(building.district);
-
+      // Populate form with building data when editing
+      const cityCode = cities?.find((c) => c.name === building.city)?.code.toString() || '';
+      
       reset({
-        name: building.name,
-        address: building.address,
+        name: building.name || '',
+        address: building.address || '',
         city: cityCode,
-        district: districtCode,
+        district: '', // Will be set by another useEffect after districts load
         totalFloors: building.totalFloors,
         totalRooms: building.totalRooms,
         yearBuilt: building.yearBuilt,
-        description: building.description ?? '',
+        description: building.description || '',
+        defaultRoomPrice: building.defaultRoomPrice,
+        defaultElectricityUnitPrice: building.defaultElectricityUnitPrice,
+        defaultWaterUnitPrice: building.defaultWaterUnitPrice,
+        defaultInternetFee: building.defaultInternetFee,
+        defaultParkingFee: building.defaultParkingFee,
+        defaultServiceFee: building.defaultServiceFee,
+        defaultArea: building.defaultArea,
       });
     }
-  }, [isOpen, isEditMode, building, reset, getCityCode, getDistrictCode]);
+  }, [isOpen, isEditMode, building, cities, reset]);
 
   useEffect(() => {
     if (isOpen && isEditMode && building && districtsQuery.data && building.district) {
@@ -129,12 +154,19 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
 
   const onSubmit = useCallback<SubmitHandler<BuildingFormInput>>(
     (data) => {
+      console.log('Form submitted with data:', data);
+      console.log('Form errors:', errors);
+      console.log('Form is valid:', isValid);
+
       const cityName = getCityName(data.city);
+      console.log('City name resolved:', cityName);
 
       const districtName =
         wards?.find((w) => w.code.toString() === data.district)?.name || data.district;
+      console.log('District name resolved:', districtName);
 
       if (!districtName.trim()) {
+        console.error('District name is empty');
         return;
       }
 
@@ -144,12 +176,18 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         district: districtName,
       };
 
-      const parsed = buildingSchema.parse(processedData);
-      handleSave(parsed);
-      setIsOpen(false);
-      reset();
+      console.log('Processed data:', processedData);
+
+      try {
+        const parsed = buildingSchema.parse(processedData);
+        console.log('Schema parsed successfully:', parsed);
+        handleSave(parsed);
+        setIsOpen(false);
+      } catch (validationError) {
+        console.error('Schema validation failed:', validationError);
+      }
     },
-    [getCityName, wards, handleSave, setIsOpen, reset],
+    [getCityName, wards, errors, isValid, handleSave, setIsOpen],
   );
 
   return (
@@ -284,50 +322,180 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="floors" className="text-sm font-medium text-slate-700" isRequired>
-                  Số Tầng
-                </Label>
-                <Input
-                  type="number"
-                  {...register('totalFloors')}
-                  placeholder="5"
-                  className="mt-1"
-                />
-                {errors.totalFloors && (
-                  <p className="text-xs text-red-500">{errors.totalFloors.message}</p>
-                )}
+            {!building && (
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="floors" className="text-sm font-medium text-slate-700" isRequired>
+                    Số Tầng
+                  </Label>
+                  <Input
+                    type="number"
+                    {...register('totalFloors')}
+                    placeholder="5"
+                    className="mt-1"
+                  />
+                  {errors.totalFloors && (
+                    <p className="text-xs text-red-500">{errors.totalFloors.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="rooms" className="text-sm font-medium text-slate-700" isRequired>
+                    Số Phòng
+                  </Label>
+                  <Input
+                    type="number"
+                    {...register('totalRooms')}
+                    placeholder="20"
+                    className="mt-1"
+                  />
+                  {errors.totalRooms && (
+                    <p className="text-xs text-red-500">{errors.totalRooms.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="year" className="text-sm font-medium text-slate-700">
+                    Năm Xây
+                  </Label>
+                  <Input
+                    type="number"
+                    {...register('yearBuilt')}
+                    placeholder="2025"
+                    className="mt-1"
+                  />
+                  {errors.yearBuilt && (
+                    <p className="text-xs text-red-500">{errors.yearBuilt.message}</p>
+                  )}
+                </div>
               </div>
-              <div>
-                <Label htmlFor="rooms" className="text-sm font-medium text-slate-700" isRequired>
-                  Số Phòng
-                </Label>
-                <Input
-                  type="number"
-                  {...register('totalRooms')}
-                  placeholder="20"
-                  className="mt-1"
-                />
-                {errors.totalRooms && (
-                  <p className="text-xs text-red-500">{errors.totalRooms.message}</p>
-                )}
+            )}
+
+            {/* Default Room Pricing Section */}
+            {!building && (
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-medium text-slate-700 mb-3">Giá Phòng Mặc Định</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label
+                      htmlFor="defaultRoomPrice"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Giá Phòng (VNĐ/tháng)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultRoomPrice')}
+                      placeholder="5000000"
+                      className="mt-1"
+                    />
+                    {errors.defaultRoomPrice && (
+                      <p className="text-xs text-red-500">{errors.defaultRoomPrice.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="defaultElectricityUnitPrice"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Giá Điện (VNĐ/kWh)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultElectricityUnitPrice')}
+                      placeholder="3000"
+                      className="mt-1"
+                    />
+                    {errors.defaultElectricityUnitPrice && (
+                      <p className="text-xs text-red-500">
+                        {errors.defaultElectricityUnitPrice.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="defaultWaterUnitPrice"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Giá Nước (VNĐ/m³)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultWaterUnitPrice')}
+                      placeholder="15000"
+                      className="mt-1"
+                    />
+                    {errors.defaultWaterUnitPrice && (
+                      <p className="text-xs text-red-500">{errors.defaultWaterUnitPrice.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="defaultInternetFee"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Phí Internet (VNĐ/tháng)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultInternetFee')}
+                      placeholder="200000"
+                      className="mt-1"
+                    />
+                    {errors.defaultInternetFee && (
+                      <p className="text-xs text-red-500">{errors.defaultInternetFee.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="defaultParkingFee"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Phí Gửi Xe (VNĐ/tháng)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultParkingFee')}
+                      placeholder="100000"
+                      className="mt-1"
+                    />
+                    {errors.defaultParkingFee && (
+                      <p className="text-xs text-red-500">{errors.defaultParkingFee.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="defaultServiceFee"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Phí Dịch Vụ (VNĐ/tháng)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultServiceFee')}
+                      placeholder="50000"
+                      className="mt-1"
+                    />
+                    {errors.defaultServiceFee && (
+                      <p className="text-xs text-red-500">{errors.defaultServiceFee.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="defaultArea" className="text-sm font-medium text-slate-700">
+                      Diện Tích Phòng (m²)
+                    </Label>
+                    <Input
+                      type="number"
+                      {...register('defaultArea')}
+                      placeholder="25"
+                      className="mt-1"
+                    />
+                    {errors.defaultArea && (
+                      <p className="text-xs text-red-500">{errors.defaultArea.message}</p>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="year" className="text-sm font-medium text-slate-700">
-                  Năm Xây
-                </Label>
-                <Input
-                  type="number"
-                  {...register('yearBuilt')}
-                  placeholder="2025"
-                  className="mt-1"
-                />
-                {errors.yearBuilt && (
-                  <p className="text-xs text-red-500">{errors.yearBuilt.message}</p>
-                )}
-              </div>
-            </div>
+            )}
+
             <div>
               <Label htmlFor="description" className="text-sm font-medium text-slate-700">
                 Mô Tả

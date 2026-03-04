@@ -88,6 +88,7 @@ export function FileUploadField<T extends FieldValues>({ label, field }: FileUpl
             accept="image/*"
             className="hidden"
             onChange={handleFileChange}
+            aria-label="Chọn file ảnh"
           />
         </div>
       </FormControl>

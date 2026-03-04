@@ -1,11 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQueryClient } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useGetBuildingById } from '@/api/building';
-import { useGetRoomsQueries, useUpdateRoomMutation, useAssignTenantMutation, useDeleteRoomMutation, useRemoveTenantMutation } from '@/api/room';
+import {
+  useAssignTenantMutation,
+  useDeleteRoomMutation,
+  useGetRoomsQueries,
+  useRemoveTenantMutation,
+  useUpdateRoomMutation,
+} from '@/api/room';
 import { useNonTenantUsersQuery } from '@/api/user';
-import { RoomStatus, QueriesKey } from '@/constants/appConstants';
+import { QueriesKey } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
 import type { Room } from '@/types/room';
@@ -17,7 +23,7 @@ export const useRooms = () => {
   const { hide, show } = useLoading();
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<RoomStatus>(RoomStatus.all);
+  const [filterStatus, setFilterStatus] = useState<string>('0');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
 
@@ -32,7 +38,12 @@ export const useRooms = () => {
     };
   }, [searchTerm]);
 
-  const { data, isLoading, error } = useGetRoomsQueries(currentPage, pageSize, debouncedSearchTerm, filterStatus);
+  const { data, isLoading, error } = useGetRoomsQueries(
+    currentPage,
+    pageSize,
+    debouncedSearchTerm,
+    filterStatus,
+  );
   const rooms = data?.rooms || [];
   const pagination = data?.pagination;
   const updateRoomMutation = useUpdateRoomMutation();
@@ -50,14 +61,20 @@ export const useRooms = () => {
   const [assignConfirmOpen, setAssignConfirmOpen] = useState(false);
   const { data: usersData } = useNonTenantUsersQuery({ phone: phoneSearch || undefined }, true);
   const tenants = usersData?.data || [];
-  const filteredRooms = rooms;
-  const { buildingId } = useParams(); //Nếu có buildingId thì lọc theo buildingId và status (status được truyền trong state) - tham khảo useBuildings - handleClickRoomStatusCount
-  console.log('buildingId: ', buildingId);
+  const filteredRooms = rooms.map((room) => ({
+    ...room,
+    buildingId: room.buildingId._id,
+  })) as Room[];
 
   const filteredUsers = tenants;
 
   const handleEditRoom = (room: Room) => {
-    setEditRoom(room);
+    // Normalize buildingId to always be string
+    const normalizedRoom = {
+      ...room,
+      buildingId: (room.buildingId as any)?._id || room.buildingId,
+    };
+    setEditRoom(normalizedRoom);
     setIsEditDialogOpen(true);
   };
 
@@ -72,14 +89,12 @@ export const useRooms = () => {
             floor: editRoom.floor,
             area: editRoom.area,
             price: editRoom.price,
-            status:
-              editRoom.status === RoomStatus.available
-                ? RoomStatus.available
-                : editRoom.status === RoomStatus.maintenance
-                  ? RoomStatus.maintenance
-                  : editRoom.status === RoomStatus.occupied
-                    ? RoomStatus.occupied
-                    : RoomStatus.available,
+            electricityUnitPrice: editRoom.electricityUnitPrice,
+            waterUnitPrice: editRoom.waterUnitPrice,
+            internetFee: editRoom.internetFee,
+            parkingFee: editRoom.parkingFee,
+            serviceFee: editRoom.serviceFee,
+            status: editRoom.status,
             description: editRoom.description,
           },
         },
@@ -124,7 +139,7 @@ export const useRooms = () => {
         roomId: roomSelected._id,
         buildingId: roomSelected.buildingId || '',
       });
-      
+
       success(`Đã xóa phòng ${roomSelected.number} thành công!`);
       setConfirmOpen(false);
       setRoomSelected(undefined);
@@ -169,7 +184,7 @@ export const useRooms = () => {
         onError: () => {
           setAssignConfirmOpen(false);
         },
-      }
+      },
     );
   };
 

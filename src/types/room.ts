@@ -1,21 +1,32 @@
-import type { RoomStatus } from '@/constants/appConstants';
 import type { Pagination } from '@/types/building';
+
+export enum ROOMSTATUS {
+  AVAILABLE = 'available',
+  OCCUPIED = 'occupied',
+  MAINTENANCE = 'maintenance',
+}
 
 export interface Room {
   _id: string;
   number: string;
-  building: string;
-  buildingId?: string; // Add buildingId for backend compatibility
+  buildingId: string;
   floor: number;
   area: number;
   price: number;
-  status: RoomStatus;
+  electricityUnitPrice: number;
+  waterUnitPrice: number;
+  internetFee?: number;
+  parkingFee?: number;
+  serviceFee?: number;
+  status: ROOMSTATUS;
   currentTenant?: {
     _id: string;
     email: string;
     name: string;
   };
   description?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface RoomListResponse {
@@ -26,30 +37,42 @@ export interface RoomListResponse {
 export interface GetRoom {
   _id: string;
   number: string;
-  buildingId?: {
+  buildingId: {
     _id: string;
     name: string;
   };
   floor: number;
   area: number;
   price: number;
-  status: RoomStatus;
+  electricityUnitPrice: number;
+  waterUnitPrice: number;
+  internetFee?: number;
+  parkingFee?: number;
+  serviceFee?: number;
+  status: ROOMSTATUS;
   description?: string;
   currentTenant?: {
     _id: string;
     email: string;
     name: string;
   };
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PutRoom {
   id: string;
   number: string;
-  buildingId?: string;
+  buildingId: string;
   floor: number;
   area: number;
   price: number;
-  status: RoomStatus;
+  electricityUnitPrice: number;
+  waterUnitPrice: number;
+  internetFee?: number;
+  parkingFee?: number;
+  serviceFee?: number;
+  status: ROOMSTATUS;
   description?: string;
 }
 
@@ -59,3 +82,8 @@ export interface PutRoomResponse {
 }
 
 export type PutRoomRequest = Omit<PutRoom, 'id'>;
+
+export interface GetRoomByIdResponse {
+  message: string;
+  room: GetRoom;
+}

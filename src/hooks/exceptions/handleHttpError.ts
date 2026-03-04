@@ -11,8 +11,9 @@ export const useHandleHttpError = () => {
       const status = error.response?.status;
       const messageFromServer = error.response?.data?.message;
 
-      if (status === 404) message = 'Không tìm thấy tài nguyên (404)';
-      else if (status === 500) message = 'Lỗi server (500)';
+      if (status === 404) message = 'Không tìm thấy tài nguyên';
+      else if (status === 500) message = 'Lỗi server';
+      else if (status === 401) message = 'Không có quyền truy cập';
       else if (messageFromServer) message = messageFromServer;
     } else if (error instanceof Error) {
       message = error.message;

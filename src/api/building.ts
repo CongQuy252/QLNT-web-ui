@@ -11,7 +11,7 @@ export const useGetBuildingQueries = (isEnabled = true) => {
     queryKey: [QueriesKey.buildings],
     queryFn: async () => {
       const response = await http.get<BuildingListResponse>(`/buildings`);
-      return response.data.data;
+      return response.data;
     },
     enabled: isEnabled,
   });

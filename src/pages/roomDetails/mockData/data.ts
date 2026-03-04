@@ -1,7 +1,6 @@
 import { RoomStatus } from '@/constants/appConstants';
-import type { Room } from '@/types/room';
 
-export const room: Room = {
+export const room = {
   _id: 'room2',
   number: '102',
   building: 'A',

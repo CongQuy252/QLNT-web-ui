@@ -1,12 +1,12 @@
 import { lazy } from 'react';
 import { Navigate, type RouteObject } from 'react-router-dom';
 
-import { Mode, Path } from '@/constants/appConstants';
+import { Path, UserRole } from '@/constants/appConstants';
 import HomeSidebar from '@/pages/HomeSidebar/HomeSidebar';
 import Buildings from '@/pages/buildings/Buildings';
 import Home from '@/pages/home/Home';
 import Payment from '@/pages/payment/Payment';
-import RoomDetails from '@/pages/roomDetails/RoomDetails';
+import PaymentDetail from '@/pages/paymentDetail/PaymentDetail';
 import Rooms from '@/pages/rooms/Rooms';
 import Tenant from '@/pages/tenant/Tenant';
 
@@ -17,52 +17,60 @@ const LoginPage = lazy(() => import('@/pages/login/Login'));
 export const routes: RouteObject[] = [
   {
     path: '/',
-    element: <PrivateRoute />,
+    element: <PrivateRoute />, // ✅ chỉ check login
     children: [
       { index: true, element: <Home /> },
+
       {
         element: <HomeSidebar />,
         children: [
+          // ================= ADMIN ONLY =================
           {
-            path: `/${Path.buildings}`,
-            element: <Buildings />,
+            element: <PrivateRoute allowedRoles={[UserRole.admin]} />,
+            children: [
+              {
+                path: `/${Path.buildings}`,
+                element: <Buildings />,
+              },
+              {
+                path: `/${Path.rooms}`,
+                element: <Rooms />,
+              },
+              {
+                path: `/${Path.tenants}`,
+                element: <Tenant />,
+              },
+              {
+                path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}`,
+                element: <Rooms />,
+              },
+            ],
           },
+
+          // ================= ADMIN + TENANT =================
           {
-            path: `/${Path.rooms}`,
-            element: <Rooms />,
-          },
-          {
-            path: `/${Path.tenants}`,
-            element: <Tenant />,
-          },
-          {
-            path: `/${[Path.rooms, Path.roomId, Path.tenants, Path.userId].join('/')}`,
-            element: <RoomDetails mode={Mode.tenant} />,
-          },
-          {
-            path: `/${[Path.buildings, Path.buildingId, Path.rooms, Path.roomId].join('/')}`,
-            element: <RoomDetails mode={Mode.owner} />,
-          },
-          {
-            path: `/${[Path.rooms, Path.roomId].join('/')}`,
-            element: <RoomDetails mode={Mode.owner} />,
-          },
-          {
-            path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}`,
-            element: <Rooms />,
-          },
-          {
-            path: `/${Path.payments}`,
-            element: <Payment />,
+            element: <PrivateRoute allowedRoles={[UserRole.admin, UserRole.tenant]} />,
+            children: [
+              {
+                path: `/${Path.payments}`,
+                element: <Payment />,
+              },
+              {
+                path: `/${Path.payments}/${Path.paymentId}`,
+                element: <PaymentDetail />,
+              },
+            ],
           },
         ],
       },
     ],
   },
+
   {
     path: '/login',
     element: <LoginPage />,
   },
+
   {
     path: '*',
     element: <Navigate to="/" replace />,

@@ -30,12 +30,12 @@ export const useBuildings = () => {
 
   const buildings = useMemo(() => {
     return (
-      getBuildingQueries.data?.map((b) => ({
+      getBuildingQueries.data?.data.map((b) => ({
         ...b,
         id: b._id,
       })) ?? []
     );
-  }, [getBuildingQueries.data]);
+  }, [getBuildingQueries.data?.data]);
 
   const handleNewBuilding = () => {
     setIsEditMode(false);
@@ -52,13 +52,37 @@ export const useBuildings = () => {
 
   const handleSave = async (data: BuildingFormInput) => {
     try {
+      console.log('Building data to save:', data);
+      console.log('isEditMode:', isEditMode);
+      console.log('editingBuilding:', editingBuilding);
+
       if (isEditMode && editingBuilding) {
+        // Check if building has any occupied rooms before updating
+        const occupiedRooms = editingBuilding.roomStatus?.occupied ?? 0;
+
+        if (occupiedRooms > 0) {
+          setInfoMessage(
+            `Không thể cập nhật "${editingBuilding.name}" vì còn ${occupiedRooms} phòng đang có người thuê. Vui lòng chuyển hết người thuê trước khi cập nhật.`,
+          );
+          setInfoOpen(true);
+          return;
+        }
+
+        console.log('Updating building with data:', data);
         await updateBuildingMutation.mutateAsync({
           id: editingBuilding._id,
           data,
         });
       } else {
-        await createBuildingMutation.mutateAsync(data);
+        console.log('Creating new building with data:', data);
+
+        // Map defaultArea to area for backend room validation
+        const payload = {
+          ...data,
+          area: data.defaultArea, // Backend expects 'area' for room validation
+        };
+
+        await createBuildingMutation.mutateAsync(payload);
       }
 
       queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
