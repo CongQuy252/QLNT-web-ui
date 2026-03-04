@@ -1,6 +1,6 @@
 import { queryClient } from '@/lib/reactQuery';
 import { AlertCircle, Check, Clock } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGetPaymentByIdQuery } from '@/api/payment';
@@ -10,15 +10,12 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LocalStorageKey, Path, PaymentStatus, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
-import PaymentEditDialog from '@/pages/paymentDetail/PaymentEditDialog';
 import { formatCurrency, formatDate } from '@/utils/utils';
 
 export default function PaymentDetail() {
   const { paymentId } = useParams();
   const navigator = useNavigate();
   const { show, hide } = useLoading();
-
-  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
@@ -543,13 +540,6 @@ export default function PaymentDetail() {
             >
               Đánh dấu đã thanh toán
             </Button>
-            <Button
-              variant="outline"
-              className="gap-2 text-slate-700 border-slate-300 bg-transparent"
-              onClick={() => setIsEditOpen(true)}
-            >
-              Chỉnh sửa hóa đơn
-            </Button>
           </div>
         )}
 
@@ -559,15 +549,6 @@ export default function PaymentDetail() {
           </div>
         )}
       </Card>
-      <PaymentEditDialog
-        open={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        payment={payment}
-        onSubmit={(data) => {
-          console.log('Update payment:', data);
-          // gọi mutation update API ở đây
-        }}
-      />
     </div>
   );
 }

@@ -4,7 +4,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
-import { useCreatePaymentMutation, useDeletePaymentMutation, useGetPaymentsQuery } from '@/api/payment';
+import {
+  useCreatePaymentMutation,
+  useDeletePaymentMutation,
+  useGetPaymentsQuery,
+} from '@/api/payment';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,13 +19,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
+import { LocalStorageKey, Path, QueriesKey, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
-import { useToast } from '@/hooks/useToast';
 import { useMobile } from '@/hooks/useMobile';
+import { useToast } from '@/hooks/useToast';
 import PaymentCard from '@/pages/payment/components/PaymentCard';
 import PaymentDialogWrapper from '@/pages/payment/components/PaymentDialogWrapper';
-import PaymentSummary from '@/pages/payment/components/PaymentSummary';
 import { maxItemPerPage } from '@/pages/payment/paymentConstants';
 
 export default function Payment() {
@@ -87,15 +90,6 @@ export default function Payment() {
     }
   };
 
-  // Calculate statistics
-  const stats = {
-    total: payments.reduce((sum, p) => sum + p.amount, 0),
-    paid: payments.filter((p) => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0),
-    pending: payments
-      .filter((p) => p.status === 'pending' || p.status === 'overdue')
-      .reduce((sum, p) => sum + p.amount, 0),
-  };
-
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between">
@@ -124,7 +118,7 @@ export default function Payment() {
                     try {
                       await createPaymentMutation.mutateAsync(invoice);
                       setIsInvoiceDialogOpen(false);
-                      // Optionally show success message or refresh
+                      queryClient.invalidateQueries({ queryKey: [QueriesKey.payments] });
                     } catch (error) {
                       console.error('Error creating payment:', error);
                     }
@@ -135,8 +129,6 @@ export default function Payment() {
           </Dialog>
         )}
       </div>
-
-      <PaymentSummary stats={stats} />
 
       {/* Filter */}
       <div className={`${isMobile ? 'flex flex-col md:flex-row' : 'block'} gap-4 mt-3 w-full`}>
@@ -186,7 +178,11 @@ export default function Payment() {
           <PaymentCard
             key={payment._id}
             payment={payment}
-            onDelete={(id) => deletePaymentMutation.mutate(id, { onSuccess: () => success('Xóa thanh toán thành công') })}
+            onDelete={(id) =>
+              deletePaymentMutation.mutate(id, {
+                onSuccess: () => success('Xóa thanh toán thành công'),
+              })
+            }
           />
         ))}
       </div>

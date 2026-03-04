@@ -1,9 +1,9 @@
+import { queryClient } from '@/lib/reactQuery';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import { queryClient } from '@/lib/reactQuery';
 import type { Payment } from '@/types/payment';
 
 export const useGetPaymentByIdQuery = (paymentId?: string, isEnable = true) => {
@@ -57,7 +57,7 @@ export const useGetPaymentsQuery = (
 ) => {
   const handleHttpError = useHandleHttpError();
   return useQuery({
-    queryKey: ['payments', page, limit, search, status],
+    queryKey: [QueriesKey.payments, page, limit, search, status],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
