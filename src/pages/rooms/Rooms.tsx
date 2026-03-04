@@ -4,13 +4,7 @@ import { FaUserPlus } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
-import { ToastContainer } from '@/components/ui/toast/Toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -21,11 +15,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ROOMSTATUS } from '@/types/room';
+import { ToastContainer } from '@/components/ui/toast/Toast';
 import { useMobile } from '@/hooks/useMobile';
 import { useToast } from '@/hooks/useToast';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
 import { useRooms } from '@/pages/rooms/useRooms';
+import { ROOMSTATUS } from '@/types/room';
 import type { Room } from '@/types/room';
 import { formatCurrency } from '@/utils/utils';
 
@@ -86,7 +81,7 @@ const Rooms = () => {
         </div>
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col max-h-[90vh]">
-            <DialogHeader className="flex-shrink-0">
+            <DialogHeader className="shrink-0">
               <DialogTitle>Chỉnh sửa phòng {editRoom?.number}</DialogTitle>
             </DialogHeader>
             <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-2">
@@ -149,8 +144,10 @@ const Rooms = () => {
 
               {/* Pricing Section */}
               <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-slate-800 border-b pb-2">Cấu hình giá dịch vụ</h4>
-                
+                <h4 className="text-sm font-semibold text-slate-800 border-b pb-2">
+                  Cấu hình giá dịch vụ
+                </h4>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">Giá điện (VNĐ/kWh)</label>
@@ -160,11 +157,12 @@ const Rooms = () => {
                       step="100"
                       value={editRoom?.electricityUnitPrice || 0}
                       onChange={(e) =>
-                        editRoom && setEditRoom({ ...editRoom, electricityUnitPrice: Number(e.target.value) })
+                        editRoom &&
+                        setEditRoom({ ...editRoom, electricityUnitPrice: Number(e.target.value) })
                       }
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">Giá nước (VNĐ/m³)</label>
                     <Input
@@ -173,7 +171,8 @@ const Rooms = () => {
                       step="1000"
                       value={editRoom?.waterUnitPrice || 0}
                       onChange={(e) =>
-                        editRoom && setEditRoom({ ...editRoom, waterUnitPrice: Number(e.target.value) })
+                        editRoom &&
+                        setEditRoom({ ...editRoom, waterUnitPrice: Number(e.target.value) })
                       }
                     />
                   </div>
@@ -181,18 +180,21 @@ const Rooms = () => {
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Internet (VNĐ/tháng)</label>
+                    <label className="text-sm font-medium text-slate-700">
+                      Internet (VNĐ/tháng)
+                    </label>
                     <Input
                       type="number"
                       min="0"
                       step="10000"
                       value={editRoom?.internetFee || 0}
                       onChange={(e) =>
-                        editRoom && setEditRoom({ ...editRoom, internetFee: Number(e.target.value) })
+                        editRoom &&
+                        setEditRoom({ ...editRoom, internetFee: Number(e.target.value) })
                       }
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">Gửi xe (VNĐ/tháng)</label>
                     <Input
@@ -205,9 +207,11 @@ const Rooms = () => {
                       }
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Dịch vụ (VNĐ/tháng)</label>
+                    <label className="text-sm font-medium text-slate-700">
+                      Dịch vụ (VNĐ/tháng)
+                    </label>
                     <Input
                       type="number"
                       min="0"
@@ -264,7 +268,7 @@ const Rooms = () => {
                 />
               </div>
 
-              <div className="flex gap-2 pt-4 border-t border-slate-200 flex-shrink-0">
+              <div className="flex gap-2 pt-4 border-t border-slate-200 shrink-0">
                 <Button
                   variant="outline"
                   className="flex-1 text-slate-700 border-slate-300 bg-transparent"
@@ -285,7 +289,7 @@ const Rooms = () => {
         </Dialog>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 mt-3 w-full">
+      <div className="flex flex-col md:flex-row gap-4 mt-3">
         <div className="relative flex-1">
           <Input
             placeholder="Tìm kiếm ..."
@@ -310,7 +314,7 @@ const Rooms = () => {
           </div>
         </div>
 
-        <div className="flex gap-2 mb-5 w-full overflow-x-auto">
+        <div className="flex gap-2 mb-5 overflow-x-auto">
           {['0', ROOMSTATUS.AVAILABLE, ROOMSTATUS.MAINTENANCE, ROOMSTATUS.OCCUPIED].map(
             (status) => (
               <Button
@@ -359,7 +363,7 @@ const Rooms = () => {
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold text-slate-900">{room.number}</h3>
                       <p className="text-sm text-slate-600">
-                        Tòa {(room.buildingId as any)?.name || room.buildingId} - Tầng {room.floor}
+                        Tòa {room.buildingId} - Tầng {room.floor}
                       </p>
                     </div>
                   </div>
@@ -489,7 +493,7 @@ const Rooms = () => {
                 </div>
               ))}
             </div>
-            
+
             {selectedUser && (
               <div className="pt-4 border-t">
                 <div className="flex items-center justify-between mb-3">
@@ -518,14 +522,12 @@ const Rooms = () => {
           </DialogHeader>
           <div className="py-4">
             <p className="text-slate-700">
-              Bạn có chắc muốn gán <span className="font-medium">{selectedUser?.name}</span> vào phòng <span className="font-medium">{roomSelected?.number}</span>?
+              Bạn có chắc muốn gán <span className="font-medium">{selectedUser?.name}</span> vào
+              phòng <span className="font-medium">{roomSelected?.number}</span>?
             </p>
           </div>
           <div className="flex justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setAssignConfirmOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setAssignConfirmOpen(false)}>
               Hủy
             </Button>
             <Button
@@ -587,7 +589,7 @@ const Rooms = () => {
           loading={deleteRoomMutation.isPending}
         />
       )}
-      
+
       {/* Toast Container */}
       <ToastContainer toasts={toasts} />
     </div>

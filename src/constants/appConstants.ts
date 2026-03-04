@@ -30,6 +30,7 @@ export enum QueriesKey {
   rooms = 'rooms',
   payment = 'payment',
   room = 'room',
+  payments = 'payments',
 }
 
 export enum RoomStatus {

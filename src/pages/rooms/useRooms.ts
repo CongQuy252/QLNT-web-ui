@@ -63,7 +63,7 @@ export const useRooms = () => {
   const tenants = usersData?.data || [];
   const filteredRooms = rooms.map((room) => ({
     ...room,
-    buildingId: room.buildingId._id,
+    buildingId: room.buildingId.name,
   })) as Room[];
 
   const filteredUsers = tenants;
