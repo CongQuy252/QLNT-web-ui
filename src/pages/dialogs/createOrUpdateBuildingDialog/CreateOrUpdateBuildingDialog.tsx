@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -83,7 +83,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
 
   const selectedCityCode = watch('city');
   const districtsQuery = useDistrictsQuery(selectedCityCode);
-  const wards = districtsQuery.data?.wards || [];
+  const wards = useMemo(() => districtsQuery.data?.wards || [], [districtsQuery.data?.wards]);
 
   const getCityName = useCallback(
     (cityCode: string) => {
@@ -120,7 +120,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
     if (isOpen && isEditMode && building) {
       // Populate form with building data when editing
       const cityCode = cities?.find((c) => c.name === building.city)?.code.toString() || '';
-      
+
       reset({
         name: building.name || '',
         address: building.address || '',
@@ -230,7 +230,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
               <Label htmlFor="address" className="text-sm font-medium text-slate-700" isRequired>
                 Địa Chỉ
               </Label>
-              <Input {...register('address')} placeholder="Địa chỉ tòa nhà" className="mt-1" />
+              <Input {...register('address')} className="mt-1" />
               {errors.address && <p className="text-xs text-red-500">{errors.address.message}</p>}
             </div>
 
@@ -328,12 +328,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   <Label htmlFor="floors" className="text-sm font-medium text-slate-700" isRequired>
                     Số Tầng
                   </Label>
-                  <Input
-                    type="number"
-                    {...register('totalFloors')}
-                    placeholder="5"
-                    className="mt-1"
-                  />
+                  <Input type="number" {...register('totalFloors')} className="mt-1" />
                   {errors.totalFloors && (
                     <p className="text-xs text-red-500">{errors.totalFloors.message}</p>
                   )}
@@ -342,12 +337,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   <Label htmlFor="rooms" className="text-sm font-medium text-slate-700" isRequired>
                     Số Phòng
                   </Label>
-                  <Input
-                    type="number"
-                    {...register('totalRooms')}
-                    placeholder="20"
-                    className="mt-1"
-                  />
+                  <Input type="number" {...register('totalRooms')} className="mt-1" />
                   {errors.totalRooms && (
                     <p className="text-xs text-red-500">{errors.totalRooms.message}</p>
                   )}
@@ -356,12 +346,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   <Label htmlFor="year" className="text-sm font-medium text-slate-700">
                     Năm Xây
                   </Label>
-                  <Input
-                    type="number"
-                    {...register('yearBuilt')}
-                    placeholder="2025"
-                    className="mt-1"
-                  />
+                  <Input type="number" {...register('yearBuilt')} className="mt-1" />
                   {errors.yearBuilt && (
                     <p className="text-xs text-red-500">{errors.yearBuilt.message}</p>
                   )}
@@ -372,27 +357,26 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
             {/* Default Room Pricing Section */}
             {!building && (
               <div className="border-t pt-4">
-                <h3 className="text-sm font-medium text-slate-700 mb-3">Giá Phòng Mặc Định</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <h3 className="text-sm font-medium text-slate-700 mb-3">
+                  Thông tin chi tiết phí của các phòng trong toà nhà
+                </h3>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
                   <div>
                     <Label
+                      isRequired
                       htmlFor="defaultRoomPrice"
                       className="text-sm font-medium text-slate-700"
                     >
                       Giá Phòng (VNĐ/tháng)
                     </Label>
-                    <Input
-                      type="number"
-                      {...register('defaultRoomPrice')}
-                      placeholder="5000000"
-                      className="mt-1"
-                    />
+                    <Input type="number" {...register('defaultRoomPrice')} className="mt-1" />
                     {errors.defaultRoomPrice && (
                       <p className="text-xs text-red-500">{errors.defaultRoomPrice.message}</p>
                     )}
                   </div>
                   <div>
                     <Label
+                      isRequired
                       htmlFor="defaultElectricityUnitPrice"
                       className="text-sm font-medium text-slate-700"
                     >
@@ -401,7 +385,6 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     <Input
                       type="number"
                       {...register('defaultElectricityUnitPrice')}
-                      placeholder="3000"
                       className="mt-1"
                     />
                     {errors.defaultElectricityUnitPrice && (
@@ -412,82 +395,65 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   </div>
                   <div>
                     <Label
+                      isRequired
                       htmlFor="defaultWaterUnitPrice"
                       className="text-sm font-medium text-slate-700"
                     >
                       Giá Nước (VNĐ/m³)
                     </Label>
-                    <Input
-                      type="number"
-                      {...register('defaultWaterUnitPrice')}
-                      placeholder="15000"
-                      className="mt-1"
-                    />
+                    <Input type="number" {...register('defaultWaterUnitPrice')} className="mt-1" />
                     {errors.defaultWaterUnitPrice && (
                       <p className="text-xs text-red-500">{errors.defaultWaterUnitPrice.message}</p>
                     )}
                   </div>
                   <div>
                     <Label
+                      isRequired
                       htmlFor="defaultInternetFee"
                       className="text-sm font-medium text-slate-700"
                     >
                       Phí Internet (VNĐ/tháng)
                     </Label>
-                    <Input
-                      type="number"
-                      {...register('defaultInternetFee')}
-                      placeholder="200000"
-                      className="mt-1"
-                    />
+                    <Input type="number" {...register('defaultInternetFee')} className="mt-1" />
                     {errors.defaultInternetFee && (
                       <p className="text-xs text-red-500">{errors.defaultInternetFee.message}</p>
                     )}
                   </div>
                   <div>
                     <Label
+                      isRequired
                       htmlFor="defaultParkingFee"
                       className="text-sm font-medium text-slate-700"
                     >
                       Phí Gửi Xe (VNĐ/tháng)
                     </Label>
-                    <Input
-                      type="number"
-                      {...register('defaultParkingFee')}
-                      placeholder="100000"
-                      className="mt-1"
-                    />
+                    <Input type="number" {...register('defaultParkingFee')} className="mt-1" />
                     {errors.defaultParkingFee && (
                       <p className="text-xs text-red-500">{errors.defaultParkingFee.message}</p>
                     )}
                   </div>
                   <div>
                     <Label
+                      isRequired
                       htmlFor="defaultServiceFee"
                       className="text-sm font-medium text-slate-700"
                     >
                       Phí Dịch Vụ (VNĐ/tháng)
                     </Label>
-                    <Input
-                      type="number"
-                      {...register('defaultServiceFee')}
-                      placeholder="50000"
-                      className="mt-1"
-                    />
+                    <Input type="number" {...register('defaultServiceFee')} className="mt-1" />
                     {errors.defaultServiceFee && (
                       <p className="text-xs text-red-500">{errors.defaultServiceFee.message}</p>
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="defaultArea" className="text-sm font-medium text-slate-700">
+                    <Label
+                      isRequired
+                      htmlFor="defaultArea"
+                      className="text-sm font-medium text-slate-700"
+                    >
                       Diện Tích Phòng (m²)
                     </Label>
-                    <Input
-                      type="number"
-                      {...register('defaultArea')}
-                      placeholder="25"
-                      className="mt-1"
-                    />
+                    <Input type="number" {...register('defaultArea')} className="mt-1" />
                     {errors.defaultArea && (
                       <p className="text-xs text-red-500">{errors.defaultArea.message}</p>
                     )}

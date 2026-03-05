@@ -183,7 +183,7 @@ const Buildings = () => {
                   <CardTitle className="text-base">Thông tin Tòa Nhà</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
                     <div>
                       <div className="text-sm text-slate-600">Địa Chỉ</div>
                       <div className="font-medium text-slate-900 flex items-center gap-2 mt-1 whitespace-break-spaces">
@@ -191,10 +191,12 @@ const Buildings = () => {
                         {building.address}, {building.district}, {building.city}
                       </div>
                     </div>
-                    <div>
-                      <div className="text-sm text-slate-600">Năm Xây Dựng</div>
-                      <div className="font-medium text-slate-900">{building.yearBuilt}</div>
-                    </div>
+                    {building.yearBuilt && (
+                      <div>
+                        <div className="text-sm text-slate-600">Năm Xây Dựng</div>
+                        <div className="font-medium text-slate-900">{building.yearBuilt}</div>
+                      </div>
+                    )}
                   </div>
                   {building.description && (
                     <div className="pt-4 border-t">
