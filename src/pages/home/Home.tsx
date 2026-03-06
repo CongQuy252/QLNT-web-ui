@@ -1,6 +1,6 @@
 import { queryClient } from '@/lib/reactQuery';
 import { ArrowRight, LogOut } from 'lucide-react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useGetBuildingQueries } from '@/api/building';
@@ -9,6 +9,7 @@ import { useGetRoomByUserIDQuery, useGetRoomsQueries } from '@/api/room';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
 import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
@@ -31,6 +32,8 @@ const Home = () => {
   const navigator = useNavigate();
   const isMobile = useMobile();
   const { show, hide } = useLoading();
+
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
@@ -127,16 +130,27 @@ const Home = () => {
               </div>
               <h1 className="text-2xl font-bold text-slate-900">RoomHub</h1>
             </div>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="gap-2 bg-transparent"
-              icon={<LogOut className="w-4 h-4" />}
-            >
-              <div className="flex gap-3 items-center">
-                <div>Đăng xuất</div>
-              </div>
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setIsChangePasswordOpen(true)}
+                variant="outline"
+                className="gap-2 bg-transparent"
+              >
+                <div className="flex gap-3 items-center">
+                  <div>Đổi mật khẩu</div>
+                </div>
+              </Button>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="gap-2 bg-transparent"
+                icon={<LogOut className="w-4 h-4" />}
+              >
+                <div className="flex gap-3 items-center">
+                  <div>Đăng xuất</div>
+                </div>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -217,6 +231,11 @@ const Home = () => {
           </div>
         </div>
       </main>
+
+      <ChangePasswordDialog
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
     </div>
   );
 };

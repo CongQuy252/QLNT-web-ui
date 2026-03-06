@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
 import { LiaIdCard } from 'react-icons/lia';
 
-import { useGetTenantQueries } from '@/api/tenant';
+import { useGetTenantQueries, useUpdateTenantMutation } from '@/api/tenant';
+import { useToast } from '@/hooks/useToast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ImageListDialog from '@/components/ui/imageView/ImageListDialog';
@@ -23,6 +24,9 @@ const Tenant = () => {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingTenantId, setEditingTenantId] = useState<string>('');
+  const updateTenantMutation = useUpdateTenantMutation();
+  const { success, error } = useToast();
   const [imageList, setImageList] = useState<string[]>([]);
 
   // Debounce search term
@@ -84,10 +88,35 @@ const Tenant = () => {
     return status === 'active' ? 'Đang ở' : 'Đã trả phòng';
   };
 
-  const handleSaveEditTenant = () => {
-    if (!editingTenant) return;
-    console.log('Edited');
-    setIsEditOpen(false);
+  const handleSaveEditTenant = (data: UpdateTenantRequest) => {
+    if (!editingTenantId) {
+      error('Không tìm thấy ID người thuê');
+      return;
+    }
+
+    updateTenantMutation.mutate(
+      {
+        id: editingTenantId,
+        data: {
+          name: data.name,
+          phone: data.phone,
+          cccd: data.cccd,
+        },
+      },
+      {
+        onSuccess: () => {
+          success('Cập nhật người thuê thành công');
+          setIsEditOpen(false);
+          setEditingTenant(undefined);
+          setEditingTenantId('');
+          // Refresh tenant list
+          getTenantQueries.refetch();
+        },
+        onError: () => {
+          error('Có lỗi xảy ra khi cập nhật người thuê');
+        },
+      },
+    );
   };
 
   const handleOpenImageViewer = (cccd: { front: string; back: string }) => {
@@ -219,6 +248,7 @@ const Tenant = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => {
+                        setEditingTenantId(tenant.id);
                         setEditingTenant({
                           name: tenant.name || '',
                           phone: tenant.phone || '',
@@ -286,6 +316,7 @@ const Tenant = () => {
           onClose={() => {
             setIsEditOpen(false);
             setEditingTenant(undefined);
+            setEditingTenantId('');
           }}
         />
       )}
