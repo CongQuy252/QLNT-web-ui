@@ -363,7 +363,6 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
                   <div>
                     <Label
-                      isRequired
                       htmlFor="defaultRoomPrice"
                       className="text-sm font-medium text-slate-700"
                     >
@@ -376,7 +375,6 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   </div>
                   <div>
                     <Label
-                      isRequired
                       htmlFor="defaultElectricityUnitPrice"
                       className="text-sm font-medium text-slate-700"
                     >
@@ -395,7 +393,6 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   </div>
                   <div>
                     <Label
-                      isRequired
                       htmlFor="defaultWaterUnitPrice"
                       className="text-sm font-medium text-slate-700"
                     >
@@ -408,7 +405,6 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   </div>
                   <div>
                     <Label
-                      isRequired
                       htmlFor="defaultInternetFee"
                       className="text-sm font-medium text-slate-700"
                     >
@@ -421,7 +417,6 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   </div>
                   <div>
                     <Label
-                      isRequired
                       htmlFor="defaultParkingFee"
                       className="text-sm font-medium text-slate-700"
                     >
@@ -434,7 +429,6 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   </div>
                   <div>
                     <Label
-                      isRequired
                       htmlFor="defaultServiceFee"
                       className="text-sm font-medium text-slate-700"
                     >
@@ -446,11 +440,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     )}
                   </div>
                   <div>
-                    <Label
-                      isRequired
-                      htmlFor="defaultArea"
-                      className="text-sm font-medium text-slate-700"
-                    >
+                    <Label htmlFor="defaultArea" className="text-sm font-medium text-slate-700">
                       Diện Tích Phòng (m²)
                     </Label>
                     <Input type="number" {...register('defaultArea')} className="mt-1" />

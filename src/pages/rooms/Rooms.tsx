@@ -80,7 +80,7 @@ const Rooms = () => {
           <p className="text-slate-600 mt-2">{`Tổng cộng ${totalItems} phòng`}</p>
         </div>
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col max-h-[90vh]">
+          <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col max-h-screen">
             <DialogHeader className="shrink-0">
               <DialogTitle>Chỉnh sửa phòng {editRoom?.number}</DialogTitle>
             </DialogHeader>

@@ -10,13 +10,13 @@ export interface Building {
   ownerId: string;
   description?: string;
   utilities?: string[];
-  defaultRoomPrice: number;
-  defaultElectricityUnitPrice: number;
-  defaultWaterUnitPrice: number;
-  defaultInternetFee: number;
-  defaultParkingFee: number;
-  defaultServiceFee: number;
-  defaultArea: number;
+  defaultRoomPrice?: number;
+  defaultElectricityUnitPrice?: number;
+  defaultWaterUnitPrice?: number;
+  defaultInternetFee?: number;
+  defaultParkingFee?: number;
+  defaultServiceFee?: number;
+  defaultArea?: number;
   roomStatus?: {
     available: number;
     occupied: number;
