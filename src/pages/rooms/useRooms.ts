@@ -25,7 +25,7 @@ export const useRooms = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('0');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 10;
+  const pageSize = 12;
 
   // Debounce search term
   useEffect(() => {
@@ -63,7 +63,8 @@ export const useRooms = () => {
   const tenants = usersData?.data || [];
   const filteredRooms = rooms.map((room) => ({
     ...room,
-    buildingId: room.buildingId.name,
+    buildingId: (room.buildingId as any)?._id || room.buildingId,
+    buildingName: (room.buildingId as any)?.name || '',
   })) as Room[];
 
   const filteredUsers = tenants;
@@ -178,6 +179,9 @@ export const useRooms = () => {
           setAssignConfirmOpen(false);
           // Invalidate lại query users để refresh danh sách
           queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
+          queryClient.invalidateQueries({
+            queryKey: [QueriesKey.buildings],
+          });
           // Hiển thị thông báo thành công
           success(`Đã gán ${selectedUser.name} vào phòng ${roomSelected.number} thành công!`);
         },

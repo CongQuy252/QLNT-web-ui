@@ -4,7 +4,7 @@ import axios from 'axios';
 export const http = axios.create({
   // eslint-disable-next-line no-constant-binary-expression
   baseURL: `${import.meta.env.VITE_API_URL}/api` || 'http://localhost:5000/api',
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },

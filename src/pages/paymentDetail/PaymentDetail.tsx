@@ -3,13 +3,19 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGetPaymentByIdQuery, useUpdatePaymentMutation } from '@/api/payment';
-import { useToast } from '@/hooks/useToast';
 import { useGetRoomByIdQuery } from '@/api/room';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { LocalStorageKey, Path, PaymentStatus, UserRole } from '@/constants/appConstants';
+import {
+  LocalStorageKey,
+  Path,
+  PaymentStatus,
+  QueriesKey,
+  UserRole,
+} from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
+import { useToast } from '@/hooks/useToast';
 import { formatCurrency } from '@/utils/utils';
 
 export default function PaymentDetail() {
@@ -48,7 +54,8 @@ export default function PaymentDetail() {
       {
         onSuccess: () => {
           success('Đã cập nhật trạng thái thanh toán');
-          queryClient.invalidateQueries({ queryKey: ['payment', paymentId] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.payments] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.payment, paymentId] });
         },
       },
     );

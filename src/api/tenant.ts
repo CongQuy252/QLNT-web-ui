@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { QueriesKey, TenantStatus } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
@@ -61,5 +61,17 @@ export const useGetTenantByIdQuery = (tenantId: string, enable?: boolean) => {
     },
     enabled: enable && !!tenantId,
     meta: { handleError: handleHttpError },
+  });
+};
+
+export const useUpdateTenantMutation = () => {
+  const handleHttpError = useHandleHttpError();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await http.put(`/tenants/${id}`, data);
+      return response.data;
+    },
+    onError: handleHttpError,
   });
 };
