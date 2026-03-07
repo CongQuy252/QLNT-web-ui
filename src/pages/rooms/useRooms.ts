@@ -38,12 +38,13 @@ export const useRooms = () => {
     };
   }, [searchTerm]);
 
-  const { data, isLoading, error } = useGetRoomsQueries(
-    currentPage,
-    pageSize,
-    debouncedSearchTerm,
-    filterStatus,
-  );
+  const { data, isLoading, error } = useGetRoomsQueries({
+    page: currentPage,
+    limit: pageSize,
+    search: debouncedSearchTerm,
+    status: filterStatus,
+  });
+
   const rooms = data?.rooms || [];
   const pagination = data?.pagination;
   const updateRoomMutation = useUpdateRoomMutation();
