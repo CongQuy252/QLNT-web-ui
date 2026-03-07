@@ -86,6 +86,7 @@ export const useBuildings = () => {
       }
 
       queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
       setIsOpen(false);
     } catch (error) {
       console.error('Error saving building:', error);
