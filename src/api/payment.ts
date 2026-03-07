@@ -85,6 +85,11 @@ export const useCreatePaymentMutation = () => {
       const response = await http.post<Payment>('/payments', paymentData);
       return response.data;
     },
+    onSuccess: () => {
+      // Invalidate room queries since payment creation may change room availability
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
+      queryClient.invalidateQueries({ queryKey: ['occupied-rooms'] });
+    },
     onError: handleHttpError,
   });
 };
@@ -96,6 +101,11 @@ export const useUpdatePaymentMutation = () => {
     mutationFn: async ({ id, data }: { id: string; data: Partial<Payment> }) => {
       const response = await http.put<Payment>(`/payments/${id}`, data);
       return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate payment queries after update
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.payments] });
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.payment] });
     },
     onError: handleHttpError,
   });
