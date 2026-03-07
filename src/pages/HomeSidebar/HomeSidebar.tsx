@@ -6,6 +6,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
+import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
 import { LocalStorageKey, UserRole } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
 import { ownerIcon, ownerListFunctions, tenantListFunctions } from '@/pages/home/HomeContants';
@@ -16,6 +17,7 @@ const HomeSidebar = () => {
   const isMobile = useMobile();
 
   const [open, setOpen] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const userId = localStorage.getItem(LocalStorageKey.userId);
 
@@ -103,8 +105,16 @@ const HomeSidebar = () => {
             })}
         </nav>
 
-        {/* Logout */}
-        <div className="p-4 border-t border-slate-200">
+        {/* Change Password & Logout */}
+        <div className="p-4 border-t border-slate-200 space-y-2">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setIsChangePasswordOpen(true)}
+          >
+            Đổi mật khẩu
+          </Button>
+
           <Button
             variant="outline"
             className="w-full"
@@ -136,6 +146,11 @@ const HomeSidebar = () => {
         )}
         <Outlet />
       </main>
+
+      <ChangePasswordDialog
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
     </div>
   );
 };

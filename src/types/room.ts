@@ -10,6 +10,7 @@ export interface Room {
   _id: string;
   number: string;
   buildingId: string;
+  buildingName?: string; // For display purposes
   floor: number;
   area: number;
   price: number;
