@@ -25,7 +25,7 @@ export const useRooms = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('0');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 10;
+  const pageSize = 12;
 
   // Debounce search term
   useEffect(() => {
