@@ -38,11 +38,25 @@ const Home = () => {
 
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
+  // const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
+  // const getBuildings = useGetBuildingQueries();
+  // const getRooms = useGetRoomsQueries();
+  // const roomTenant = useGetRoomByUserIDQuery(userId, !!userId);
+  // const getPayment = useGetPaymentByUserId(userId, !!userId);
+
   const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
-  const getBuildings = useGetBuildingQueries();
-  const getRooms = useGetRoomsQueries();
-  const roomTenant = useGetRoomByUserIDQuery(userId, !!userId);
-  const getPayment = useGetPaymentByUserId(userId, !!userId);
+
+  const isOwner = user?.role === UserRole.admin;
+
+  const getBuildings = useGetBuildingQueries(!!user && isOwner);
+
+  const getRooms = useGetRoomsQueries({
+    isEnabled: !!user && isOwner,
+  });
+
+  const roomTenant = useGetRoomByUserIDQuery(userId, !!user && !isOwner);
+
+  const getPayment = useGetPaymentByUserId(userId, !!user && !isOwner);
 
   const handleNavigate = (path: string) => navigator(path);
 
@@ -54,10 +68,10 @@ const Home = () => {
 
   useEffect(() => {
     if (
-      isLoading &&
-      getBuildings.isLoading &&
-      getRooms.isLoading &&
-      getPayment.isLoading &&
+      isLoading ||
+      getBuildings.isLoading ||
+      getRooms.isLoading ||
+      getPayment.isLoading ||
       roomTenant.isLoading
     ) {
       show();
@@ -66,25 +80,25 @@ const Home = () => {
     }
   }, [
     isLoading,
-    show,
-    hide,
     getBuildings.isLoading,
     getRooms.isLoading,
     getPayment.isLoading,
     roomTenant.isLoading,
+    show,
+    hide,
   ]);
 
   useEffect(() => {
-    if (!isLoading && (isError || !user)) {
+    if (!isLoading && isError) {
       handleLogout();
     }
-  }, [isLoading, isError, user, handleLogout]);
+  }, [handleLogout, isError, isLoading]);
 
   if (!user) {
     return null;
   }
 
-  const isOwner = user.role === UserRole.admin;
+  // const isOwner = user.role === UserRole.admin;
 
   const navigationItems = isOwner ? ownerListFunctions : tenantListFunctions;
 
@@ -195,8 +209,8 @@ const Home = () => {
                   key={item.path}
                   className={`w-full group overflow-hidden cursor-pointer ${isLastOdd ? 'md:col-span-2' : ''}`}
                   onClick={() => {
-                    if (!isOwner) {
-                      navigator(`/${Path.payments}/${getPayment.data?._id}`);
+                    if (!isOwner && getPayment.data?._id) {
+                      navigator(`/${Path.payments}/${getPayment.data._id}`);
                     } else {
                       handleNavigate(item.path);
                     }
