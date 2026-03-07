@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,6 +31,7 @@ import {
   buildingSchema,
 } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
 import type { Province, Ward } from '@/types/address';
+import { formatNumber, parseNumber } from '@/utils/utils';
 
 interface CreateOrUpdateBuildingDialogProps {
   isOpen: boolean;
@@ -83,7 +84,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
 
   const selectedCityCode = watch('city');
   const districtsQuery = useDistrictsQuery(selectedCityCode);
-  const wards = districtsQuery.data?.wards || [];
+  const wards = useMemo(() => districtsQuery.data?.wards || [], [districtsQuery.data?.wards]);
 
   const getCityName = useCallback(
     (cityCode: string) => {
@@ -120,7 +121,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
     if (isOpen && isEditMode && building) {
       // Populate form with building data when editing
       const cityCode = cities?.find((c) => c.name === building.city)?.code.toString() || '';
-      
+
       reset({
         name: building.name || '',
         address: building.address || '',
@@ -382,9 +383,18 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       Giá Phòng (VNĐ/tháng)
                     </Label>
                     <Input
-                      type="number"
-                      {...register('defaultRoomPrice')}
-                      placeholder="5000000"
+                      type="text"
+                      name="defaultRoomPrice"
+                      value={formatNumber((watch('defaultRoomPrice') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+                        if (/^\d*$/.test(rawValue)) {
+                          setValue('defaultRoomPrice', rawValue ? Number(rawValue) : undefined, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                        }
+                      }}
                       className="mt-1"
                     />
                     {errors.defaultRoomPrice && (
@@ -399,9 +409,22 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       Giá Điện (VNĐ/kWh)
                     </Label>
                     <Input
-                      type="number"
-                      {...register('defaultElectricityUnitPrice')}
-                      placeholder="3000"
+                      type="text"
+                      name="defaultElectricityUnitPrice"
+                      value={formatNumber((watch('defaultElectricityUnitPrice') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+                        if (/^\d*$/.test(rawValue)) {
+                          setValue(
+                            'defaultElectricityUnitPrice',
+                            rawValue ? Number(rawValue) : undefined,
+                            {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            },
+                          );
+                        }
+                      }}
                       className="mt-1"
                     />
                     {errors.defaultElectricityUnitPrice && (
@@ -418,9 +441,22 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       Giá Nước (VNĐ/m³)
                     </Label>
                     <Input
-                      type="number"
-                      {...register('defaultWaterUnitPrice')}
-                      placeholder="15000"
+                      type="text"
+                      name="defaultWaterUnitPrice"
+                      value={formatNumber((watch('defaultWaterUnitPrice') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+                        if (/^\d*$/.test(rawValue)) {
+                          setValue(
+                            'defaultWaterUnitPrice',
+                            rawValue ? Number(rawValue) : undefined,
+                            {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            },
+                          );
+                        }
+                      }}
                       className="mt-1"
                     />
                     {errors.defaultWaterUnitPrice && (
@@ -435,9 +471,18 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       Phí Internet (VNĐ/tháng)
                     </Label>
                     <Input
-                      type="number"
-                      {...register('defaultInternetFee')}
-                      placeholder="200000"
+                      type="text"
+                      name="defaultInternetFee"
+                      value={formatNumber((watch('defaultInternetFee') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+                        if (/^\d*$/.test(rawValue)) {
+                          setValue('defaultInternetFee', rawValue ? Number(rawValue) : undefined, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                        }
+                      }}
                       className="mt-1"
                     />
                     {errors.defaultInternetFee && (
@@ -452,9 +497,18 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       Phí Gửi Xe (VNĐ/tháng)
                     </Label>
                     <Input
-                      type="number"
-                      {...register('defaultParkingFee')}
-                      placeholder="100000"
+                      type="text"
+                      name="defaultParkingFee"
+                      value={formatNumber((watch('defaultParkingFee') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+                        if (/^\d*$/.test(rawValue)) {
+                          setValue('defaultParkingFee', rawValue ? Number(rawValue) : undefined, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                        }
+                      }}
                       className="mt-1"
                     />
                     {errors.defaultParkingFee && (
@@ -469,9 +523,18 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       Phí Dịch Vụ (VNĐ/tháng)
                     </Label>
                     <Input
-                      type="number"
-                      {...register('defaultServiceFee')}
-                      placeholder="50000"
+                      type="text"
+                      name="defaultServiceFee"
+                      value={formatNumber((watch('defaultServiceFee') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+                        if (/^\d*$/.test(rawValue)) {
+                          setValue('defaultServiceFee', rawValue ? Number(rawValue) : undefined, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                        }
+                      }}
                       className="mt-1"
                     />
                     {errors.defaultServiceFee && (
@@ -482,12 +545,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     <Label htmlFor="defaultArea" className="text-sm font-medium text-slate-700">
                       Diện Tích Phòng (m²)
                     </Label>
-                    <Input
-                      type="number"
-                      {...register('defaultArea')}
-                      placeholder="25"
-                      className="mt-1"
-                    />
+                    <Input type="number" {...register('defaultArea')} className="mt-1" />
                     {errors.defaultArea && (
                       <p className="text-xs text-red-500">{errors.defaultArea.message}</p>
                     )}
