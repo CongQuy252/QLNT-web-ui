@@ -1,5 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { MdVisibility, MdVisibilityOff } from 'react-icons/md';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 import { useChangePasswordMutation } from '@/api/user';
 import { Button } from '@/components/ui/button';
@@ -20,21 +25,31 @@ interface ChangePasswordDialogProps {
   onClose: () => void;
 }
 
-interface ChangePasswordForm {
-  oldPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
+const schema = z
+  .object({
+    oldPassword: z.string().min(1, 'Vui lòng nhập mật khẩu cũ'),
+    newPassword: z.string().min(6, 'Mật khẩu mới phải có ít nhất 6 ký tự'),
+    confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Mật khẩu xác nhận không khớp',
+    path: ['confirmPassword'],
+  });
 
-const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
-  isOpen,
-  onClose,
-}) => {
+type ChangePasswordForm = z.infer<typeof schema>;
+
+const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
+
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const changePasswordMutation = useChangePasswordMutation();
   const { success, error: showError } = useToast();
 
   const form = useForm<ChangePasswordForm>({
+    resolver: zodResolver(schema),
     defaultValues: {
       oldPassword: '',
       newPassword: '',
@@ -43,16 +58,6 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
   });
 
   const onSubmit = async (data: ChangePasswordForm) => {
-    if (data.newPassword !== data.confirmPassword) {
-      showError('Mật khẩu mới và xác nhận mật khẩu không khớp');
-      return;
-    }
-
-    if (data.newPassword.length < 6) {
-      showError('Mật khẩu mới phải có ít nhất 6 ký tự');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -76,6 +81,24 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
     onClose();
   };
 
+  const PasswordInput = ({ field, show, toggle, placeholder }: any) => (
+    <div className="relative">
+      <Input
+        type={show ? 'text' : 'password'}
+        placeholder={placeholder}
+        {...field}
+        className="pr-10"
+      />
+      <button
+        type="button"
+        onClick={toggle}
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+      >
+        {show ? <MdVisibilityOff size={20} /> : <MdVisibility size={20} />}
+      </button>
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
@@ -88,15 +111,15 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             <FormField
               control={form.control}
               name="oldPassword"
-              rules={{ required: 'Vui lòng nhập mật khẩu cũ' }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Mật khẩu cũ</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
+                      field={field}
+                      show={showOld}
+                      toggle={() => setShowOld(!showOld)}
                       placeholder="Nhập mật khẩu cũ"
-                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -107,15 +130,15 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             <FormField
               control={form.control}
               name="newPassword"
-              rules={{ required: 'Vui lòng nhập mật khẩu mới' }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Mật khẩu mới</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
+                      field={field}
+                      show={showNew}
+                      toggle={() => setShowNew(!showNew)}
                       placeholder="Nhập mật khẩu mới"
-                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -126,15 +149,15 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             <FormField
               control={form.control}
               name="confirmPassword"
-              rules={{ required: 'Vui lòng xác nhận mật khẩu mới' }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Xác nhận mật khẩu mới</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
+                      field={field}
+                      show={showConfirm}
+                      toggle={() => setShowConfirm(!showConfirm)}
                       placeholder="Nhập lại mật khẩu mới"
-                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -152,11 +175,8 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
               >
                 Hủy
               </Button>
-              <Button
-                type="submit"
-                className="flex-1"
-                disabled={isLoading}
-              >
+
+              <Button type="submit" className="flex-1" disabled={isLoading}>
                 {isLoading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
               </Button>
             </div>

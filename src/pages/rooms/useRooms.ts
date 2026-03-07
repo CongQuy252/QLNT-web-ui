@@ -179,6 +179,9 @@ export const useRooms = () => {
           setAssignConfirmOpen(false);
           // Invalidate lại query users để refresh danh sách
           queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
+          queryClient.invalidateQueries({
+            queryKey: [QueriesKey.buildings],
+          });
           // Hiển thị thông báo thành công
           success(`Đã gán ${selectedUser.name} vào phòng ${roomSelected.number} thành công!`);
         },
