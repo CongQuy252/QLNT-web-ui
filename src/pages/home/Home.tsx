@@ -7,6 +7,7 @@ import { useGetBuildingQueries } from '@/api/building';
 import { useGetPaymentByUserId } from '@/api/payment';
 import { useGetRoomByUserIDQuery, useGetRoomsQueries } from '@/api/room';
 import { useUserQuery } from '@/api/user';
+import LockCircleIcon from '@/assets/Icon/LockCircleIcon';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
@@ -135,21 +136,14 @@ const Home = () => {
                 onClick={() => setIsChangePasswordOpen(true)}
                 variant="outline"
                 className="gap-2 bg-transparent"
-              >
-                <div className="flex gap-3 items-center">
-                  <div>Đổi mật khẩu</div>
-                </div>
-              </Button>
+                icon={<LockCircleIcon className="w-4 h-4" />}
+              />
               <Button
                 onClick={handleLogout}
                 variant="outline"
                 className="gap-2 bg-transparent"
                 icon={<LogOut className="w-4 h-4" />}
-              >
-                <div className="flex gap-3 items-center">
-                  <div>Đăng xuất</div>
-                </div>
-              </Button>
+              />
             </div>
           </div>
         </div>
