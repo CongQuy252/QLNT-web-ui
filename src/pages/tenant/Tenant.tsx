@@ -71,13 +71,37 @@ const Tenant = () => {
   const pagination = getTenantQueries.data?.pagination;
 
   const filteredTenants = useMemo(() => {
-    return tenants.filter((tenant) => {
+    // First filter by search term
+    let filtered = tenants.filter((tenant) => {
       const matchesSearch =
         tenant.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         tenant.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         tenant.phone.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
       return matchesSearch;
     });
+
+    // Remove duplicates: keep only the most recent tenant for each user
+    // Group by userId or by combination of phone + cccd (as fallback)
+    const uniqueTenants = new Map<string, typeof filtered[0]>();
+
+    filtered.forEach((tenant) => {
+      const key = tenant.userId?._id || `${tenant.phone}-${tenant.cccd || ''}`;
+
+      const existing = uniqueTenants.get(key);
+      if (!existing) {
+        uniqueTenants.set(key, tenant);
+      } else {
+        // Compare createdAt dates - keep the newer one
+        const existingDate = new Date(existing.createdAt || 0);
+        const currentDate = new Date(tenant.createdAt || 0);
+
+        if (currentDate > existingDate) {
+          uniqueTenants.set(key, tenant);
+        }
+      }
+    });
+
+    return Array.from(uniqueTenants.values());
   }, [tenants, debouncedSearchTerm]);
 
   const getStatusBadge = (status: string) => {
