@@ -10,13 +10,13 @@ import type {
   RoomListResponse,
 } from '@/types/room';
 
-export const useGetRoomsQueries = (
+export const useGetRoomsQueries = ({
   page = 1,
   limit = 10,
   search = '',
   status = '',
   isEnabled = true,
-) => {
+}) => {
   const handleHttpError = useHandleHttpError();
   return useQuery({
     queryKey: [QueriesKey.rooms, page, limit, search, status],

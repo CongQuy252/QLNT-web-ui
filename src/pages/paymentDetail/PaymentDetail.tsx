@@ -1,16 +1,22 @@
 import { queryClient } from '@/lib/reactQuery';
-import { AlertCircle, Check, Clock } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useGetPaymentByIdQuery } from '@/api/payment';
+import { useGetPaymentByIdQuery, useUpdatePaymentMutation } from '@/api/payment';
 import { useGetRoomByIdQuery } from '@/api/room';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { LocalStorageKey, Path, PaymentStatus, UserRole } from '@/constants/appConstants';
+import {
+  LocalStorageKey,
+  Path,
+  PaymentStatus,
+  QueriesKey,
+  UserRole,
+} from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
-import { formatCurrency, formatDate } from '@/utils/utils';
+import { useToast } from '@/hooks/useToast';
+import { formatCurrency } from '@/utils/utils';
 
 export default function PaymentDetail() {
   const { paymentId } = useParams();
@@ -31,8 +37,28 @@ export default function PaymentDetail() {
     !!getPaymentByIdQuery.data?.tenantId,
   );
 
+  const updatePaymentMutation = useUpdatePaymentMutation();
+  const { success } = useToast();
+
   const handleMarkAsPaid = () => {
-    console.log();
+    if (!paymentId) return;
+
+    updatePaymentMutation.mutate(
+      {
+        id: paymentId,
+        data: {
+          status: PaymentStatus.PAID,
+          paidDate: new Date().toISOString(),
+        },
+      },
+      {
+        onSuccess: () => {
+          success('Đã cập nhật trạng thái thanh toán');
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.payments] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.payment, paymentId] });
+        },
+      },
+    );
   };
 
   const handleLogout = useCallback(() => {
@@ -104,45 +130,6 @@ export default function PaymentDetail() {
     return null;
   }
 
-  const getStatusIcon = (status?: string) => {
-    switch (status) {
-      case 'paid':
-        return <Check className="w-5 h-5 text-green-600" />;
-      case 'pending':
-        return <Clock className="w-5 h-5 text-yellow-600" />;
-      case 'overdue':
-        return <AlertCircle className="w-5 h-5 text-red-600" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-green-50 border-green-200';
-      case 'pending':
-        return 'bg-yellow-50 border-yellow-200';
-      case 'overdue':
-        return 'bg-red-50 border-red-200';
-      default:
-        return 'bg-slate-50 border-slate-200';
-    }
-  };
-
-  const getStatusText = (status?: string) => {
-    switch (status) {
-      case 'paid':
-        return 'Đã thanh toán';
-      case 'pending':
-        return 'Chờ thanh toán';
-      case 'overdue':
-        return 'Quá hạn';
-      default:
-        return 'Không xác định';
-    }
-  };
-
   const invoiceNumber = `INV-${payment?._id.toUpperCase()}`;
   const today = new Date().toLocaleDateString('vi-VN');
 
@@ -176,31 +163,6 @@ export default function PaymentDetail() {
                 <span className="font-semibold text-slate-900">{payment?.month}</span>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Status Badge */}
-        <div
-          className={`flex items-center gap-3 mb-8 p-4 rounded-lg border-2 ${getStatusColor(payment?.status)}`}
-        >
-          {getStatusIcon(payment?.status)}
-          <div>
-            <p className="font-semibold text-slate-900">{getStatusText(payment?.status)}</p>
-            {payment?.status === 'paid' && payment.paidDate && (
-              <p className="text-sm text-slate-600">
-                Thanh toán vào {formatDate(payment.paidDate)}
-              </p>
-            )}
-            {payment?.status === 'overdue' && (
-              <p className="text-sm text-slate-600">
-                Hạn thanh toán: {formatDate(payment.dueDate)}
-              </p>
-            )}
-            {payment?.status === 'pending' && (
-              <p className="text-sm text-slate-600">
-                Hạn thanh toán: {formatDate(payment.dueDate)}
-              </p>
-            )}
           </div>
         </div>
 
