@@ -1,14 +1,16 @@
 import { queryClient } from '@/lib/reactQuery';
 import { ArrowRight, LogOut } from 'lucide-react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useGetBuildingQueries } from '@/api/building';
 import { useGetPaymentByUserId } from '@/api/payment';
 import { useGetRoomByUserIDQuery, useGetRoomsQueries } from '@/api/room';
 import { useUserQuery } from '@/api/user';
+import LockCircleIcon from '@/assets/Icon/LockCircleIcon';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
 import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
@@ -32,13 +34,29 @@ const Home = () => {
   const isMobile = useMobile();
   const { show, hide } = useLoading();
 
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
+  // const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
+  // const getBuildings = useGetBuildingQueries();
+  // const getRooms = useGetRoomsQueries();
+  // const roomTenant = useGetRoomByUserIDQuery(userId, !!userId);
+  // const getPayment = useGetPaymentByUserId(userId, !!userId);
+
   const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
-  const getBuildings = useGetBuildingQueries();
-  const getRooms = useGetRoomsQueries();
-  const roomTenant = useGetRoomByUserIDQuery(userId, !!userId);
-  const getPayment = useGetPaymentByUserId(userId, !!userId);
+
+  const isOwner = user?.role === UserRole.admin;
+
+  const getBuildings = useGetBuildingQueries(!!user && isOwner);
+
+  const getRooms = useGetRoomsQueries({
+    isEnabled: !!user && isOwner,
+  });
+
+  const roomTenant = useGetRoomByUserIDQuery(userId, !!user && !isOwner);
+
+  const getPayment = useGetPaymentByUserId(userId, !!user && !isOwner);
 
   const handleNavigate = (path: string) => navigator(path);
 
@@ -50,10 +68,10 @@ const Home = () => {
 
   useEffect(() => {
     if (
-      isLoading &&
-      getBuildings.isLoading &&
-      getRooms.isLoading &&
-      getPayment.isLoading &&
+      isLoading ||
+      getBuildings.isLoading ||
+      getRooms.isLoading ||
+      getPayment.isLoading ||
       roomTenant.isLoading
     ) {
       show();
@@ -62,25 +80,25 @@ const Home = () => {
     }
   }, [
     isLoading,
-    show,
-    hide,
     getBuildings.isLoading,
     getRooms.isLoading,
     getPayment.isLoading,
     roomTenant.isLoading,
+    show,
+    hide,
   ]);
 
   useEffect(() => {
-    if (!isLoading && (isError || !user)) {
+    if (!isLoading && isError) {
       handleLogout();
     }
-  }, [isLoading, isError, user, handleLogout]);
+  }, [handleLogout, isError, isLoading]);
 
   if (!user) {
     return null;
   }
 
-  const isOwner = user.role === UserRole.admin;
+  // const isOwner = user.role === UserRole.admin;
 
   const navigationItems = isOwner ? ownerListFunctions : tenantListFunctions;
 
@@ -127,16 +145,20 @@ const Home = () => {
               </div>
               <h1 className="text-2xl font-bold text-slate-900">RoomHub</h1>
             </div>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="gap-2 bg-transparent"
-              icon={<LogOut className="w-4 h-4" />}
-            >
-              <div className="flex gap-3 items-center">
-                <div>Đăng xuất</div>
-              </div>
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setIsChangePasswordOpen(true)}
+                variant="outline"
+                className="gap-2 bg-transparent"
+                icon={<LockCircleIcon className="w-4 h-4" />}
+              />
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="gap-2 bg-transparent"
+                icon={<LogOut className="w-4 h-4" />}
+              />
+            </div>
           </div>
         </div>
       </header>
@@ -187,8 +209,8 @@ const Home = () => {
                   key={item.path}
                   className={`w-full group overflow-hidden cursor-pointer ${isLastOdd ? 'md:col-span-2' : ''}`}
                   onClick={() => {
-                    if (!isOwner) {
-                      navigator(`/${Path.payments}/${getPayment.data?._id}`);
+                    if (!isOwner && getPayment.data?._id) {
+                      navigator(`/${Path.payments}/${getPayment.data._id}`);
                     } else {
                       handleNavigate(item.path);
                     }
@@ -217,6 +239,11 @@ const Home = () => {
           </div>
         </div>
       </main>
+
+      <ChangePasswordDialog
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
     </div>
   );
 };

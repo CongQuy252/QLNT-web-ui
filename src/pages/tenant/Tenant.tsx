@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
 import { LiaIdCard } from 'react-icons/lia';
 
-import { useGetTenantQueries } from '@/api/tenant';
+import { useGetTenantQueries, useUpdateTenantMutation } from '@/api/tenant';
+import { useToast } from '@/hooks/useToast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ImageListDialog from '@/components/ui/imageView/ImageListDialog';
@@ -23,6 +24,9 @@ const Tenant = () => {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingTenantId, setEditingTenantId] = useState<string>('');
+  const updateTenantMutation = useUpdateTenantMutation();
+  const { success, error } = useToast();
   const [imageList, setImageList] = useState<string[]>([]);
 
   // Debounce search term
@@ -67,13 +71,37 @@ const Tenant = () => {
   const pagination = getTenantQueries.data?.pagination;
 
   const filteredTenants = useMemo(() => {
-    return tenants.filter((tenant) => {
+    // First filter by search term
+    let filtered = tenants.filter((tenant) => {
       const matchesSearch =
         tenant.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         tenant.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         tenant.phone.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
       return matchesSearch;
     });
+
+    // Remove duplicates: keep only the most recent tenant for each user
+    // Group by userId or by combination of phone + cccd (as fallback)
+    const uniqueTenants = new Map<string, typeof filtered[0]>();
+
+    filtered.forEach((tenant) => {
+      const key = tenant.userId?._id || `${tenant.phone}-${tenant.cccd || ''}`;
+
+      const existing = uniqueTenants.get(key);
+      if (!existing) {
+        uniqueTenants.set(key, tenant);
+      } else {
+        // Compare createdAt dates - keep the newer one
+        const existingDate = new Date(existing.createdAt || 0);
+        const currentDate = new Date(tenant.createdAt || 0);
+
+        if (currentDate > existingDate) {
+          uniqueTenants.set(key, tenant);
+        }
+      }
+    });
+
+    return Array.from(uniqueTenants.values());
   }, [tenants, debouncedSearchTerm]);
 
   const getStatusBadge = (status: string) => {
@@ -84,10 +112,35 @@ const Tenant = () => {
     return status === 'active' ? 'Đang ở' : 'Đã trả phòng';
   };
 
-  const handleSaveEditTenant = () => {
-    if (!editingTenant) return;
-    console.log('Edited');
-    setIsEditOpen(false);
+  const handleSaveEditTenant = (data: UpdateTenantRequest) => {
+    if (!editingTenantId) {
+      error('Không tìm thấy ID người thuê');
+      return;
+    }
+
+    updateTenantMutation.mutate(
+      {
+        id: editingTenantId,
+        data: {
+          name: data.name,
+          phone: data.phone,
+          cccd: data.cccd,
+        },
+      },
+      {
+        onSuccess: () => {
+          success('Cập nhật người thuê thành công');
+          setIsEditOpen(false);
+          setEditingTenant(undefined);
+          setEditingTenantId('');
+          // Refresh tenant list
+          getTenantQueries.refetch();
+        },
+        onError: () => {
+          error('Có lỗi xảy ra khi cập nhật người thuê');
+        },
+      },
+    );
   };
 
   const handleOpenImageViewer = (cccd: { front: string; back: string }) => {
@@ -219,6 +272,7 @@ const Tenant = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => {
+                        setEditingTenantId(tenant.id);
                         setEditingTenant({
                           name: tenant.name || '',
                           phone: tenant.phone || '',
@@ -286,6 +340,7 @@ const Tenant = () => {
           onClose={() => {
             setIsEditOpen(false);
             setEditingTenant(undefined);
+            setEditingTenantId('');
           }}
         />
       )}

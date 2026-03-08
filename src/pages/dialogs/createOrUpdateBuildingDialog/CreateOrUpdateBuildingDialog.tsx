@@ -231,7 +231,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
               <Label htmlFor="address" className="text-sm font-medium text-slate-700" isRequired>
                 Địa Chỉ
               </Label>
-              <Input {...register('address')} placeholder="Địa chỉ tòa nhà" className="mt-1" />
+              <Input {...register('address')} className="mt-1" />
               {errors.address && <p className="text-xs text-red-500">{errors.address.message}</p>}
             </div>
 
@@ -329,12 +329,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   <Label htmlFor="floors" className="text-sm font-medium text-slate-700" isRequired>
                     Số Tầng
                   </Label>
-                  <Input
-                    type="number"
-                    {...register('totalFloors')}
-                    placeholder="5"
-                    className="mt-1"
-                  />
+                  <Input type="number" {...register('totalFloors')} className="mt-1" />
                   {errors.totalFloors && (
                     <p className="text-xs text-red-500">{errors.totalFloors.message}</p>
                   )}
@@ -343,12 +338,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   <Label htmlFor="rooms" className="text-sm font-medium text-slate-700" isRequired>
                     Số Phòng
                   </Label>
-                  <Input
-                    type="number"
-                    {...register('totalRooms')}
-                    placeholder="20"
-                    className="mt-1"
-                  />
+                  <Input type="number" {...register('totalRooms')} className="mt-1" />
                   {errors.totalRooms && (
                     <p className="text-xs text-red-500">{errors.totalRooms.message}</p>
                   )}
@@ -357,12 +347,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   <Label htmlFor="year" className="text-sm font-medium text-slate-700">
                     Năm Xây
                   </Label>
-                  <Input
-                    type="number"
-                    {...register('yearBuilt')}
-                    placeholder="2025"
-                    className="mt-1"
-                  />
+                  <Input type="number" {...register('yearBuilt')} className="mt-1" />
                   {errors.yearBuilt && (
                     <p className="text-xs text-red-500">{errors.yearBuilt.message}</p>
                   )}
@@ -373,8 +358,10 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
             {/* Default Room Pricing Section */}
             {!building && (
               <div className="border-t pt-4">
-                <h3 className="text-sm font-medium text-slate-700 mb-3">Giá Phòng Mặc Định</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <h3 className="text-sm font-medium text-slate-700 mb-3">
+                  Thông tin chi tiết phí của các phòng trong toà nhà
+                </h3>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
                   <div>
                     <Label
                       htmlFor="defaultRoomPrice"
@@ -388,12 +375,11 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       value={formatNumber((watch('defaultRoomPrice') as number) ?? '')}
                       onChange={(e) => {
                         const rawValue = parseNumber(e.target.value);
-                        if (/^\d*$/.test(rawValue)) {
-                          setValue('defaultRoomPrice', rawValue ? Number(rawValue) : undefined, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                        }
+
+                        setValue('defaultRoomPrice', rawValue, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
                       }}
                       className="mt-1"
                     />
@@ -414,16 +400,15 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       value={formatNumber((watch('defaultElectricityUnitPrice') as number) ?? '')}
                       onChange={(e) => {
                         const rawValue = parseNumber(e.target.value);
-                        if (/^\d*$/.test(rawValue)) {
-                          setValue(
-                            'defaultElectricityUnitPrice',
-                            rawValue ? Number(rawValue) : undefined,
-                            {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            },
-                          );
-                        }
+
+                        setValue(
+                          'defaultElectricityUnitPrice',
+                          rawValue ? Number(rawValue) : undefined,
+                          {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          },
+                        );
                       }}
                       className="mt-1"
                     />
@@ -446,16 +431,11 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       value={formatNumber((watch('defaultWaterUnitPrice') as number) ?? '')}
                       onChange={(e) => {
                         const rawValue = parseNumber(e.target.value);
-                        if (/^\d*$/.test(rawValue)) {
-                          setValue(
-                            'defaultWaterUnitPrice',
-                            rawValue ? Number(rawValue) : undefined,
-                            {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            },
-                          );
-                        }
+
+                        setValue('defaultWaterUnitPrice', rawValue ? Number(rawValue) : undefined, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
                       }}
                       className="mt-1"
                     />
@@ -476,12 +456,11 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       value={formatNumber((watch('defaultInternetFee') as number) ?? '')}
                       onChange={(e) => {
                         const rawValue = parseNumber(e.target.value);
-                        if (/^\d*$/.test(rawValue)) {
-                          setValue('defaultInternetFee', rawValue ? Number(rawValue) : undefined, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                        }
+
+                        setValue('defaultInternetFee', rawValue ? Number(rawValue) : undefined, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
                       }}
                       className="mt-1"
                     />
@@ -502,12 +481,11 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       value={formatNumber((watch('defaultParkingFee') as number) ?? '')}
                       onChange={(e) => {
                         const rawValue = parseNumber(e.target.value);
-                        if (/^\d*$/.test(rawValue)) {
-                          setValue('defaultParkingFee', rawValue ? Number(rawValue) : undefined, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                        }
+
+                        setValue('defaultParkingFee', rawValue ? Number(rawValue) : undefined, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
                       }}
                       className="mt-1"
                     />
@@ -528,12 +506,11 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       value={formatNumber((watch('defaultServiceFee') as number) ?? '')}
                       onChange={(e) => {
                         const rawValue = parseNumber(e.target.value);
-                        if (/^\d*$/.test(rawValue)) {
-                          setValue('defaultServiceFee', rawValue ? Number(rawValue) : undefined, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                        }
+
+                        setValue('defaultServiceFee', rawValue ? Number(rawValue) : undefined, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
                       }}
                       className="mt-1"
                     />
