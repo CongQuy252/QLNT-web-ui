@@ -61,7 +61,6 @@ const Rooms = () => {
     setSelectedUser,
     openAddTenant,
     setopenAddTenant,
-    totalFloors,
     setConfirmOpen,
     handleConfirmDelete,
     handleAskDeleteRoom,
@@ -80,7 +79,7 @@ const Rooms = () => {
           <p className="text-slate-600 mt-2">{`Tổng cộng ${totalItems} phòng`}</p>
         </div>
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col max-h-[90vh]">
+          <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col max-h-screen">
             <DialogHeader className="shrink-0">
               <DialogTitle>Chỉnh sửa phòng {editRoom?.number}</DialogTitle>
             </DialogHeader>
@@ -92,26 +91,6 @@ const Rooms = () => {
                   value={editRoom?.number || ''}
                   onChange={(e) => editRoom && setEditRoom({ ...editRoom, number: e.target.value })}
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Tầng</label>
-                  <select
-                    value={editRoom?.floor || 1}
-                    onChange={(e) =>
-                      editRoom && setEditRoom({ ...editRoom, floor: Number(e.target.value) })
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    aria-label="Tầng"
-                  >
-                    {Array.from({ length: totalFloors }, (_, i) => i + 1).map((f) => (
-                      <option key={f} value={f}>
-                        Tầng {f}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -363,7 +342,7 @@ const Rooms = () => {
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold text-slate-900">{room.number}</h3>
                       <p className="text-sm text-slate-600">
-                        Tòa {room.buildingId} - Tầng {room.floor}
+                        Tòa {room.buildingName || room.buildingId} - Tầng {room.floor}
                       </p>
                     </div>
                   </div>

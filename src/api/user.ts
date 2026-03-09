@@ -65,3 +65,15 @@ export const useCreateUserMutation = () => {
     onError: handleHttpError,
   });
 };
+
+export const useChangePasswordMutation = () => {
+  const handleHttpError = useHandleHttpError();
+
+  return useMutation({
+    mutationFn: async (data: { oldPassword: string; newPassword: string }) => {
+      const response = await http.put('/auth/change-password', data);
+      return response.data;
+    },
+    onError: handleHttpError,
+  });
+};
