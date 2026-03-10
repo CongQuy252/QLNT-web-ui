@@ -98,11 +98,14 @@ const CreateOrUpdateTenant: React.FC<CreateOrUpdateTenantProps> = ({ isOpen, onC
     }
     await createUserMutation.mutateAsync(formData, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
+        // queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
         hide();
         onClose();
       },
       onSettled: hide,
+    });
+    queryClient.invalidateQueries({
+      queryKey: [QueriesKey.users],
     });
     form.reset();
   };
