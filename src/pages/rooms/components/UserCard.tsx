@@ -3,13 +3,7 @@ import { useEffect } from 'react';
 
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLoading } from '@/hooks/useLoading';
 
 interface UserCardProps {
