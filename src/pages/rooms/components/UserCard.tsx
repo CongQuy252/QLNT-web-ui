@@ -100,11 +100,7 @@ export function UserCard({ userId, open, onClose, variant = 'card' }: UserCardPr
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="w-screen h-screen max-w-none rounded-none p-6 sm:h-auto sm:max-w-2xl sm:rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-lg md:text-xl">Chứng Minh Nhân Dân</DialogTitle>
-
-            <DialogDescription className="text-xs md:text-sm">
-              Thông tin xác thực của {userQuery.data?.name}
-            </DialogDescription>
+            <DialogTitle className="text-lg md:text-xl">Thông tin người thuê</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-5 py-4">
@@ -125,11 +121,7 @@ export function UserCard({ userId, open, onClose, variant = 'card' }: UserCardPr
   return (
     <div className="w-full max-w-5xl mx-auto p-4 md:p-6 space-y-6 border rounded-2xl shadow-lg bg-card">
       <div className="text-center space-y-1">
-        <h2 className="text-xl md:text-3xl font-bold">Chứng Minh Nhân Dân</h2>
-
-        <p className="text-muted-foreground text-xs md:text-sm">
-          Thông tin xác thực của {userQuery.data?.name}
-        </p>
+        <h2 className="text-xl md:text-3xl font-bold">Thông tin người thuê</h2>
       </div>
 
       <Info />
