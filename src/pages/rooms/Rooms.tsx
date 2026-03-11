@@ -1,6 +1,6 @@
 import { queryClient } from '@/lib/reactQuery';
 import { Edit, Home, Trash2 } from 'lucide-react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
 
 import { useUpdateUserMutation } from '@/api/user';
