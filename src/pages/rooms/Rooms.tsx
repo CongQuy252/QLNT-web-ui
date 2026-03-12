@@ -416,7 +416,7 @@ const Rooms = () => {
                   <div className="flex flex-col gap-4 h-full">
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <h3 className="text-xl font-bold text-slate-900 break-all">
+                        <h3 className="text-xl font-bold text-slate-900 break-normal">
                           {room.number}
                         </h3>
                         <p className="text-sm text-slate-600">
