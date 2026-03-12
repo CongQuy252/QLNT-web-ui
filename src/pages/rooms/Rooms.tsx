@@ -416,7 +416,9 @@ const Rooms = () => {
                   <div className="flex flex-col gap-4 h-full">
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <h3 className="text-xl font-bold text-slate-900">{room.number}</h3>
+                        <h3 className="text-xl font-bold text-slate-900 break-all">
+                          {room.number}
+                        </h3>
                         <p className="text-sm text-slate-600">
                           Tòa {room.buildingName || room.buildingId} - Tầng {room.floor}
                         </p>
@@ -477,14 +479,20 @@ const Rooms = () => {
                               />
                             </div>
                           </div>
-                          <p className="font-semibold text-slate-900">{tenant.name}</p>
-                          <p className="text-xs text-slate-600 mt-1">{tenant.email}</p>{' '}
+                          <p className="font-semibold text-slate-900 text-ellipsis">
+                            {tenant.name}
+                          </p>
+                          <p className="text-xs text-slate-600 mt-1 text-ellipsis">
+                            {tenant.email}
+                          </p>{' '}
                         </div>
                       )}
                     </div>
 
                     {room.description && (
-                      <p className="text-sm text-slate-600 italic">"{room.description}"</p>
+                      <p className="text-sm text-slate-600 italic break-all">
+                        "{room.description}"
+                      </p>
                     )}
 
                     <div className="flex gap-2 pt-4 border-t border-slate-200">
