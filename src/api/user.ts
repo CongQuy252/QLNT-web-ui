@@ -77,3 +77,20 @@ export const useChangePasswordMutation = () => {
     onError: handleHttpError,
   });
 };
+
+export const useUpdateUserMutation = () => {
+  const handleHttpError = useHandleHttpError();
+
+  return useMutation({
+    mutationFn: async (req: { userId: string; data: FormData }) => {
+      const { userId, data } = req;
+      const response = await http.put(`/users/${userId}`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onError: handleHttpError,
+  });
+};

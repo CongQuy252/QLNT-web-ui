@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { QueriesKey, TenantStatus } from '@/constants/appConstants';
@@ -13,34 +14,34 @@ export interface GetAllTenantsParams {
   limit?: number;
 }
 
-export const useGetTenantQueries = (params?: GetAllTenantsParams, enable?: boolean) => {
+export const useGetTenantQueries = (params?: GetAllTenantsParams, enable = true) => {
   const handleHttpError = useHandleHttpError();
 
   return useQuery({
     queryKey: [QueriesKey.users, params],
     queryFn: async () => {
       const queryParams = new URLSearchParams();
-      
+
       if (params?.status && params.status !== TenantStatus.all) {
         queryParams.append('status', params.status);
       }
-      
+
       if (params?.userId) {
         queryParams.append('userId', params.userId);
       }
-      
+
       if (params?.roomId) {
         queryParams.append('roomId', params.roomId);
       }
-      
+
       if (params?.page) {
         queryParams.append('page', params.page.toString());
       }
-      
+
       if (params?.limit) {
         queryParams.append('limit', params.limit.toString());
       }
-      
+
       const url = queryParams.toString() ? `/tenants?${queryParams.toString()}` : '/tenants';
       const response = await http.get<GetTenantListResponse>(url);
       return response.data;
