@@ -38,9 +38,7 @@ export const useBuildings = () => {
   }, [getBuildingQueries.data?.data]);
 
   const handleNewBuilding = () => {
-    setIsEditMode(false);
-    setEditingBuilding(undefined);
-    setIsOpen(true);
+    navigator('/buildings/create');
   };
 
   const handleEditBuilding = (building: Building) => {

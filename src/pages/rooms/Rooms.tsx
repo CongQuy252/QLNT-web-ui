@@ -342,7 +342,7 @@ const Rooms = () => {
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold text-slate-900">{room.number}</h3>
                       <p className="text-sm text-slate-600">
-                        Tòa {room.buildingName || room.buildingId} - Tầng {room.floor}
+                        Tòa {room.buildingName || room.buildingId}
                       </p>
                     </div>
                   </div>

@@ -67,9 +67,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
       address: '',
       city: '',
       district: '',
-      totalFloors: undefined,
       totalRooms: undefined,
-      yearBuilt: undefined,
       description: '',
       defaultRoomPrice: undefined,
       defaultElectricityUnitPrice: undefined,
@@ -101,9 +99,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         address: '',
         city: '',
         district: '',
-        totalFloors: undefined,
         totalRooms: undefined,
-        yearBuilt: undefined,
         description: '',
         defaultRoomPrice: undefined,
         defaultElectricityUnitPrice: undefined,
@@ -126,9 +122,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         address: building.address || '',
         city: cityCode,
         district: '', // Will be set by another useEffect after districts load
-        totalFloors: building.totalFloors,
         totalRooms: building.totalRooms,
-        yearBuilt: building.yearBuilt,
         description: building.description || '',
         defaultRoomPrice: building.defaultRoomPrice,
         defaultElectricityUnitPrice: building.defaultElectricityUnitPrice,
@@ -325,30 +319,12 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
             {!building && (
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="floors" className="text-sm font-medium text-slate-700" isRequired>
-                    Số Tầng
-                  </Label>
-                  <Input type="number" {...register('totalFloors')} className="mt-1" />
-                  {errors.totalFloors && (
-                    <p className="text-xs text-red-500">{errors.totalFloors.message}</p>
-                  )}
-                </div>
-                <div>
                   <Label htmlFor="rooms" className="text-sm font-medium text-slate-700" isRequired>
                     Số Phòng
                   </Label>
                   <Input type="number" {...register('totalRooms')} className="mt-1" />
                   {errors.totalRooms && (
                     <p className="text-xs text-red-500">{errors.totalRooms.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="year" className="text-sm font-medium text-slate-700">
-                    Năm Xây
-                  </Label>
-                  <Input type="number" {...register('yearBuilt')} className="mt-1" />
-                  {errors.yearBuilt && (
-                    <p className="text-xs text-red-500">{errors.yearBuilt.message}</p>
                   )}
                 </div>
               </div>
