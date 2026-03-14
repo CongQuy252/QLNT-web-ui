@@ -1,6 +1,9 @@
+import { queryClient } from '@/lib/reactQuery';
 import { Edit, Home, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
 
+import { useUpdateUserMutation } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
@@ -16,17 +19,22 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ToastContainer } from '@/components/ui/toast/Toast';
+import { QueriesKey } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
 import { useToast } from '@/hooks/useToast';
+import EditTenantDialog from '@/pages/rooms/components/EditTenantDialog';
+import { UserCard } from '@/pages/rooms/components/UserCard';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
 import { useRooms } from '@/pages/rooms/useRooms';
 import { ROOMSTATUS } from '@/types/room';
 import type { Room } from '@/types/room';
-import { formatCurrency } from '@/utils/utils';
+import type { UpdateTenantRequest } from '@/types/user';
+import { formatCurrency, formatNumber, parseNumber } from '@/utils/utils';
 
 const Rooms = () => {
   const isMobile = useMobile();
-  const { toasts } = useToast();
+  const { success, error: errorToast, toasts } = useToast();
+  const updateTenantMutation = useUpdateUserMutation();
   const {
     totalItems,
     isLoading,
@@ -71,6 +79,68 @@ const Rooms = () => {
     assignTenantMutation,
   } = useRooms();
 
+  const [isOpenEditTenant, setIsOpenEditTenant] = useState(false);
+  const [tenantEditing, setTenantEditing] = useState<string>('');
+  const [isOpenViewTenant, setIsOpenViewTenant] = useState(false);
+  const [tenantUserId, setTenantUserId] = useState<string>('');
+  /*
+  Thực hiện update tenant với tenant id
+*/
+
+  const handleClickEditTenantButton = (userId?: string) => {
+    if (!userId) {
+      return;
+    }
+
+    setTenantEditing(userId);
+    setIsOpenEditTenant(true);
+  };
+
+  const handleSaveEditTenant = (data: UpdateTenantRequest) => {
+    if (!tenantEditing) {
+      errorToast('Không tìm thấy ID người thuê');
+      return;
+    }
+
+    const formData = new FormData();
+    if (data.name) formData.append('name', data.name);
+    if (data.phone) formData.append('phone', data.phone);
+    if (data.cccd) formData.append('cccd', data.cccd);
+
+    if (data.cccdImagesFront && data.cccdImagesFront instanceof File) {
+      formData.append('cccdFront', data.cccdImagesFront);
+    }
+
+    if (data.cccdImagesBack && data.cccdImagesBack instanceof File) {
+      formData.append('cccdBack', data.cccdImagesBack);
+    }
+
+    updateTenantMutation.mutate(
+      {
+        userId: tenantEditing,
+        data: formData,
+      },
+      {
+        onSuccess: () => {
+          success('Cập nhật người thuê thành công');
+          setIsOpenEditTenant(false);
+          setTenantEditing('');
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.user] });
+        },
+        onError: () => {
+          errorToast('Có lỗi xảy ra khi cập nhật người thuê');
+        },
+      },
+    );
+  };
+
+  const handleClickViewTenant = (userId: string) => {
+    setIsOpenViewTenant(true);
+    setTenantUserId(userId);
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between">
@@ -79,129 +149,18 @@ const Rooms = () => {
           <p className="text-slate-600 mt-2">{`Tổng cộng ${totalItems} phòng`}</p>
         </div>
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg top-0 translate-y-0 flex flex-col max-h-screen">
+          <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-lg sm:rounded-lg flex flex-col max-h-screen">
             <DialogHeader className="shrink-0">
               <DialogTitle>Chỉnh sửa phòng {editRoom?.number}</DialogTitle>
             </DialogHeader>
             <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Số phòng</label>
+                <Label className="text-sm font-medium text-slate-700">Tên phòng</Label>
                 <Input
                   placeholder="VD: 101, 102..."
                   value={editRoom?.number || ''}
                   onChange={(e) => editRoom && setEditRoom({ ...editRoom, number: e.target.value })}
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Diện tích (m²)</label>
-                  <Input
-                    type="number"
-                    min="5"
-                    max="100"
-                    value={editRoom?.area || 0}
-                    onChange={(e) =>
-                      editRoom && setEditRoom({ ...editRoom, area: Number(e.target.value) })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Giá thuê/tháng</label>
-                  <Input
-                    type="number"
-                    min="100000"
-                    step="100000"
-                    value={editRoom?.price || 0}
-                    onChange={(e) =>
-                      editRoom && setEditRoom({ ...editRoom, price: Number(e.target.value) })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Pricing Section */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-slate-800 border-b pb-2">
-                  Cấu hình giá dịch vụ
-                </h4>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Giá điện (VNĐ/kWh)</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="100"
-                      value={editRoom?.electricityUnitPrice || 0}
-                      onChange={(e) =>
-                        editRoom &&
-                        setEditRoom({ ...editRoom, electricityUnitPrice: Number(e.target.value) })
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Giá nước (VNĐ/m³)</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="1000"
-                      value={editRoom?.waterUnitPrice || 0}
-                      onChange={(e) =>
-                        editRoom &&
-                        setEditRoom({ ...editRoom, waterUnitPrice: Number(e.target.value) })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">
-                      Internet (VNĐ/tháng)
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="10000"
-                      value={editRoom?.internetFee || 0}
-                      onChange={(e) =>
-                        editRoom &&
-                        setEditRoom({ ...editRoom, internetFee: Number(e.target.value) })
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Gửi xe (VNĐ/tháng)</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="10000"
-                      value={editRoom?.parkingFee || 0}
-                      onChange={(e) =>
-                        editRoom && setEditRoom({ ...editRoom, parkingFee: Number(e.target.value) })
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">
-                      Dịch vụ (VNĐ/tháng)
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="10000"
-                      value={editRoom?.serviceFee || 0}
-                      onChange={(e) =>
-                        editRoom && setEditRoom({ ...editRoom, serviceFee: Number(e.target.value) })
-                      }
-                    />
-                  </div>
-                </div>
               </div>
 
               <div className="space-y-2">
@@ -218,9 +177,11 @@ const Rooms = () => {
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value={ROOMSTATUS.AVAILABLE}>
-                      {getStatusLabel(ROOMSTATUS.AVAILABLE)}
-                    </SelectItem>
+                    {!editRoom?.currentTenant && (
+                      <SelectItem value={ROOMSTATUS.AVAILABLE}>
+                        {getStatusLabel(ROOMSTATUS.AVAILABLE)}
+                      </SelectItem>
+                    )}
 
                     <SelectItem value={ROOMSTATUS.MAINTENANCE}>
                       {getStatusLabel(ROOMSTATUS.MAINTENANCE)}
@@ -231,6 +192,116 @@ const Rooms = () => {
                     </SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">Diện tích (m²)</Label>
+                  <Input
+                    type="number"
+                    min="5"
+                    max="100"
+                    value={editRoom?.area || 0}
+                    onChange={(e) =>
+                      editRoom && setEditRoom({ ...editRoom, area: Number(e.target.value) })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">Giá phòng</Label>
+                  <Input
+                    type="text"
+                    value={formatNumber(editRoom?.price || 0)}
+                    onChange={(e) =>
+                      editRoom &&
+                      setEditRoom({ ...editRoom, price: parseNumber(e.target.value) ?? 0 })
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Pricing Section */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-slate-800 border-b pb-2">
+                  Cấu hình giá dịch vụ
+                </h4>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-700">Giá điện (VNĐ/kWh)</Label>
+                    <Input
+                      type="text"
+                      value={formatNumber(editRoom?.electricityUnitPrice || 0)}
+                      onChange={(e) =>
+                        editRoom &&
+                        setEditRoom({
+                          ...editRoom,
+                          electricityUnitPrice: parseNumber(e.target.value) ?? 0,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-700">Giá nước (VNĐ/m³)</Label>
+                    <Input
+                      type="text"
+                      value={formatNumber(editRoom?.waterUnitPrice || 0)}
+                      onChange={(e) =>
+                        editRoom &&
+                        setEditRoom({
+                          ...editRoom,
+                          waterUnitPrice: parseNumber(e.target.value) ?? 0,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-700">
+                      Internet (VNĐ/tháng)
+                    </Label>
+                    <Input
+                      type="text"
+                      value={formatNumber(editRoom?.internetFee || 0)}
+                      onChange={(e) =>
+                        editRoom &&
+                        setEditRoom({ ...editRoom, internetFee: parseNumber(e.target.value) })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-700">
+                      Gửi xe &nbsp; (VNĐ/tháng)
+                    </Label>
+                    <Input
+                      type="text"
+                      value={formatNumber(editRoom?.parkingFee || 0)}
+                      onChange={(e) =>
+                        editRoom &&
+                        setEditRoom({ ...editRoom, parkingFee: parseNumber(e.target.value) })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-700">
+                      Dịch vụ (VNĐ/tháng)
+                    </Label>
+                    <Input
+                      type="text"
+                      value={formatNumber(editRoom?.serviceFee || 0)}
+                      onChange={(e) =>
+                        editRoom &&
+                        setEditRoom({ ...editRoom, serviceFee: parseNumber(e.target.value) })
+                      }
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -316,24 +387,29 @@ const Rooms = () => {
         </div>
       </div>
 
-      {/* Room Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto flex-1">
-        {isLoading && (
-          <div className="col-span-full flex justify-center py-8">
-            <div className="text-slate-600">Đang tải danh sách phòng...</div>
-          </div>
-        )}
+      {!isLoading && !error && filteredRooms.length === 0 ? (
+        <Card className="p-12 bg-white text-center h-screen grid place-content-center">
+          <Home className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+          <p className="text-slate-600">Không tìm thấy phòng nào phù hợp</p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto">
+          {isLoading && (
+            <div className="col-span-full flex justify-center py-8">
+              <div className="text-slate-600">Đang tải danh sách phòng...</div>
+            </div>
+          )}
 
-        {error && (
-          <div className="col-span-full flex justify-center py-8">
-            <div className="text-red-600">Có lỗi xảy ra khi tải danh sách phòng</div>
-          </div>
-        )}
+          {error && (
+            <div className="col-span-full flex justify-center py-8">
+              <div className="text-red-600">Có lỗi xảy ra khi tải danh sách phòng</div>
+            </div>
+          )}
 
-        {!isLoading &&
-          !error &&
-          filteredRooms.map((room: Room) => {
-            const tenant = room.currentTenant ? room.currentTenant : undefined;
+          {!isLoading &&
+            !error &&
+            filteredRooms.map((room: Room) => {
+              const tenant = room.currentTenant ? room.currentTenant : undefined;
 
             return (
               <Card key={room._id} className="p-6 bg-white hover:shadow-lg transition-shadow">
@@ -345,90 +421,116 @@ const Rooms = () => {
                         Tòa {room.buildingName || room.buildingId}
                       </p>
                     </div>
-                  </div>
 
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Diện tích:</span>
-                      <span className="font-semibold text-slate-900">{room.area} m²</span>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Diện tích:</span>
+                        <span className="font-semibold text-slate-900">{room.area} m²</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Giá thuê:</span>
+                        <span className="font-semibold text-slate-900">
+                          {formatCurrency(room.price)}/tháng
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Giá thuê:</span>
-                      <span className="font-semibold text-slate-900">
-                        {formatCurrency(room.price)}/tháng
+
+                    <div>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                      ${getStatusBadge(room.status)}`}
+                      >
+                        {getStatusLabel(room.status)}
                       </span>
                     </div>
-                  </div>
 
-                  <div>
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
-                      ${getStatusBadge(room.status)}`}
-                    >
-                      {getStatusLabel(room.status)}
-                    </span>
-                  </div>
-
-                  {tenant && room.status === ROOMSTATUS.OCCUPIED && (
-                    <div className="p-3 bg-slate-50 rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="text-xs text-slate-600">Người thuê hiện tại</p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleRemoveTenant(room)}
-                          disabled={removeTenantMutation.isPending}
+                    <div className={`p-3 ${tenant ? 'bg-slate-50' : 'flex-1'} rounded-lg`}>
+                      {tenant && room.status === ROOMSTATUS.OCCUPIED && (
+                        <div
+                          onClick={() => handleClickViewTenant(tenant._id)}
+                          className="cursor-pointer"
                         >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                      <p className="font-semibold text-slate-900">{tenant.name}</p>
-                      <p className="text-xs text-slate-600 mt-1">{tenant.email}</p>
+                          <div className="flex justify-between items-start mb-2">
+                            <p className="text-xs text-slate-600">Người thuê hiện tại</p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-gray-600 hover:text-gray-700 hover:bg-red-50"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleClickEditTenantButton(room.currentTenant?._id);
+                                }}
+                                icon={<Edit className="w-3 h-3" />}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveTenant(room);
+                                }}
+                                disabled={removeTenantMutation.isPending}
+                                icon={<Trash2 className="w-3 h-3" />}
+                              />
+                            </div>
+                          </div>
+                          <p className="font-semibold text-slate-900 text-ellipsis">
+                            {tenant.name}
+                          </p>
+                          <p className="text-xs text-slate-600 mt-1 text-ellipsis">
+                            {tenant.email}
+                          </p>{' '}
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  {room.description && (
-                    <p className="text-sm text-slate-600 italic">"{room.description}"</p>
-                  )}
+                    {room.description && (
+                      <p className="text-sm text-slate-600 italic break-all">
+                        "{room.description}"
+                      </p>
+                    )}
 
-                  <div className="flex gap-2 pt-4 border-t border-slate-200">
-                    {room.status === ROOMSTATUS.AVAILABLE && (
+                    <div className="flex gap-2 pt-4 border-t border-slate-200">
+                      {room.status === ROOMSTATUS.AVAILABLE && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-2 text-slate-700 border-slate-300 bg-transparent"
+                          icon={<FaUserPlus className="w-4 h-4" />}
+                          onClick={() => handleOpenAddTenant(room)}
+                        />
+                      )}
+
                       <Button
                         variant="outline"
                         size="sm"
                         className="flex-1 gap-2 text-slate-700 border-slate-300 bg-transparent"
-                        icon={<FaUserPlus className="w-4 h-4" />}
-                        onClick={() => handleOpenAddTenant(room)}
+                        icon={<Edit className="w-4 h-4" />}
+                        onClick={() => handleEditRoom(room)}
                       />
-                    )}
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 gap-2 text-slate-700 border-slate-300 bg-transparent"
-                      icon={<Edit className="w-4 h-4" />}
-                      onClick={() => handleEditRoom(room)}
-                    />
-
-                    {room.status !== ROOMSTATUS.OCCUPIED && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 gap-2 text-red-600 border-red-300 hover:bg-red-50 bg-transparent"
-                        icon={<Trash2 className="h-4 w-4" />}
-                        onClick={() => {
-                          handleAskDeleteRoom(room);
-                        }}
-                        disabled={false}
-                      />
-                    )}
+                      {room.status !== ROOMSTATUS.OCCUPIED && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-2 text-red-600 border-red-300 hover:bg-red-50 bg-transparent"
+                          icon={<Trash2 className="h-4 w-4" />}
+                          onClick={() => {
+                            handleAskDeleteRoom(room);
+                          }}
+                          disabled={false}
+                        />
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Card>
-            );
-          })}
-      </div>
+                  </div>
+                </Card>
+              );
+            })}
+        </div>
+      )}
 
       {/* Dialog add tenant - global */}
       <Dialog open={openAddTenant} onOpenChange={setopenAddTenant}>
@@ -520,13 +622,6 @@ const Rooms = () => {
         </DialogContent>
       </Dialog>
 
-      {!isLoading && !error && filteredRooms.length === 0 && (
-        <Card className="p-12 bg-white text-center">
-          <Home className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-600">Không tìm thấy phòng nào phù hợp</p>
-        </Card>
-      )}
-
       {/* Pagination */}
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between mt-3">
@@ -566,6 +661,24 @@ const Rooms = () => {
           onConfirm={handleConfirmDelete}
           onCancel={() => setConfirmOpen(false)}
           loading={deleteRoomMutation.isPending}
+        />
+      )}
+
+      {tenantEditing && (
+        <EditTenantDialog
+          open={isOpenEditTenant}
+          onOpenChange={setIsOpenEditTenant}
+          userId={tenantEditing}
+          onSubmit={handleSaveEditTenant}
+        />
+      )}
+
+      {isOpenViewTenant && (
+        <UserCard
+          userId={tenantUserId}
+          variant="dialog"
+          open={isOpenViewTenant}
+          onClose={() => setIsOpenViewTenant(false)}
         />
       )}
 

@@ -67,19 +67,30 @@ export function FileUploadField<T extends FieldValues>({ label, field }: FileUpl
       <FormLabel>{label}</FormLabel>
 
       <FormControl>
-        <div className="space-y-3">
+        <div className="space-y-3 mt-1">
           {/* preview ảnh */}
           {previewUrl && (
-            <img src={previewUrl} alt="preview" className="h-28 rounded-lg border object-cover" />
+            <img
+              src={previewUrl}
+              alt="preview"
+              className="w-[166.26px] h-25 rounded-lg border object-contain"
+            />
           )}
 
           {/* chọn file */}
           <div className="flex flex-col items-baseline gap-3">
-            <Button type="button" variant="outline" onClick={() => inputRef.current?.click()}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => inputRef.current?.click()}
+              className="w-[166.26px]"
+            >
               <MdOutlineFileUpload className="w-4 h-4" />
             </Button>
 
-            <span className="text-sm text-muted-foreground">{fileName || 'Chưa chọn file'}</span>
+            <span className="w-[166.26px] text-sm text-muted-foreground break-all">
+              {fileName || 'Chưa chọn file'}
+            </span>
           </div>
 
           <input

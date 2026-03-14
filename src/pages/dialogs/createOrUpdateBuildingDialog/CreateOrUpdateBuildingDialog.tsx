@@ -31,6 +31,7 @@ import {
   buildingSchema,
 } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
 import type { Province, Ward } from '@/types/address';
+import { formatNumber, parseNumber } from '@/utils/utils';
 
 interface CreateOrUpdateBuildingDialogProps {
   isOpen: boolean;
@@ -344,7 +345,20 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     >
                       Giá Phòng (VNĐ/tháng)
                     </Label>
-                    <Input type="number" {...register('defaultRoomPrice')} className="mt-1" />
+                    <Input
+                      type="text"
+                      name="defaultRoomPrice"
+                      value={formatNumber((watch('defaultRoomPrice') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+
+                        setValue('defaultRoomPrice', rawValue, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
+                      className="mt-1"
+                    />
                     {errors.defaultRoomPrice && (
                       <p className="text-xs text-red-500">{errors.defaultRoomPrice.message}</p>
                     )}
@@ -357,8 +371,21 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                       Giá Điện (VNĐ/kWh)
                     </Label>
                     <Input
-                      type="number"
-                      {...register('defaultElectricityUnitPrice')}
+                      type="text"
+                      name="defaultElectricityUnitPrice"
+                      value={formatNumber((watch('defaultElectricityUnitPrice') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+
+                        setValue(
+                          'defaultElectricityUnitPrice',
+                          rawValue ? Number(rawValue) : undefined,
+                          {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          },
+                        );
+                      }}
                       className="mt-1"
                     />
                     {errors.defaultElectricityUnitPrice && (
@@ -374,7 +401,20 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     >
                       Giá Nước (VNĐ/m³)
                     </Label>
-                    <Input type="number" {...register('defaultWaterUnitPrice')} className="mt-1" />
+                    <Input
+                      type="text"
+                      name="defaultWaterUnitPrice"
+                      value={formatNumber((watch('defaultWaterUnitPrice') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+
+                        setValue('defaultWaterUnitPrice', rawValue ? Number(rawValue) : undefined, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
+                      className="mt-1"
+                    />
                     {errors.defaultWaterUnitPrice && (
                       <p className="text-xs text-red-500">{errors.defaultWaterUnitPrice.message}</p>
                     )}
@@ -386,7 +426,20 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     >
                       Phí Internet (VNĐ/tháng)
                     </Label>
-                    <Input type="number" {...register('defaultInternetFee')} className="mt-1" />
+                    <Input
+                      type="text"
+                      name="defaultInternetFee"
+                      value={formatNumber((watch('defaultInternetFee') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+
+                        setValue('defaultInternetFee', rawValue ? Number(rawValue) : undefined, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
+                      className="mt-1"
+                    />
                     {errors.defaultInternetFee && (
                       <p className="text-xs text-red-500">{errors.defaultInternetFee.message}</p>
                     )}
@@ -398,7 +451,20 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     >
                       Phí Gửi Xe (VNĐ/tháng)
                     </Label>
-                    <Input type="number" {...register('defaultParkingFee')} className="mt-1" />
+                    <Input
+                      type="text"
+                      name="defaultParkingFee"
+                      value={formatNumber((watch('defaultParkingFee') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+
+                        setValue('defaultParkingFee', rawValue ? Number(rawValue) : undefined, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
+                      className="mt-1"
+                    />
                     {errors.defaultParkingFee && (
                       <p className="text-xs text-red-500">{errors.defaultParkingFee.message}</p>
                     )}
@@ -410,7 +476,20 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     >
                       Phí Dịch Vụ (VNĐ/tháng)
                     </Label>
-                    <Input type="number" {...register('defaultServiceFee')} className="mt-1" />
+                    <Input
+                      type="text"
+                      name="defaultServiceFee"
+                      value={formatNumber((watch('defaultServiceFee') as number) ?? '')}
+                      onChange={(e) => {
+                        const rawValue = parseNumber(e.target.value);
+
+                        setValue('defaultServiceFee', rawValue ? Number(rawValue) : undefined, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
+                      className="mt-1"
+                    />
                     {errors.defaultServiceFee && (
                       <p className="text-xs text-red-500">{errors.defaultServiceFee.message}</p>
                     )}
