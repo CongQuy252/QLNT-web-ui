@@ -1,10 +1,11 @@
 import { IdCard, Phone, User } from 'lucide-react';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLoading } from '@/hooks/useLoading';
+import { useMobile } from '@/hooks/useMobile';
 
 interface UserCardProps {
   userId: string;
@@ -16,6 +17,7 @@ interface UserCardProps {
 export function UserCard({ userId, open, onClose, variant = 'card' }: UserCardProps) {
   const userQuery = useUserQuery(userId, !!userId);
   const { hide, show } = useLoading();
+  const isMobile = useMobile();
 
   useEffect(() => {
     if (userQuery.isLoading) show();
@@ -52,7 +54,7 @@ export function UserCard({ userId, open, onClose, variant = 'card' }: UserCardPr
 
   const Info = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-      <div className="space-y-2 p-3 md:p-4 rounded-lg bg-muted/50 border">
+      <div className="space-y-2 p-3 md:p-4 rounded-lg bg-muted/50 border w-full">
         <div className="flex items-center gap-2">
           <User className="w-4 h-4 text-primary" />
           <span className="text-[10px] md:text-xs font-bold uppercase text-muted-foreground">
@@ -62,8 +64,30 @@ export function UserCard({ userId, open, onClose, variant = 'card' }: UserCardPr
 
         <p className="font-bold text-sm md:text-base">{userQuery.data?.name}</p>
       </div>
+{!isMobile ? (
+  <React.Fragment><div className="space-y-2 p-3 md:p-4 rounded-lg bg-muted/50 border">
+          <div className="flex items-center gap-2">
+            <Phone className="w-4 h-4 text-primary" />
+            <span className="text-[10px] md:text-xs font-bold uppercase text-muted-foreground">
+              Số ĐT
+            </span>
+          </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
+          <p className="font-bold text-sm md:text-base font-mono">{userQuery.data?.phone}</p>
+        </div>
+
+        <div className="space-y-2 p-3 md:p-4 rounded-lg bg-muted/50 border">
+          <div className="flex items-center gap-2">
+            <IdCard className="w-4 h-4 text-primary" />
+            <span className="text-[10px] md:text-xs font-bold uppercase text-muted-foreground">
+              Số CCCD
+            </span>
+          </div>
+
+          <p className="font-bold text-sm md:text-base font-mono">{userQuery.data?.cccd}</p>
+        </div></React.Fragment>
+) : (
+<div className="grid grid-cols-2 md:grid-cols-1 gap-3">
         <div className="space-y-2 p-3 md:p-4 rounded-lg bg-muted/50 border">
           <div className="flex items-center gap-2">
             <Phone className="w-4 h-4 text-primary" />
@@ -86,6 +110,10 @@ export function UserCard({ userId, open, onClose, variant = 'card' }: UserCardPr
           <p className="font-bold text-sm md:text-base font-mono">{userQuery.data?.cccd}</p>
         </div>
       </div>
+)}
+      
+
+      
     </div>
   );
 

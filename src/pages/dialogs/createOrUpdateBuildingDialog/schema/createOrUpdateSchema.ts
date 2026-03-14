@@ -29,9 +29,13 @@ export const buildingSchema = z.object({
     .number()
     .min(0, { error: 'Giá điện phải lớn hơn hoặc bằng 0' })
     .optional(),
-  defaultWaterUnitPrice: z.coerce
+  defaultWaterPricePerPerson: z.coerce
     .number()
-    .min(0, { error: 'Giá nước phải lớn hơn hoặc bằng 0' })
+    .min(0, { error: 'Giá nước/người phải lớn hơn hoặc bằng 0' })
+    .optional(),
+  defaultWaterPricePerCubicMeter: z.coerce
+    .number()
+    .min(0, { error: 'Giá nước/m³ phải lớn hơn hoặc bằng 0' })
     .optional(),
   waterCalculationType: z.enum(['m3', 'person']).default('m3'),
   defaultInternetFee: z.coerce

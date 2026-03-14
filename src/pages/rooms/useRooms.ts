@@ -75,6 +75,9 @@ export const useRooms = () => {
     const normalizedRoom = {
       ...room,
       buildingId: (room.buildingId as any)?._id || room.buildingId,
+      // Ensure waterCalculationType is set based on available water price fields
+      waterCalculationType: room.waterCalculationType || 
+        (room.waterPricePerPerson ? 'person' : 'm3'),
     };
     setEditRoom(normalizedRoom);
     setIsEditDialogOpen(true);
@@ -92,7 +95,9 @@ export const useRooms = () => {
             area: editRoom.area,
             price: editRoom.price,
             electricityUnitPrice: editRoom.electricityUnitPrice,
-            waterUnitPrice: editRoom.waterUnitPrice,
+            waterPricePerPerson: editRoom.waterPricePerPerson,
+            waterPricePerCubicMeter: editRoom.waterPricePerCubicMeter,
+            waterCalculationType: editRoom.waterCalculationType,
             internetFee: editRoom.internetFee,
             parkingFee: editRoom.parkingFee,
             serviceFee: editRoom.serviceFee,
