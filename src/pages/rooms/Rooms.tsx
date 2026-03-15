@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -17,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { ToastContainer } from '@/components/ui/toast/Toast';
 import { QueriesKey } from '@/constants/appConstants';
@@ -128,6 +128,7 @@ const Rooms = () => {
           queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
           queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
           queryClient.invalidateQueries({ queryKey: [QueriesKey.user] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.occupiedRooms] });
         },
         onError: () => {
           errorToast('Có lỗi xảy ra khi cập nhật người thuê');
@@ -291,7 +292,8 @@ const Rooms = () => {
                   <RadioGroup
                     value={editRoom?.waterCalculationType || 'm3'}
                     onValueChange={(value) =>
-                      editRoom && setEditRoom({ ...editRoom, waterCalculationType: value as 'm3' | 'person' })
+                      editRoom &&
+                      setEditRoom({ ...editRoom, waterCalculationType: value as 'm3' | 'person' })
                     }
                     className="flex gap-4"
                   >
@@ -313,23 +315,29 @@ const Rooms = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      {editRoom?.waterCalculationType === 'person' ? 'Giá nước (VNĐ/người)' : 'Giá nước (VNĐ/m³)'}
+                      {editRoom?.waterCalculationType === 'person'
+                        ? 'Giá nước (VNĐ/người)'
+                        : 'Giá nước (VNĐ/m³)'}
                     </Label>
                     <Input
                       type="text"
                       value={formatNumber(
-                        editRoom?.waterCalculationType === 'person' 
-                          ? (editRoom?.waterPricePerPerson || 0)
-                          : (editRoom?.waterPricePerCubicMeter || 0)
+                        editRoom?.waterCalculationType === 'person'
+                          ? editRoom?.waterPricePerPerson || 0
+                          : editRoom?.waterPricePerCubicMeter || 0,
                       )}
                       onChange={(e) => {
                         const value = parseNumber(e.target.value) ?? 0;
-                        editRoom && setEditRoom({
-                          ...editRoom,
-                          ...(editRoom?.waterCalculationType === 'person' 
-                            ? { waterPricePerPerson: value, waterPricePerCubicMeter: 0 }
-                            : { waterPricePerCubicMeter: value, waterPricePerPerson: 0 }
-                          )
+
+                        setEditRoom((prev) => {
+                          if (!prev) return prev;
+
+                          return {
+                            ...prev,
+                            ...(prev.waterCalculationType === 'person'
+                              ? { waterPricePerPerson: value, waterPricePerCubicMeter: 0 }
+                              : { waterPricePerCubicMeter: value, waterPricePerPerson: 0 }),
+                          };
                         });
                       }}
                     />

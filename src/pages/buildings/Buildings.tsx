@@ -177,7 +177,7 @@ const Buildings = () => {
                   </div>
                 </CardHeader>
               </Card>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">Thông tin Tòa Nhà</CardTitle>
@@ -208,20 +208,13 @@ const Buildings = () => {
                     )}
                   </CardContent>
                 </Card>
-
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">Tổng Phòng</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-blue-600">{building.totalRooms}</div>
-                  </CardContent>
-                </Card>
               </div>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Thống Kê Phòng</CardTitle>
+                  <CardTitle className="text-base">
+                    Thống Kê Phòng (Tổng số phòng: {building.totalRooms})
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-3 gap-4">{renderRoomStatusCount()}</div>
