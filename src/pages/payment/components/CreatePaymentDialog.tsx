@@ -59,7 +59,10 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
 
     const electricityAmount = Math.max(electricityUsage, 0) * (room.electricityUnitPrice || 0);
 
-    const waterAmount = Math.max(waterUsage, 0) * (room.waterUnitPrice || 0);
+    const waterAmount =
+      (room.waterPricePerCubicMeter ?? 0 > 0)
+        ? Math.max(waterUsage, 0) * (room.waterPricePerCubicMeter || 0)
+        : (room.waterPricePerPerson ?? 0);
 
     const internetFee = room.internetFee || 0;
 
@@ -96,7 +99,10 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
 
     const electricityAmount = Math.max(electricityUsage, 0) * (room.electricityUnitPrice || 0);
 
-    const waterAmount = Math.max(waterUsage, 0) * (room.waterUnitPrice || 0);
+    const waterAmount =
+      (room.waterPricePerCubicMeter ?? 0 > 0)
+        ? Math.max(waterUsage, 0) * (room.waterPricePerCubicMeter || 0)
+        : (room.waterPricePerPerson ?? 0);
 
     const internetFee = room.internetFee || 0;
 
@@ -218,7 +224,9 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
             <div>
               <span className="text-slate-600">Giá nước:</span>
               <span className="ml-2 font-medium">
-                {getRoomById(invoice.roomId)?.waterUnitPrice?.toLocaleString()} VNĐ/m³
+                {selectedRoom?.waterPricePerCubicMeter && selectedRoom.waterPricePerCubicMeter > 0
+                  ? `${selectedRoom.waterPricePerCubicMeter.toLocaleString()} VNĐ/m³`
+                  : `${selectedRoom?.waterPricePerPerson?.toLocaleString()} VNĐ/người`}
               </span>
             </div>
           </div>
@@ -306,45 +314,52 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
         </div>
 
         {/* WATER */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <span className="text-lg">💧</span>
-            </div>
-            <div>
-              <h4 className="font-semibold text-slate-800">Tiền nước</h4>
-              {invoice.roomId && getRoomById(invoice.roomId)?.waterUnitPrice && (
-                <p className="text-xs text-slate-600">
-                  Giá mặc định: {getRoomById(invoice.roomId)?.waterUnitPrice?.toLocaleString()}{' '}
-                  VNĐ/m³
-                </p>
-              )}
-            </div>
-          </div>
+        {(selectedRoom?.waterPricePerCubicMeter ?? 0) > 0 && (
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <span className="text-lg">💧</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-slate-800">Tiền nước</h4>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs text-slate-600">Chỉ số cũ</Label>
-              <Input
-                type="number"
-                placeholder="0"
-                value={invoice.waterPrevious}
-                onChange={(e) => setInvoice({ ...invoice, waterPrevious: Number(e.target.value) })}
-                className="mt-1"
-              />
+                {selectedRoom && (
+                  <p className="text-xs text-slate-600">
+                    Giá mặc định:{' '}
+                    {(selectedRoom.waterPricePerCubicMeter ?? 0 > 0)
+                      ? `${selectedRoom.waterPricePerCubicMeter?.toLocaleString()} VNĐ/m³`
+                      : `${selectedRoom.waterPricePerPerson?.toLocaleString()} VNĐ/người`}
+                  </p>
+                )}
+              </div>
             </div>
-            <div>
-              <Label className="text-xs text-slate-600">Chỉ số mới</Label>
-              <Input
-                type="number"
-                placeholder="0"
-                value={invoice.waterCurrent}
-                onChange={(e) => setInvoice({ ...invoice, waterCurrent: Number(e.target.value) })}
-                className="mt-1"
-              />
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-slate-600">Chỉ số cũ</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={invoice.waterPrevious}
+                  onChange={(e) =>
+                    setInvoice({ ...invoice, waterPrevious: Number(e.target.value) })
+                  }
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-slate-600">Chỉ số mới</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={invoice.waterCurrent}
+                  onChange={(e) => setInvoice({ ...invoice, waterCurrent: Number(e.target.value) })}
+                  className="mt-1"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* OTHER SERVICES */}
         <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">

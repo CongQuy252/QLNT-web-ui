@@ -1,5 +1,5 @@
 import { queryClient } from '@/lib/reactQuery';
-import { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGetPaymentByIdQuery, useUpdatePaymentMutation } from '@/api/payment';
@@ -260,13 +260,22 @@ export default function PaymentDetail() {
                 <tr className="border-b border-slate-200">
                   <td className="py-4 px-4">
                     <p className="font-medium text-slate-900">Tiền nước</p>
-                    <p className="text-sm text-slate-600">
-                      Lượng tiêu thụ: {payment.waterCurrent - payment.waterPrevious} m³
-                    </p>
+                    {room?.waterPricePerCubicMeter !== undefined &&
+                      room?.waterPricePerCubicMeter > 0 && (
+                        <p className="text-sm text-slate-600">
+                          Lượng tiêu thụ: {payment.waterCurrent - payment.waterPrevious} m³
+                        </p>
+                      )}
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-medium text-slate-900">
-                      {formatCurrency(room?.waterUnitPrice ?? 0)}
+                      {formatCurrency(
+                        room?.waterPricePerCubicMeter !== undefined &&
+                          room.waterPricePerPerson !== undefined &&
+                          room?.waterPricePerCubicMeter > 0
+                          ? room?.waterPricePerCubicMeter
+                          : (room?.waterPricePerPerson ?? 0),
+                      )}
                     </p>
                   </td>
                   <td className="text-right py-4 px-4">
@@ -413,12 +422,16 @@ export default function PaymentDetail() {
               </div>
 
               <div className="text-xs text-slate-600 mt-1 space-y-1">
-                <p>
-                  {payment.waterCurrent - payment.waterPrevious} m³ ×{' '}
-                  {formatCurrency(payment.waterAmount || 0)}
-                </p>
-
-                <p>Đơn giá: {formatCurrency(room?.waterUnitPrice || 0)} / m³</p>
+                {room?.waterPricePerCubicMeter !== undefined &&
+                  room?.waterPricePerCubicMeter > 0 && (
+                    <React.Fragment>
+                      <p>
+                        {payment.waterCurrent - payment.waterPrevious} m³ ×{' '}
+                        {formatCurrency(payment.waterAmount || 0)}
+                      </p>
+                      <p>Đơn giá: {formatCurrency(room?.waterPricePerCubicMeter || 0)} / m³</p>
+                    </React.Fragment>
+                  )}
               </div>
             </div>
           )}

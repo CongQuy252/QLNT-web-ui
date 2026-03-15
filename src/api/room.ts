@@ -51,7 +51,7 @@ export const useGetOccupiedRoomsQueries = (
 ) => {
   const handleHttpError = useHandleHttpError();
   return useQuery({
-    queryKey: ['occupied-rooms', page, limit, buildingId, floor],
+    queryKey: [QueriesKey.occupiedRooms, page, limit, buildingId, floor],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
