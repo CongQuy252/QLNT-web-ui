@@ -1,15 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
-import { type SubmitHandler, useForm, useFieldArray, useWatch, Controller } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useState } from 'react';
+import { Controller, type SubmitHandler, useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { useCreateBuildingMutation } from '@/api/building';
 import { useDistrictsQuery } from '@/api/address';
+import { useCreateBuildingMutation } from '@/api/building';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -19,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Table,
   TableBody,
@@ -29,6 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { QueriesKey } from '@/constants/appConstants';
 import { useToast } from '@/hooks/useToast';
 import { useProvinceOptions } from '@/pages/dialogs/createOrUpdateBuildingDialog/hooks/getAddress';
 import {
@@ -37,7 +38,6 @@ import {
   buildingSchema,
 } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
 import type { Province, Ward } from '@/types/address';
-import { QueriesKey } from '@/constants/appConstants';
 import { formatNumber, parseNumber } from '@/utils/utils';
 
 const CreateBuildingPage = () => {
@@ -68,13 +68,24 @@ const CreateBuildingPage = () => {
 
   // Use useWatch for specific fields to get proper typing
   const defaultRoomPrice = useWatch({ control, name: 'defaultRoomPrice' }) as number | undefined;
-  const defaultElectricityUnitPrice = useWatch({ control, name: 'defaultElectricityUnitPrice' }) as number | undefined;
-  const defaultInternetFee = useWatch({ control, name: 'defaultInternetFee' }) as number | undefined;
+  const defaultElectricityUnitPrice = useWatch({ control, name: 'defaultElectricityUnitPrice' }) as
+    | number
+    | undefined;
+  const defaultInternetFee = useWatch({ control, name: 'defaultInternetFee' }) as
+    | number
+    | undefined;
   const defaultParkingFee = useWatch({ control, name: 'defaultParkingFee' }) as number | undefined;
   const defaultServiceFee = useWatch({ control, name: 'defaultServiceFee' }) as number | undefined;
-  const defaultWaterPricePerPerson = useWatch({ control, name: 'defaultWaterPricePerPerson' }) as number | undefined;
-  const defaultWaterPricePerCubicMeter = useWatch({ control, name: 'defaultWaterPricePerCubicMeter' }) as number | undefined;
-  const waterCalculationType = useWatch({ control, name: 'waterCalculationType' }) as 'm3' | 'person';
+  const defaultWaterPricePerPerson = useWatch({ control, name: 'defaultWaterPricePerPerson' }) as
+    | number
+    | undefined;
+  const defaultWaterPricePerCubicMeter = useWatch({
+    control,
+    name: 'defaultWaterPricePerCubicMeter',
+  }) as number | undefined;
+  const waterCalculationType = useWatch({ control, name: 'waterCalculationType' }) as
+    | 'm3'
+    | 'person';
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -89,9 +100,14 @@ const CreateBuildingPage = () => {
         area: watch('defaultArea'),
         price: defaultRoomPrice,
         electricityUnitPrice: defaultElectricityUnitPrice,
-        waterUnitPrice: waterCalculationType === 'person' ? defaultWaterPricePerPerson : defaultWaterPricePerCubicMeter,
-        waterPricePerPerson: waterCalculationType === 'person' ? defaultWaterPricePerPerson : undefined,
-        waterPricePerCubicMeter: waterCalculationType === 'm3' ? defaultWaterPricePerCubicMeter : undefined,
+        waterUnitPrice:
+          waterCalculationType === 'person'
+            ? defaultWaterPricePerPerson
+            : defaultWaterPricePerCubicMeter,
+        waterPricePerPerson:
+          waterCalculationType === 'person' ? defaultWaterPricePerPerson : undefined,
+        waterPricePerCubicMeter:
+          waterCalculationType === 'm3' ? defaultWaterPricePerCubicMeter : undefined,
         internetFee: defaultInternetFee,
         parkingFee: defaultParkingFee,
         serviceFee: defaultServiceFee,
@@ -160,11 +176,11 @@ const CreateBuildingPage = () => {
       try {
         const parsed = buildingSchema.parse(processedData);
         await createBuildingMutation.mutateAsync(parsed);
-        
+
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
         queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
-        
+
         success('Tòa nhà đã được tạo thành công!');
         navigate('/buildings');
       } catch (validationError) {
@@ -182,11 +198,7 @@ const CreateBuildingPage = () => {
           <h1 className="text-3xl font-bold text-slate-900">Thêm Tòa Nhà Mới</h1>
           <p className="text-slate-600 mt-2">Nhập thông tin chi tiết của tòa nhà mới</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => navigate('/buildings')}
-          className="gap-2"
-        >
+        <Button variant="outline" onClick={() => navigate('/buildings')} className="gap-2">
           Quay lại
         </Button>
       </div>
@@ -205,12 +217,10 @@ const CreateBuildingPage = () => {
             <Label htmlFor="address" className="text-sm font-medium text-slate-700" isRequired>
               Địa Chỉ
             </Label>
-            <Input
-              {...register('address')}
-              placeholder="Địa chỉ tòa nhà"
-              className="mt-1"
-            />
-            {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address.message}</p>}
+            <Input {...register('address')} placeholder="Địa chỉ tòa nhà" className="mt-1" />
+            {errors.address && (
+              <p className="text-xs text-red-500 mt-1">{errors.address.message}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -287,9 +297,7 @@ const CreateBuildingPage = () => {
 
                       {wards?.length === 0 && !districtsQuery.isLoading && (
                         <div className="px-2 py-3 text-sm text-muted-foreground">
-                          {districtsQuery.isError
-                            ? 'Lỗi tải dữ liệu'
-                            : 'Không tìm thấy quận/huyện'}
+                          {districtsQuery.isError ? 'Lỗi tải dữ liệu' : 'Không tìm thấy quận/huyện'}
                         </div>
                       )}
                     </SelectGroup>
@@ -307,11 +315,8 @@ const CreateBuildingPage = () => {
             <h3 className="text-lg font-medium text-slate-900 mb-4">Thông tin chung</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label
-                  htmlFor="defaultRoomPrice"
-                  className="text-sm font-medium text-slate-700"
-                >
-                  Giá Phòng 
+                <Label htmlFor="defaultRoomPrice" className="text-sm font-medium text-slate-700">
+                  Giá Phòng
                 </Label>
                 <Input
                   type="text"
@@ -355,10 +360,7 @@ const CreateBuildingPage = () => {
                 )}
               </div>
               <div>
-                <Label
-                  htmlFor="defaultInternetFee"
-                  className="text-sm font-medium text-slate-700"
-                >
+                <Label htmlFor="defaultInternetFee" className="text-sm font-medium text-slate-700">
                   Phí Internet
                 </Label>
                 <Input
@@ -378,11 +380,8 @@ const CreateBuildingPage = () => {
                 )}
               </div>
               <div>
-                <Label
-                  htmlFor="defaultParkingFee"
-                  className="text-sm font-medium text-slate-700"
-                >
-                  Phí Gửi Xe 
+                <Label htmlFor="defaultParkingFee" className="text-sm font-medium text-slate-700">
+                  Phí Gửi Xe
                 </Label>
                 <Input
                   type="text"
@@ -401,11 +400,8 @@ const CreateBuildingPage = () => {
                 )}
               </div>
               <div>
-                <Label
-                  htmlFor="defaultServiceFee"
-                  className="text-sm font-medium text-slate-700"
-                >
-                  Phí Dịch Vụ 
+                <Label htmlFor="defaultServiceFee" className="text-sm font-medium text-slate-700">
+                  Phí Dịch Vụ
                 </Label>
                 <Input
                   type="text"
@@ -427,12 +423,7 @@ const CreateBuildingPage = () => {
                 <Label htmlFor="defaultArea" className="text-sm font-medium text-slate-700">
                   Diện Tích Phòng (m²)
                 </Label>
-                <Input
-                  type="number"
-                  {...register('defaultArea')}
-                  placeholder="25"
-                  className="mt-1"
-                />
+                <Input type="number" {...register('defaultArea')} className="mt-1" />
                 {errors.defaultArea && (
                   <p className="text-xs text-red-500 mt-1">{errors.defaultArea.message}</p>
                 )}
@@ -444,7 +435,9 @@ const CreateBuildingPage = () => {
                 </Label>
                 <RadioGroup
                   value={watch('waterCalculationType')}
-                  onValueChange={(value) => setValue('waterCalculationType', value as 'm3' | 'person')}
+                  onValueChange={(value) =>
+                    setValue('waterCalculationType', value as 'm3' | 'person')
+                  }
                   className="flex gap-6 mb-3"
                 >
                   <div className="flex items-center space-x-2">
@@ -460,35 +453,40 @@ const CreateBuildingPage = () => {
                     </Label>
                   </div>
                 </RadioGroup>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">
-                      {waterCalculationType === 'person' ? 'Giá Nước (VNĐ/người)' : 'Giá Nước (VNĐ/m³)'}
-                    </Label>
-                    <Controller
-                      control={control}
-                      name={waterCalculationType === 'person' ? 'defaultWaterPricePerPerson' : 'defaultWaterPricePerCubicMeter'}
-                      render={({ field }) => (
-                        <Input
-                          type="text"
-                          value={formatNumber((field.value as number | undefined) ?? 0)}
-                          onChange={(e) => {
-                            const value = parseNumber(e.target.value);
-                            field.onChange(value !== undefined ? value : 0);
-                          }}
-                          className="mt-1"
-                        />
-                      )}
-                    />
-                    {waterCalculationType === 'person' && errors.defaultWaterPricePerPerson && (
-                      <p className="text-xs text-red-500 mt-1">{errors.defaultWaterPricePerPerson.message}</p>
-                    )}
-                    {waterCalculationType === 'm3' && errors.defaultWaterPricePerCubicMeter && (
-                      <p className="text-xs text-red-500 mt-1">{errors.defaultWaterPricePerCubicMeter.message}</p>
-                    )}
-                  </div>
-                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">
+                  {waterCalculationType === 'person' ? 'Giá Nước (VNĐ/người)' : 'Giá Nước (VNĐ/m³)'}
+                </Label>
+                <Controller
+                  control={control}
+                  name={waterCalculationType === 'person' ? 'defaultWaterPricePerPerson' : 'defaultWaterPricePerCubicMeter'}
+                  key={waterCalculationType} // Add key to force re-render on type change
+                  render={({ field }) => {
+                    const displayValue = (field.value !== undefined && field.value !== null ? field.value : 0) as number;
+                    return (
+                      <Input
+                        type="text"
+                        value={formatNumber(displayValue)}
+                        onChange={(e) => {
+                          const value = parseNumber(e.target.value);
+                          field.onChange(value !== undefined ? value : 0);
+                        }}
+                        className="mt-1"
+                      />
+                    );
+                  }}
+                />
+                {waterCalculationType === 'person' && errors.defaultWaterPricePerPerson && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.defaultWaterPricePerPerson.message}
+                  </p>
+                )}
+                {waterCalculationType === 'm3' && errors.defaultWaterPricePerCubicMeter && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.defaultWaterPricePerCubicMeter.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -539,105 +537,117 @@ const CreateBuildingPage = () => {
               <Table className="border border-gray-200">
                 <TableHeader>
                   <TableRow className="bg-gray-50">
-                    <TableHead className="w-32 border border-gray-200 font-semibold">Tên phòng</TableHead>
-                    <TableHead className="w-32 border border-gray-200 font-semibold">Diện tích</TableHead>
-                    <TableHead className="w-32 border border-gray-200 font-semibold">Giá thuê</TableHead>
-                    <TableHead className="w-32 border border-gray-200 font-semibold">Giá điện/kWh</TableHead>
-                    <TableHead className="w-32 border border-gray-200 font-semibold">Giá nước/người</TableHead>
-                    <TableHead className="w-32 border border-gray-200 font-semibold">Giá nước/m³</TableHead>
-                    <TableHead className="w-32 border border-gray-200 font-semibold">Phí internet</TableHead>
-                    <TableHead className="w-32 border border-gray-200 font-semibold">Phí gửi xe</TableHead>
-                    <TableHead className="w-40 border border-gray-200 font-semibold">Phí dịch vụ khác</TableHead>
-                    <TableHead className="w-40 border border-gray-200 font-semibold">Mô tả</TableHead>
-                    <TableHead className="w-20 border border-gray-200 font-semibold">Actions</TableHead>
+                    <TableHead className="w-32 border border-gray-200 font-semibold">
+                      Tên phòng
+                    </TableHead>
+                    <TableHead className="w-32 border border-gray-200 font-semibold">
+                      Diện tích
+                    </TableHead>
+                    <TableHead className="w-32 border border-gray-200 font-semibold">
+                      Giá thuê
+                    </TableHead>
+                    <TableHead className="w-32 border border-gray-200 font-semibold">
+                      Giá điện/kWh
+                    </TableHead>
+                    <TableHead className="w-32 border border-gray-200 font-semibold">
+                      Giá nước/người
+                    </TableHead>
+                    <TableHead className="w-32 border border-gray-200 font-semibold">
+                      Giá nước/m³
+                    </TableHead>
+                    <TableHead className="w-32 border border-gray-200 font-semibold">
+                      Phí internet
+                    </TableHead>
+                    <TableHead className="w-32 border border-gray-200 font-semibold">
+                      Phí gửi xe
+                    </TableHead>
+                    <TableHead className="w-40 border border-gray-200 font-semibold">
+                      Phí dịch vụ khác
+                    </TableHead>
+                    <TableHead className="w-40 border border-gray-200 font-semibold">
+                      Mô tả
+                    </TableHead>
+                    <TableHead className="w-20 border border-gray-200 font-semibold">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {fields.map((field: any, index: number) => (
                     <TableRow key={field.id} className="hover:bg-gray-50">
                       <TableCell className="border border-gray-200 p-2">
-                        <Input 
+                        <Input
                           {...register(`rooms.${index}.number`)}
-                          placeholder="Room_1" 
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none" 
+                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input 
+                        <Input
                           {...register(`rooms.${index}.area`)}
-                          type="number" 
-                          placeholder="25" 
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none" 
+                          type="number"
+                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input 
+                        <Input
                           {...register(`rooms.${index}.price`)}
-                          type="number" 
-                          placeholder="5000000" 
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none" 
+                          type="number"
+                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input 
+                        <Input
                           {...register(`rooms.${index}.electricityUnitPrice`)}
-                          type="number" 
-                          placeholder="3000" 
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none" 
+                          type="number"
+                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input 
+                        <Input
                           {...register(`rooms.${index}.waterPricePerPerson`)}
-                          type="number" 
-                          placeholder="20000" 
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none" 
+                          type="number"
+                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input 
+                        <Input
                           {...register(`rooms.${index}.waterPricePerCubicMeter`)}
-                          type="number" 
-                          placeholder="15000" 
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none" 
+                          type="number"
+                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input 
+                        <Input
                           {...register(`rooms.${index}.internetFee`)}
-                          type="number" 
-                          placeholder="200000" 
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none" 
+                          type="number"
+                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input 
+                        <Input
                           {...register(`rooms.${index}.parkingFee`)}
-                          type="number" 
-                          placeholder="100000" 
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none" 
+                          type="number"
+                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input 
+                        <Input
                           {...register(`rooms.${index}.serviceFee`)}
-                          type="number" 
-                          placeholder="150000" 
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none" 
+                          type="number"
+                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input 
+                        <Input
                           {...register(`rooms.${index}.description`)}
-                          placeholder="Phòng view biển" 
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-left focus:ring-0 focus:outline-none" 
+                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-left focus:ring-0 focus:outline-none"
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => removeRoomRow(index)}
                           className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
                         >
@@ -660,11 +670,7 @@ const CreateBuildingPage = () => {
             >
               Hủy
             </Button>
-            <Button
-              type="submit"
-              className="flex-1"
-              disabled={createBuildingMutation.isPending}
-            >
+            <Button type="submit" className="flex-1" disabled={createBuildingMutation.isPending}>
               {createBuildingMutation.isPending ? 'Đang tạo...' : 'Tạo Tòa Nhà'}
             </Button>
           </div>

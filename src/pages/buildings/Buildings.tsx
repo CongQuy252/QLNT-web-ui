@@ -177,47 +177,38 @@ const Buildings = () => {
                   </div>
                 </CardHeader>
               </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Thông tin Tòa Nhà</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className={`grid grid-cols-${building.yearBuilt ? 2 : 1} gap-4`}>
-                    <div>
-                      <div className="text-sm text-slate-600">Địa Chỉ</div>
-                      <div className="font-medium text-slate-900 flex items-center gap-2 mt-1 whitespace-break-spaces">
-                        <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
-                        {building.address}, {building.district}, {building.city}
-                      </div>
-                    </div>
-                    {building.yearBuilt && (
-                      <div>
-                        <div className="text-sm text-slate-600">Năm Xây Dựng</div>
-                        <div className="font-medium text-slate-900">{building.yearBuilt}</div>
-                      </div>
-                    )}
-                  </div>
-                  {building.description && (
-                    <div className="pt-4 border-t">
-                      <div className="text-sm text-slate-600 mb-2">Mô Tả</div>
-                      <div className="text-slate-900 whitespace-break-spaces">
-                        {building.description}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
               <div className="grid grid-cols-2 gap-4">
                 <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">Số Tầng</CardTitle>
+                  <CardHeader>
+                    <CardTitle className="text-base">Thông tin Tòa Nhà</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-blue-600">{building.totalFloors}</div>
+                  <CardContent className="space-y-4">
+                    <div className={`grid grid-cols-${building.yearBuilt ? 2 : 1} gap-4`}>
+                      <div>
+                        <div className="text-sm text-slate-600">Địa Chỉ</div>
+                        <div className="font-medium text-slate-900 flex items-center gap-2 mt-1 whitespace-break-spaces">
+                          <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
+                          {building.address}, {building.district}, {building.city}
+                        </div>
+                      </div>
+                      {building.yearBuilt && (
+                        <div>
+                          <div className="text-sm text-slate-600">Năm Xây Dựng</div>
+                          <div className="font-medium text-slate-900">{building.yearBuilt}</div>
+                        </div>
+                      )}
+                    </div>
+                    {building.description && (
+                      <div className="pt-4 border-t">
+                        <div className="text-sm text-slate-600 mb-2">Mô Tả</div>
+                        <div className="text-slate-900 whitespace-break-spaces">
+                          {building.description}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
+
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">Tổng Phòng</CardTitle>
