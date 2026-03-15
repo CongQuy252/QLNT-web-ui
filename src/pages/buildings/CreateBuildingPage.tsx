@@ -318,17 +318,20 @@ const CreateBuildingPage = () => {
                 <Label htmlFor="defaultRoomPrice" className="text-sm font-medium text-slate-700">
                   Giá Phòng
                 </Label>
-                <Input
-                  type="text"
-                  {...register('defaultRoomPrice', {
-                    onChange: (e) => {
-                      const value = parseNumber(e.target.value);
-                      const numericValue = value !== undefined ? value : 0;
-                      setValue('defaultRoomPrice', numericValue);
-                    },
-                  })}
-                  value={formatNumber(defaultRoomPrice ?? 0)}
-                  className="mt-1"
+                <Controller
+                  name="defaultRoomPrice"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      type="text"
+                      value={formatNumber((field.value as number | undefined) ?? 0)}
+                      onChange={(e) => {
+                        const value = parseNumber(e.target.value);
+                        field.onChange(value !== undefined ? value : 0);
+                      }}
+                      className="mt-1"
+                    />
+                  )}
                 />
                 {errors.defaultRoomPrice && (
                   <p className="text-xs text-red-500 mt-1">{errors.defaultRoomPrice.message}</p>
@@ -341,17 +344,20 @@ const CreateBuildingPage = () => {
                 >
                   Giá Điện
                 </Label>
-                <Input
-                  type="text"
-                  {...register('defaultElectricityUnitPrice', {
-                    onChange: (e) => {
-                      const value = parseNumber(e.target.value);
-                      const numericValue = value !== undefined ? value : 0;
-                      setValue('defaultElectricityUnitPrice', numericValue);
-                    },
-                  })}
-                  value={formatNumber(defaultElectricityUnitPrice ?? 0)}
-                  className="mt-1"
+                <Controller
+                  name="defaultElectricityUnitPrice"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      type="text"
+                      value={formatNumber((field.value as number | undefined) ?? 0)}
+                      onChange={(e) => {
+                        const value = parseNumber(e.target.value);
+                        field.onChange(value !== undefined ? value : 0);
+                      }}
+                      className="mt-1"
+                    />
+                  )}
                 />
                 {errors.defaultElectricityUnitPrice && (
                   <p className="text-xs text-red-500 mt-1">
@@ -363,17 +369,20 @@ const CreateBuildingPage = () => {
                 <Label htmlFor="defaultInternetFee" className="text-sm font-medium text-slate-700">
                   Phí Internet
                 </Label>
-                <Input
-                  type="text"
-                  {...register('defaultInternetFee', {
-                    onChange: (e) => {
-                      const value = parseNumber(e.target.value);
-                      const numericValue = value !== undefined ? value : 0;
-                      setValue('defaultInternetFee', numericValue);
-                    },
-                  })}
-                  value={formatNumber(defaultInternetFee ?? 0)}
-                  className="mt-1"
+                <Controller
+                  name="defaultInternetFee"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      type="text"
+                      value={formatNumber((field.value as number | undefined) ?? 0)}
+                      onChange={(e) => {
+                        const value = parseNumber(e.target.value);
+                        field.onChange(value !== undefined ? value : 0);
+                      }}
+                      className="mt-1"
+                    />
+                  )}
                 />
                 {errors.defaultInternetFee && (
                   <p className="text-xs text-red-500 mt-1">{errors.defaultInternetFee.message}</p>
@@ -383,17 +392,20 @@ const CreateBuildingPage = () => {
                 <Label htmlFor="defaultParkingFee" className="text-sm font-medium text-slate-700">
                   Phí Gửi Xe
                 </Label>
-                <Input
-                  type="text"
-                  {...register('defaultParkingFee', {
-                    onChange: (e) => {
-                      const value = parseNumber(e.target.value);
-                      const numericValue = value !== undefined ? value : 0;
-                      setValue('defaultParkingFee', numericValue);
-                    },
-                  })}
-                  value={formatNumber(defaultParkingFee ?? 0)}
-                  className="mt-1"
+                <Controller
+                  name="defaultParkingFee"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      type="text"
+                      value={formatNumber((field.value as number | undefined) ?? 0)}
+                      onChange={(e) => {
+                        const value = parseNumber(e.target.value);
+                        field.onChange(value !== undefined ? value : 0);
+                      }}
+                      className="mt-1"
+                    />
+                  )}
                 />
                 {errors.defaultParkingFee && (
                   <p className="text-xs text-red-500 mt-1">{errors.defaultParkingFee.message}</p>
@@ -403,17 +415,20 @@ const CreateBuildingPage = () => {
                 <Label htmlFor="defaultServiceFee" className="text-sm font-medium text-slate-700">
                   Phí Dịch Vụ
                 </Label>
-                <Input
-                  type="text"
-                  {...register('defaultServiceFee', {
-                    onChange: (e) => {
-                      const value = parseNumber(e.target.value);
-                      const numericValue = value !== undefined ? value : 0;
-                      setValue('defaultServiceFee', numericValue);
-                    },
-                  })}
-                  value={formatNumber(defaultServiceFee ?? 0)}
-                  className="mt-1"
+                <Controller
+                  name="defaultServiceFee"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      type="text"
+                      value={formatNumber((field.value as number | undefined) ?? 0)}
+                      onChange={(e) => {
+                        const value = parseNumber(e.target.value);
+                        field.onChange(value !== undefined ? value : 0);
+                      }}
+                      className="mt-1"
+                    />
+                  )}
                 />
                 {errors.defaultServiceFee && (
                   <p className="text-xs text-red-500 mt-1">{errors.defaultServiceFee.message}</p>
