@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 
+import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
@@ -14,50 +15,63 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { UserRole } from '@/constants/appConstants';
+import { useLoading } from '@/hooks/useLoading';
 import { FileUploadField } from '@/pages/dialogs/createOrupdateTenant/FileUploadField';
 import { updateTenantSchema } from '@/pages/dialogs/createOrupdateTenant/schema/createOrUpdateTenantSchema';
 import type { UpdateTenantRequest } from '@/types/user';
 
-interface UpdateTenantDialogProps {
-  isOpen: boolean;
-  tenant: UpdateTenantRequest;
-  onClose: () => void;
-  onSubmit: (data: UpdateTenantRequest) => void;
-}
+type Props = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  userId?: string;
+  onSubmit?: (data: UpdateTenantRequest) => void;
+  loading?: boolean;
+};
 
-const UpdateTenantDialog: React.FC<UpdateTenantDialogProps> = ({
-  isOpen,
-  tenant,
-  onClose,
-  onSubmit,
-}) => {
+const EditTenantDialog = ({ open, onOpenChange, userId, onSubmit, loading }: Props) => {
+  const userQuery = useUserQuery(userId, !!userId);
+  const { show, hide } = useLoading();
+
   const form = useForm<UpdateTenantRequest>({
     resolver: zodResolver(updateTenantSchema),
-    defaultValues: tenant,
   });
 
   useEffect(() => {
-    form.reset(tenant);
-  }, [tenant, form]);
+    if (userQuery.data) {
+      const user = userQuery.data;
+
+      form.reset({
+        ...user,
+        cccdImagesFront: user.cccdImages?.front?.url ?? '',
+        cccdImagesBack: user.cccdImages?.back?.url ?? '',
+      });
+    }
+  }, [userQuery.data, form]);
+
+  useEffect(() => {
+    if (userQuery.isLoading) show();
+    else hide();
+  }, [hide, show, userQuery.isLoading]);
 
   const handleSubmit = (values: UpdateTenantRequest) => {
+    if (!onSubmit) return;
+
     onSubmit(values);
-    onClose();
+    onOpenChange(false);
     form.reset();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-screen h-screen max-w-none rounded-none flex flex-col sm:h-auto sm:max-w-lg sm:rounded-lg">
         <DialogHeader className="border-b px-4 py-3">
-          <DialogTitle>Cập nhật người thuê</DialogTitle>
+          <DialogTitle>Chỉnh sửa người thuê</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="flex-1 overflow-y-auto space-y-2"
+            className="flex-1 overflow-y-auto space-y-2 p-4"
           >
             <FormField
               control={form.control}
@@ -86,6 +100,7 @@ const UpdateTenantDialog: React.FC<UpdateTenantDialogProps> = ({
                 </FormItem>
               )}
             />
+
             <div className="flex gap-2 pt-4 border-t justify-between">
               <FormField
                 control={form.control}
@@ -115,23 +130,6 @@ const UpdateTenantDialog: React.FC<UpdateTenantDialogProps> = ({
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Vai trò</FormLabel>
-                  <FormControl>
-                    <select {...field} className="border rounded px-3 py-2 w-full">
-                      <option value={UserRole.tenant}>Tenant</option>
-                      <option value={UserRole.admin}>Admin</option>
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <div className="flex gap-2 pt-4 border-t justify-between">
               <FormField
                 control={form.control}
@@ -145,13 +143,18 @@ const UpdateTenantDialog: React.FC<UpdateTenantDialogProps> = ({
                 render={({ field }) => <FileUploadField label="CCCD mặt sau" field={field} />}
               />
             </div>
-
             <div className="flex gap-2 pt-4 border-t">
-              <Button type="button" variant="outline" className="flex-1" onClick={onClose}>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => onOpenChange(false)}
+              >
                 Hủy
               </Button>
-              <Button type="submit" className="flex-1">
-                Lưu thay đổi
+
+              <Button type="submit" className="flex-1" disabled={loading}>
+                {loading ? 'Đang cập nhật...' : 'Cập nhật'}
               </Button>
             </div>
           </form>
@@ -161,4 +164,4 @@ const UpdateTenantDialog: React.FC<UpdateTenantDialogProps> = ({
   );
 };
 
-export default UpdateTenantDialog;
+export default EditTenantDialog;

@@ -88,7 +88,7 @@ export const useCreatePaymentMutation = () => {
     onSuccess: () => {
       // Invalidate room queries since payment creation may change room availability
       queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
-      queryClient.invalidateQueries({ queryKey: ['occupied-rooms'] });
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.occupiedRooms] });
     },
     onError: handleHttpError,
   });

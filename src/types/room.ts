@@ -15,7 +15,9 @@ export interface Room {
   area: number;
   price: number;
   electricityUnitPrice: number;
-  waterUnitPrice: number;
+  waterPricePerPerson?: number;
+  waterPricePerCubicMeter?: number;
+  waterCalculationType?: 'm3' | 'person';
   internetFee?: number;
   parkingFee?: number;
   serviceFee?: number;
@@ -46,7 +48,9 @@ export interface GetRoom {
   area: number;
   price: number;
   electricityUnitPrice: number;
-  waterUnitPrice: number;
+  waterPricePerPerson?: number;
+  waterPricePerCubicMeter?: number;
+  waterCalculationType?: 'm3' | 'person';
   internetFee?: number;
   parkingFee?: number;
   serviceFee?: number;
@@ -69,7 +73,9 @@ export interface PutRoom {
   area: number;
   price: number;
   electricityUnitPrice: number;
-  waterUnitPrice: number;
+  waterPricePerPerson?: number;
+  waterPricePerCubicMeter?: number;
+  waterCalculationType?: 'm3' | 'person';
   internetFee?: number;
   parkingFee?: number;
   serviceFee?: number;

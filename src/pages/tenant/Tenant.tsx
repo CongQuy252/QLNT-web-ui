@@ -1,15 +1,17 @@
+import { queryClient } from '@/lib/reactQuery';
 import { Edit, Mail, Phone, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
 import { LiaIdCard } from 'react-icons/lia';
 
-import { useGetTenantQueries, useUpdateTenantMutation } from '@/api/tenant';
-import { useToast } from '@/hooks/useToast';
+import { useGetTenantQueries } from '@/api/tenant';
+import { useUpdateUserMutation } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ImageListDialog from '@/components/ui/imageView/ImageListDialog';
 import { Input } from '@/components/ui/input';
-import { TenantStatus, UserRole } from '@/constants/appConstants';
+import { QueriesKey, TenantStatus, UserRole } from '@/constants/appConstants';
+import { useToast } from '@/hooks/useToast';
 import CreateOrUpdateTenant from '@/pages/dialogs/createOrupdateTenant/CreateOrUpdateTenant';
 import UpdateTenantDialog from '@/pages/tenant/dialogs/UpdateTenantDialog';
 import type { UpdateTenantRequest } from '@/types/user';
@@ -25,9 +27,9 @@ const Tenant = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingTenantId, setEditingTenantId] = useState<string>('');
-  const updateTenantMutation = useUpdateTenantMutation();
   const { success, error } = useToast();
   const [imageList, setImageList] = useState<string[]>([]);
+  const updateUserMutation = useUpdateUserMutation();
 
   // Debounce search term
   useEffect(() => {
@@ -40,11 +42,14 @@ const Tenant = () => {
     };
   }, [searchTerm]);
 
-  const getTenantQueries = useGetTenantQueries({
-    status: filterStatus !== TenantStatus.all ? filterStatus : undefined,
-    page: currentPage,
-    limit: pageSize,
-  }, true);
+  const getTenantQueries = useGetTenantQueries(
+    {
+      status: filterStatus !== TenantStatus.all ? filterStatus : undefined,
+      page: currentPage,
+      limit: pageSize,
+    },
+    true,
+  );
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) =>
@@ -72,7 +77,7 @@ const Tenant = () => {
 
   const filteredTenants = useMemo(() => {
     // First filter by search term
-    let filtered = tenants.filter((tenant) => {
+    const filtered = tenants.filter((tenant) => {
       const matchesSearch =
         tenant.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         tenant.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
@@ -82,7 +87,7 @@ const Tenant = () => {
 
     // Remove duplicates: keep only the most recent tenant for each user
     // Group by userId or by combination of phone + cccd (as fallback)
-    const uniqueTenants = new Map<string, typeof filtered[0]>();
+    const uniqueTenants = new Map<string, (typeof filtered)[0]>();
 
     filtered.forEach((tenant) => {
       const key = tenant.userId?._id || `${tenant.phone}-${tenant.cccd || ''}`;
@@ -118,14 +123,23 @@ const Tenant = () => {
       return;
     }
 
-    updateTenantMutation.mutate(
+    const formData = new FormData();
+    if (data.name) formData.append('name', data.name);
+    if (data.phone) formData.append('phone', data.phone);
+    if (data.cccd) formData.append('cccd', data.cccd);
+
+    if (data.cccdImagesFront && data.cccdImagesFront instanceof File) {
+      formData.append('cccdFront', data.cccdImagesFront);
+    }
+
+    if (data.cccdImagesBack && data.cccdImagesBack instanceof File) {
+      formData.append('cccdBack', data.cccdImagesBack);
+    }
+
+    updateUserMutation.mutate(
       {
-        id: editingTenantId,
-        data: {
-          name: data.name,
-          phone: data.phone,
-          cccd: data.cccd,
-        },
+        userId: editingTenantId,
+        data: formData,
       },
       {
         onSuccess: () => {
@@ -135,6 +149,9 @@ const Tenant = () => {
           setEditingTenantId('');
           // Refresh tenant list
           getTenantQueries.refetch();
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.user] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
         },
         onError: () => {
           error('Có lỗi xảy ra khi cập nhật người thuê');
@@ -258,7 +275,8 @@ const Tenant = () => {
                     <div
                       className="flex items-center gap-2 cursor-pointer"
                       onClick={() =>
-                        tenant.cccdImages && handleOpenImageViewer({
+                        tenant.cccdImages &&
+                        handleOpenImageViewer({
                           front: tenant.cccdImages.front.url,
                           back: tenant.cccdImages.back.url,
                         })
@@ -272,7 +290,7 @@ const Tenant = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setEditingTenantId(tenant.id);
+                        setEditingTenantId(tenant.userId._id);
                         setEditingTenant({
                           name: tenant.name || '',
                           phone: tenant.phone || '',

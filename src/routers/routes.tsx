@@ -13,6 +13,7 @@ import Tenant from '@/pages/tenant/Tenant';
 import PrivateRoute from './PrivateRoute';
 
 const LoginPage = lazy(() => import('@/pages/login/Login'));
+const CreateBuildingPage = lazy(() => import('@/pages/buildings/CreateBuildingPage'));
 
 export const routes: RouteObject[] = [
   {
@@ -31,6 +32,10 @@ export const routes: RouteObject[] = [
               {
                 path: `/${Path.buildings}`,
                 element: <Buildings />,
+              },
+              {
+                path: `/${Path.buildings}/create`,
+                element: <CreateBuildingPage />,
               },
               {
                 path: `/${Path.rooms}`,
@@ -85,6 +90,10 @@ export const breadcrumbRoutes = [
   {
     path: `/${Path.buildings}`,
     breadcrumb: 'Quản Lý Tòa Nhà',
+  },
+  {
+    path: `/${Path.buildings}/create`,
+    breadcrumb: 'Thêm Tòa Nhà Mới',
   },
   {
     path: `/${Path.rooms}`,
