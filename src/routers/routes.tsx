@@ -9,6 +9,7 @@ import Payment from '@/pages/payment/Payment';
 import PaymentDetail from '@/pages/paymentDetail/PaymentDetail';
 import Rooms from '@/pages/rooms/Rooms';
 import Tenant from '@/pages/tenant/Tenant';
+import Statistics from '@/pages/statistics/Statistics';
 
 import PrivateRoute from './PrivateRoute';
 
@@ -48,6 +49,10 @@ export const routes: RouteObject[] = [
               {
                 path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}`,
                 element: <Rooms />,
+              },
+              {
+                path: `/${Path.statistics}`,
+                element: <Statistics />,
               },
             ],
           },
@@ -102,5 +107,9 @@ export const breadcrumbRoutes = [
   {
     path: `/${Path.tenants}`,
     breadcrumb: 'Quản Lý Người Thuê',
+  },
+  {
+    path: `/${Path.statistics}`,
+    breadcrumb: 'Thống Kê',
   },
 ];
