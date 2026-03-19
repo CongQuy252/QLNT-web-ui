@@ -94,3 +94,52 @@ export interface GetRoomByIdResponse {
   message: string;
   room: GetRoom;
 }
+
+export interface RoomWithMeterReading {
+  _id: string;
+  number: string;
+  area: number;
+  price: number;
+  electricityUnitPrice: number;
+  waterPricePerPerson: number;
+  waterPricePerCubicMeter: number;
+  internetFee: number;
+  parkingFee: number;
+  serviceFee: number;
+  status: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  building: {
+    _id: string;
+    name: string;
+    address: string;
+  };
+  tenant: {
+    _id: string;
+    name: string;
+    email: string;
+    phone: string;
+  };
+  meterReading: {
+    _id: string;
+    month: number;
+    year: number;
+    electricityReading: number;
+    waterReading: number;
+    createdAt: string;
+  };
+}
+
+export interface RoomsWithMeterReadingsResponse {
+  message: string;
+  data: RoomWithMeterReading[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}

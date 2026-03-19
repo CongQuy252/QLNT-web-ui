@@ -3,12 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type {
-  GetRoomByIdResponse,
-  PutRoomRequest,
-  PutRoomResponse,
-  RoomListResponse,
-} from '@/types/room';
+import type { GetRoomByIdResponse, PutRoomRequest, PutRoomResponse, RoomListResponse } from '@/types/room';
+import type { RoomsWithMeterReadingsResponse } from '@/types/room';
+export type { RoomWithMeterReading, RoomsWithMeterReadingsResponse } from '@/types/room';
 
 export const useGetRoomsQueries = ({
   page = 1,
@@ -161,5 +158,46 @@ export const useGetRoomByUserIDQuery = (userId?: string, isEnabled = true) => {
     },
     enabled: isEnabled && !!userId,
     meta: { handleError: handleHttpError },
+  });
+};
+
+export const useRoomsWithMeterReadings = (
+  month: number,
+  year: number,
+  searchParams?: {
+    buildingId?: string;
+    floor?: number;
+  },
+  pagination?: {
+    page?: number;
+    limit?: number;
+  },
+) => {
+  const page = pagination?.page || 1;
+  const limit = pagination?.limit || 10;
+
+  return useQuery<RoomsWithMeterReadingsResponse>({
+    queryKey: ['roomsWithMeterReadings', month, year, searchParams?.buildingId, searchParams?.floor, page, limit],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append('month', month.toString());
+      params.append('year', year.toString());
+      
+      if (searchParams?.buildingId) {
+        params.append('buildingId', searchParams.buildingId);
+      }
+      
+      if (searchParams?.floor !== undefined) {
+        params.append('floor', searchParams.floor.toString());
+      }
+      
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+      
+      const response = await http.get(`/rooms/meter-reading?${params.toString()}`);
+      
+      return response.data;
+    },
+    enabled: !!month && !!year,
   });
 };

@@ -2,43 +2,58 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useMeterReadings } from "@/api/meterReading";
-import type { IMeterReading } from "@/types/meterReading";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useRoomsWithMeterReadings } from "@/api/room";
+import type { RoomWithMeterReading } from "@/types/room";
 
 const Statistics = () => {
   const [selectedBuilding, setSelectedBuilding] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState("");
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1;
+  const currentYear = currentDate.getFullYear();
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth.toString()); // Default to current month
+  const [selectedYear, setSelectedYear] = useState(currentYear.toString()); // Default to current year
+  const [activeTab, setActiveTab] = useState("table");
+  const [isEditing, setIsEditing] = useState(false);
 
-  // API call to get meter readings
-  const { data: meterReadingsData, isLoading, error } = useMeterReadings(
-    selectedRoom,
-    selectedBuilding,
-    selectedMonth
+  // Get month and year from selected dropdowns
+  const getMonthYearFromSelection = () => {
+    const month = parseInt(selectedMonth) || currentMonth;
+    const year = parseInt(selectedYear) || currentYear;
+    return { month, year };
+  };
+
+  const { month, year } = getMonthYearFromSelection();
+
+  // API call to get rooms with meter readings
+  const { data: roomsData, isLoading, error } = useRoomsWithMeterReadings(
+    month,
+    year,
+    {
+      buildingId: selectedBuilding || undefined,
+      floor: undefined,
+    },
+    {
+      page: 1,
+      limit: 50,
+    }
   );
 
-  const meterReadings = meterReadingsData?.meterReadings || [];
+  const rooms = roomsData?.data || [];
 
   // Debug log to check data
-  console.log('Meter readings data:', meterReadingsData);
-  console.log('Meter readings array:', meterReadings);
+  console.log('Rooms data:', roomsData);
+  console.log('Rooms array:', rooms);
   console.log('Loading:', isLoading);
   console.log('Error:', error);
+  
+  // Check first room data structure
+  if (rooms.length > 0) {
+    console.log('First room:', rooms[0]);
+    console.log('First room meterReading:', rooms[0].meterReading);
+    console.log('First room building:', rooms[0].building);
+  }
 
   return (
     <div className="p-6">
@@ -49,7 +64,7 @@ const Statistics = () => {
           Thống kê chỉ số điện nước
         </h1>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-6 h-[600px]">
 
           {/* FILTER + ACTION */}
           <div className="flex items-end justify-between mb-6">
@@ -81,99 +96,221 @@ const Statistics = () => {
 
             </div>
 
-            {/* RIGHT ACTION */}
-            <div className="flex items-end gap-4">
-
-              <Button
-                className="bg-black text-white hover:bg-gray-800"
-                onClick={() => {
-                  console.log("Save:", {
-                    building: selectedBuilding,
-                    room: selectedRoom,
-                    month: selectedMonth,
-                  });
-                }}
-              >
-                Lưu
-              </Button>
-
-              <div className="w-40">
-                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn tháng" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <SelectItem key={i + 1} value={(i + 1).toString()}>
-                        Tháng {String(i + 1).padStart(2, "0")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-            </div>
-
           </div>
 
-          {/* TABLE */}
-          <div className="overflow-x-auto">
-            <Table className="border border-gray-300">
+          {/* TABS */}
+          <div className="w-full">
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex" aria-label="Tabs">
+                <button
+                  onClick={() => setActiveTab("table")}
+                  className={`inline-flex items-center justify-center whitespace-nowrap px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border-b-2 border-t-0 border-l-0 border-r-0 rounded-none ${
+                    activeTab === "table"
+                      ? "text-blue-600 border-blue-500"
+                      : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Danh sách chỉ số
+                </button>
+                <button
+                  onClick={() => setActiveTab("dashboard")}
+                  className={`inline-flex items-center justify-center whitespace-nowrap px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border-b-2 border-t-0 border-l-0 border-r-0 rounded-none ${
+                    activeTab === "dashboard"
+                      ? "text-blue-600 border-blue-500"
+                      : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Dashboard
+                </button>
+              </nav>
+            </div>
 
-              <TableHeader>
-                <TableRow className="bg-blue-200">
+            {/* TABLE CONTENT */}
+            {activeTab === "table" && (
+              <div className="mt-6">
+                                {/* TABLE ACTIONS */}
+                <div className="flex justify-between items-center mb-4">
+                  {/* ITEM COUNT */}
+                  <div className="text-sm text-slate-600">
+                    {rooms.length} items
+                  </div>
+                  
+                  {/* BUTTONS */}
+                  <div className="flex gap-2">
+                    <div className="w-40">
+                      <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn tháng" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 12 }, (_, i) => (
+                            <SelectItem key={i + 1} value={(i + 1).toString()}>
+                              Tháng {String(i + 1).padStart(2, "0")}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="w-32">
+                      <Select value={selectedYear} onValueChange={setSelectedYear}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn năm" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 5 }, (_, i) => {
+                            const year = currentYear - 2 + i;
+                            return (
+                              <SelectItem key={year} value={year.toString()}>
+                                {year}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {isEditing && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          // Cancel editing
+                          setIsEditing(false);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                    
+                    <Button
+                      className="bg-black text-white hover:bg-gray-800"
+                      onClick={() => {
+                        if (isEditing) {
+                          // Save logic here
+                          console.log("Save:", {
+                            building: selectedBuilding,
+                            room: selectedRoom,
+                            month: selectedMonth,
+                            year: selectedYear,
+                          });
+                          setIsEditing(false);
+                        } else {
+                          // Enable editing
+                          setIsEditing(true);
+                        }
+                      }}
+                    >
+                      {isEditing ? "Lưu" : "Edit"}
+                    </Button>
+                  </div>
+                </div>
 
-                  <TableHead className="border w-10 text-center">
-                    <Input type="checkbox" />
-                  </TableHead>
+                {/* SINGLE TABLE WITH SCROLLABLE BODY */}
+                <div className="relative border border-gray-300 rounded-lg overflow-hidden">
+                  <div className="overflow-y-auto max-h-70 overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="sticky top-0 z-10 bg-blue-200">
+                        <tr>
+                          <th className="border border-gray-300 px-4 py-2 text-center w-10 hover:bg-blue-200">
+                            <Input type="checkbox" />
+                          </th>
+                          <th className="border border-gray-300 px-4 py-2 hover:bg-blue-200">Tên tòa nhà</th>
+                          <th className="border border-gray-300 px-4 py-2 hover:bg-blue-200">Tên phòng</th>
+                          <th className="border border-gray-300 px-4 py-2 hover:bg-blue-200">Chỉ số điện</th>
+                          <th className="border border-gray-300 px-4 py-2 hover:bg-blue-200">Chỉ số nước</th>
+                          <th className="border border-gray-300 px-4 py-2 hover:bg-blue-200">Ngày cập nhật</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {isLoading ? (
+                          <tr>
+                            <td colSpan={6} className="text-center py-4">
+                              Đang tải dữ liệu...
+                            </td>
+                          </tr>
+                        ) : error ? (
+                          <tr>
+                            <td colSpan={6} className="text-center py-4 text-red-500">
+                              Lỗi: {error.message}
+                            </td>
+                          </tr>
+                        ) : rooms.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="text-center py-4">
+                              Không có dữ liệu
+                            </td>
+                          </tr>
+                        ) : (
+                          rooms.map((room: RoomWithMeterReading) => (
+                            <tr key={room._id}>
+                              <td className="border border-gray-300 px-4 py-2 text-center">
+                                <Input type="checkbox" />
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">{room.building?.name || "-"}</td>
+                              <td className="border border-gray-300 px-4 py-2">{room.number || "-"}</td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {isEditing ? (
+                                  <Input
+                                    type="number"
+                                    defaultValue={room.meterReading?.electricityReading || ""}
+                                    className="w-full border-0 focus:ring-0 rounded-none bg-transparent"
+                                  />
+                                ) : (
+                                  room.meterReading?.electricityReading || "-"
+                                )}
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {isEditing ? (
+                                  <Input
+                                    type="number"
+                                    defaultValue={room.meterReading?.waterReading || ""}
+                                    className="w-full border-0 focus:ring-0 rounded-none bg-transparent"
+                                  />
+                                ) : (
+                                  room.meterReading?.waterReading || "-"
+                                )}
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {room.meterReading?.createdAt ? new Date(room.meterReading.createdAt).toLocaleDateString("vi-VN") : "-"}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                  <TableHead className="border">Tên phòng</TableHead>
-                  <TableHead className="border">Tên tòa nhà</TableHead>
-                  <TableHead className="border">Chỉ số điện</TableHead>
-                  <TableHead className="border">Chỉ số nước</TableHead>
-                  <TableHead className="border">Ngày cập nhật</TableHead>
+            {/* DASHBOARD CONTENT */}
+            {activeTab === "dashboard" && (
+              <div className="mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="bg-slate-50 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4">Tổng số phòng</h3>
+                    <p className="text-slate-600">Số lượng phòng đã được quản lý</p>
+                    <div className="text-3xl font-bold text-blue-600 mt-2">{rooms.length}</div>
+                  </div>
 
-                </TableRow>
-              </TableHeader>
+                  <div className="bg-slate-50 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4">Tổng điện tiêu thụ</h3>
+                    <p className="text-slate-600">Tổng kWh điện trong tháng</p>
+                    <div className="text-3xl font-bold text-green-600 mt-2">
+                      {rooms.reduce((sum: number, room: RoomWithMeterReading) => sum + (room.meterReading?.electricityReading || 0), 0)} kWh
+                    </div>
+                  </div>
 
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
-                      Đang tải dữ liệu...
-                    </TableCell>
-                  </TableRow>
-                ) : error ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4 text-red-500">
-                      Lỗi: {error.message}
-                    </TableCell>
-                  </TableRow>
-                ) : meterReadings.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
-                      Không có dữ liệu
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  meterReadings.map((reading: IMeterReading) => (
-                    <TableRow key={reading._id}>
-                      <TableCell className="border text-center">
-                        <Input type="checkbox" />
-                      </TableCell>
-                      <TableCell className="border">{reading.roomId?.number || "-"}</TableCell>
-                      <TableCell className="border">{reading.roomId?.buildingId || "-"}</TableCell>
-                      <TableCell className="border">{reading.electricityReading || "-"}</TableCell>
-                      <TableCell className="border">{reading.waterReading || "-"}</TableCell>
-                      <TableCell className="border">
-                        {reading.createdAt ? new Date(reading.createdAt).toLocaleDateString("vi-VN") : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-
-            </Table>
+                  <div className="bg-slate-50 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4">Tổng nước tiêu thụ</h3>
+                    <p className="text-slate-600">Tổng m³ nước trong tháng</p>
+                    <div className="text-3xl font-bold text-blue-600 mt-2">
+                      {rooms.reduce((sum: number, room: RoomWithMeterReading) => sum + (room.meterReading?.waterReading || 0), 0)} m³
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>
