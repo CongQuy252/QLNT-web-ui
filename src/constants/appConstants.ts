@@ -5,6 +5,7 @@ export enum Path {
   rooms = 'rooms',
   tenants = 'tenants',
   payments = 'payments',
+  statistics = 'statistics',
   buildingId = ':buildingId',
   roomId = ':roomId',
   userId = ':userId',
@@ -17,6 +18,7 @@ export enum Breadcrumb {
   rooms = 'Quản Lý Phòng',
   tenants = 'Quản Lý Người Thuê',
   payments = 'Quản Lý Thanh Toán',
+  statistics = 'Thống Kê',
 }
 
 export enum QueriesKey {
