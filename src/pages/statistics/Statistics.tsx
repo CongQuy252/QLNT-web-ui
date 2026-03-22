@@ -188,7 +188,7 @@ const Statistics = () => {
                 {/* TABLE ACTIONS */}
                 <div className="flex justify-between items-center mb-4">
                   {/* ITEM COUNT */}
-                  <div className="text-sm text-slate-600">{rooms.length} items</div>
+                  <div className="text-sm text-slate-600">{rooms.length} phòng</div>
 
                   {/* BUTTONS */}
                   <div className="flex gap-2">
