@@ -167,6 +167,8 @@ export const useRoomsWithMeterReadings = (
   searchParams?: {
     buildingId?: string;
     floor?: number;
+    buildingName?: string;
+    roomNumber?: string;
   },
   pagination?: {
     page?: number;
@@ -177,7 +179,7 @@ export const useRoomsWithMeterReadings = (
   const limit = pagination?.limit || 10;
 
   return useQuery<RoomsWithMeterReadingsResponse>({
-    queryKey: ['roomsWithMeterReadings', month, year, searchParams?.buildingId, searchParams?.floor, page, limit],
+    queryKey: ['roomsWithMeterReadings', month, year, searchParams?.buildingId, searchParams?.floor, searchParams?.buildingName, searchParams?.roomNumber, page, limit],
     queryFn: async () => {
       const params = new URLSearchParams();
       params.append('month', month.toString());
@@ -189,6 +191,14 @@ export const useRoomsWithMeterReadings = (
       
       if (searchParams?.floor !== undefined) {
         params.append('floor', searchParams.floor.toString());
+      }
+      
+      if (searchParams?.buildingName) {
+        params.append('buildingName', searchParams.buildingName);
+      }
+      
+      if (searchParams?.roomNumber) {
+        params.append('roomNumber', searchParams.roomNumber);
       }
       
       params.append('page', page.toString());

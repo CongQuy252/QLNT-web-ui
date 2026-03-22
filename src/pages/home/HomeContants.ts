@@ -1,4 +1,4 @@
-import { CreditCard, DoorOpen, Users, BarChart3 } from 'lucide-react';
+import { BarChart3, CreditCard, DoorOpen, Users } from 'lucide-react';
 import type { IconType } from 'react-icons/lib';
 import { MdApartment } from 'react-icons/md';
 
@@ -52,7 +52,7 @@ export const ownerListFunctions: NavigationItem[] = [
     description: 'Xem báo cáo doanh thu, thống kê',
     icon: BarChart3,
     path: `/${Path.statistics}`,
-    color: 'from-green-500 to-green-600',
+    color: 'from-pink-500 to-pink-600',
   },
 ];
 

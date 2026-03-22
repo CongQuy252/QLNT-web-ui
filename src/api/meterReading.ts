@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { http } from '@/lib/axios';
-import type { IMeterReading, CreateMeterReadingDto, UpdateMeterReadingDto, MeterReadingResponse } from '@/types/meterReading';
+import type { IMeterReading, CreateMeterReadingDto, UpdateMeterReadingDto, MeterReadingResponse, BulkMeterReadingDto, BulkMeterReadingResponse } from '@/types/meterReading';
 
 // Get all meter readings with filters
 export const useMeterReadings = (
@@ -91,3 +91,11 @@ export const useDeleteMeterReading = () => {
     },
   });
 };
+
+export const bulkUpsertMeterReadings = async (
+  data: BulkMeterReadingDto
+): Promise<BulkMeterReadingResponse> => {
+  const response = await http.post('/meter-readings/bulk', data);
+  return response.data;
+};
+

@@ -38,3 +38,28 @@ export interface MeterReadingResponse {
     hasPrev: boolean;
   };
 }
+
+export interface BulkMeterReadingDto {
+  meterReadings: {
+    roomId: string;
+    electricityReading: number;
+    waterReading: number;
+    month: number;
+    year: number;
+  }[];
+}
+
+export interface BulkMeterReadingResponse {
+  message: string;
+  data: {
+    _id: string;
+    roomId: string;
+    month: number;
+    year: number;
+    electricityReading: number;
+    waterReading: number;
+    createdAt: string;
+    updatedAt: string;
+  }[];
+  errors: string[];
+}
