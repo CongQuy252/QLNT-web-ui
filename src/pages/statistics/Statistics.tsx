@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ToastContainer } from '@/components/ui/toast/Toast';
+import { useToast } from '@/hooks/useToast';
 import type { BulkMeterReadingDto } from '@/types/meterReading';
 
 import Dashboard from './components/Dashboard';
@@ -25,15 +27,15 @@ const Statistics = () => {
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth() + 1;
   const currentYear = currentDate.getFullYear();
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth.toString()); // Default to current month
-  const [selectedYear, setSelectedYear] = useState(currentYear.toString()); // Default to current year
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth.toString());
+  const [selectedYear, setSelectedYear] = useState(currentYear.toString());
   const [activeTab, setActiveTab] = useState('table');
   const [isEditing, setIsEditing] = useState(false);
   const [editedValues, setEditedValues] = useState<
     Record<string, { electricity: number; water: number }>
   >({});
+  const { error: toastError, toasts, success } = useToast();
 
-  // Get month and year from selected dropdowns
   const getMonthYearFromSelection = () => {
     const month = parseInt(selectedMonth) || currentMonth;
     const year = parseInt(selectedYear) || currentYear;
@@ -42,7 +44,6 @@ const Statistics = () => {
 
   const { month, year } = getMonthYearFromSelection();
 
-  // API call to get rooms with meter readings
   const {
     data: roomsData,
     isLoading,
@@ -63,7 +64,6 @@ const Statistics = () => {
 
   const rooms = roomsData?.data || [];
 
-  // Handle input changes
   const handleInputChange = (roomId: string, field: 'electricity' | 'water', value: string) => {
     const numValue = parseFloat(value) || 0;
     setEditedValues((prev) => ({
@@ -75,7 +75,6 @@ const Statistics = () => {
     }));
   };
 
-  // Handle save with bulk API
   const handleSave = async () => {
     try {
       const bulkData: BulkMeterReadingDto = {
@@ -91,74 +90,24 @@ const Statistics = () => {
       const result = await bulkUpsertMeterReadings(bulkData);
 
       if (result.errors && result.errors.length > 0) {
-        console.error('Save errors:', result.errors);
-        // Show errors to user
-        alert('Lỗi khi lưu:\n' + result.errors.join('\n'));
+        toastError(result.errors.join(', '));
       } else {
-        console.log('Save success:', result.data);
-        // Clear edited values and exit edit mode
+        success('Lưu dữ liệu thành công.');
         setEditedValues({});
         setIsEditing(false);
-        // Refetch data to get updated values
         refetch();
       }
-    } catch (error) {
-      console.error('Save failed:', error);
-      alert('Lưu thất bại. Vui lòng thử lại.');
+    } catch {
+      toastError('Lưu thất bại. Vui lòng thử lại.');
     }
   };
 
-  // Debug log to check data
-  console.log('Rooms data:', roomsData);
-  console.log('Rooms array:', rooms);
-  console.log('Loading:', isLoading);
-  console.log('Error:', error);
-
-  // Check first room data structure
-  if (rooms.length > 0) {
-    console.log('First room:', rooms[0]);
-    console.log('First room meterReading:', rooms[0].meterReading);
-    console.log('First room building:', rooms[0].building);
-  }
-
   return (
-    <div className="p-2">
+    <div>
       <div className="max-w-7xl mx-auto">
-        {/* TITLE */}
-        <h1 className="text-2xl font-bold text-slate-900 mb-6">Thống kê chỉ số điện nước</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Thống kê chỉ số điện nước</h1>
 
-        <div className="bg-white rounded-lg shadow-md p-6 h-[600px]">
-          {/* FILTER + ACTION */}
-          <div className="flex items-end justify-between mb-6">
-            {/* LEFT FILTER */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <Label className="w-36">Tìm theo room</Label>
-                <Input
-                  type="text"
-                  placeholder="Nhập tên phòng"
-                  value={inputRoomNumber}
-                  onChange={(e) => setInputRoomNumber(e.target.value)}
-                  onBlur={() => setSelectedRoom(inputRoomNumber)}
-                  className="w-64"
-                />
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Label className="w-36">Tìm theo tên tòa nh</Label>
-                <Input
-                  type="text"
-                  placeholder="Nhập tên tòa nhà"
-                  value={buildingInput}
-                  onChange={(e) => setBuildingInput(e.target.value)}
-                  onBlur={() => setSelectedBuilding(buildingInput)}
-                  className="w-64"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* TABS */}
+        <div className="bg-white rounded-lg shadow-md p-6 h-[615px]">
           <div className="w-full">
             <div className="border-b border-gray-200">
               <nav className="-mb-px flex" aria-label="Tabs">
@@ -185,17 +134,39 @@ const Statistics = () => {
               </nav>
             </div>
 
-            {/* TABLE CONTENT */}
             {activeTab === 'table' && (
               <div className="mt-6">
-                {/* TABLE ACTIONS */}
-                <div className="flex justify-between items-center mb-4">
-                  {/* ITEM COUNT */}
-                  <div className="text-sm text-slate-600">{rooms.length} items</div>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-0">
+                  <div className="flex items-end justify-between mb-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <Label className="w-36">Tìm theo room</Label>
+                        <Input
+                          type="text"
+                          placeholder="Nhập tên phòng"
+                          value={inputRoomNumber}
+                          onChange={(e) => setInputRoomNumber(e.target.value)}
+                          onBlur={() => setSelectedRoom(inputRoomNumber)}
+                          className="w-64"
+                        />
+                      </div>
 
-                  {/* BUTTONS */}
-                  <div className="flex gap-2">
-                    <div className="w-40">
+                      <div className="flex items-center gap-4">
+                        <Label className="w-36">Tìm theo tên tòa nhà</Label>
+                        <Input
+                          type="text"
+                          placeholder="Nhập tên tòa nhà"
+                          value={buildingInput}
+                          onChange={(e) => setBuildingInput(e.target.value)}
+                          onBlur={() => setSelectedBuilding(buildingInput)}
+                          className="w-64"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    <div className="w-full sm:w-40">
                       <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn tháng" />
@@ -210,7 +181,7 @@ const Statistics = () => {
                       </Select>
                     </div>
 
-                    <div className="w-32">
+                    <div className="w-full sm:w-32">
                       <Select value={selectedYear} onValueChange={setSelectedYear}>
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn năm" />
@@ -231,8 +202,8 @@ const Statistics = () => {
                     {isEditing && (
                       <Button
                         variant="outline"
+                        className="w-full sm:w-auto"
                         onClick={() => {
-                          // Clear edited values and exit edit mode
                           setEditedValues({});
                           setIsEditing(false);
                         }}
@@ -242,7 +213,7 @@ const Statistics = () => {
                     )}
 
                     <Button
-                      className="bg-black text-white hover:bg-gray-800"
+                      className="bg-black text-white hover:bg-gray-800 w-full sm:w-auto"
                       onClick={() => {
                         if (isEditing) {
                           handleSave();
@@ -263,11 +234,12 @@ const Statistics = () => {
                   isEditing={isEditing}
                   editedValues={editedValues}
                   onChange={handleInputChange}
+                  selectedMonth={parseInt(selectedMonth)}
+                  selectedYear={parseInt(selectedYear)}
                 />
               </div>
             )}
 
-            {/* DASHBOARD CONTENT */}
             {activeTab === 'dashboard' && (
               <div className="mt-6">
                 <Dashboard />
@@ -276,6 +248,8 @@ const Statistics = () => {
           </div>
         </div>
       </div>
+
+      <ToastContainer toasts={toasts} />
     </div>
   );
 };

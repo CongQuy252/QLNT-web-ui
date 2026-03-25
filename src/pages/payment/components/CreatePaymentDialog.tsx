@@ -433,7 +433,7 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
       </div>
 
       {/* Summary Section */}
-      <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-lg p-4">
+      <div className="bg-linear-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-lg p-4">
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-lg font-semibold text-slate-800">Tổng cộng:</span>
