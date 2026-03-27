@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Download } from 'lucide-react';
 import { useState } from 'react';
 
@@ -39,7 +40,6 @@ export default function InvoicePage() {
     isLoading,
     filters,
     updateFilters, // Debounced update for select changes
-    updateFiltersImmediate, // Immediate update for manual refresh
     refetchInvoice,
   } = useInvoicePreview();
 

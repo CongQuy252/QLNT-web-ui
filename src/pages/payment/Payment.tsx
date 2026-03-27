@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { queryClient } from '@/lib/reactQuery';
 import { CreditCard } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -29,12 +30,10 @@ export default function Payment() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Use invoices hook instead of payments
   const {
     invoices,
     pagination,
     isLoading: invoicesLoading,
-    updateFilters,
     setPage,
   } = useInvoices({
     page: currentPage,
