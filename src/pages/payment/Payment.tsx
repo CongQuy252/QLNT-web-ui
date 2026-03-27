@@ -96,7 +96,6 @@ export default function Payment() {
             className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
           >
             <FaFileInvoiceDollar className="w-4 h-4" />
-            Tạo hóa đơn
           </Button>
         )}
       </div>
