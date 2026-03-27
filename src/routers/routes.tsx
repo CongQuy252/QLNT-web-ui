@@ -8,13 +8,14 @@ import Home from '@/pages/home/Home';
 import Payment from '@/pages/payment/Payment';
 import PaymentDetail from '@/pages/paymentDetail/PaymentDetail';
 import Rooms from '@/pages/rooms/Rooms';
-import Tenant from '@/pages/tenant/Tenant';
 import Statistics from '@/pages/statistics/Statistics';
+import Tenant from '@/pages/tenant/Tenant';
 
 import PrivateRoute from './PrivateRoute';
 
 const LoginPage = lazy(() => import('@/pages/login/Login'));
 const CreateBuildingPage = lazy(() => import('@/pages/buildings/CreateBuildingPage'));
+const CreatePaymentPage = lazy(() => import('@/pages/payment/Createpayment'));
 
 export const routes: RouteObject[] = [
   {
@@ -64,6 +65,10 @@ export const routes: RouteObject[] = [
               {
                 path: `/${Path.payments}`,
                 element: <Payment />,
+              },
+              {
+                path: `/${Path.createpayment}`,
+                element: <CreatePaymentPage />,
               },
               {
                 path: `/${Path.payments}/${Path.paymentId}`,

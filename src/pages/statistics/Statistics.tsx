@@ -105,19 +105,6 @@ const Statistics = () => {
     }
   };
 
-  // Debug log to check data
-  // console.log('Rooms data:', roomsData);
-  // console.log('Rooms array:', rooms);
-  // console.log('Loading:', isLoading);
-  // console.log('Error:', error);
-
-  // Check first room data structure
-  if (rooms.length > 0) {
-    console.log('First room:', rooms[0]);
-    console.log('First room meterReading:', rooms[0].meterReading);
-    console.log('First room building:', rooms[0].building);
-  }
-
   return (
     <div className="p-2">
       <div className="max-w-7xl mx-auto">
