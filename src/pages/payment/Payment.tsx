@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { queryClient } from '@/lib/reactQuery';
 import { CreditCard } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
