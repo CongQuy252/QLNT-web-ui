@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ToastContainer } from '@/components/ui/toast/Toast';
+import { useToast } from '@/hooks/useToast';
 import type { BulkMeterReadingDto } from '@/types/meterReading';
 
 import Dashboard from './components/Dashboard';
@@ -32,6 +34,7 @@ const Statistics = () => {
   const [editedValues, setEditedValues] = useState<
     Record<string, { electricity: number; water: number }>
   >({});
+  const { error: toastError, toasts } = useToast();
 
   // Get month and year from selected dropdowns
   const getMonthYearFromSelection = () => {
@@ -91,35 +94,16 @@ const Statistics = () => {
       const result = await bulkUpsertMeterReadings(bulkData);
 
       if (result.errors && result.errors.length > 0) {
-        console.error('Save errors:', result.errors);
-        // Show errors to user
-        alert('Lỗi khi lưu:\n' + result.errors.join('\n'));
+        toastError(result.errors.join(', '));
       } else {
-        console.log('Save success:', result.data);
-        // Clear edited values and exit edit mode
         setEditedValues({});
         setIsEditing(false);
-        // Refetch data to get updated values
         refetch();
       }
     } catch (error) {
-      console.error('Save failed:', error);
-      alert('Lưu thất bại. Vui lòng thử lại.');
+      toastError('Lưu thất bại. Vui lòng thử lại.');
     }
   };
-
-  // Debug log to check data
-  console.log('Rooms data:', roomsData);
-  console.log('Rooms array:', rooms);
-  console.log('Loading:', isLoading);
-  console.log('Error:', error);
-
-  // Check first room data structure
-  if (rooms.length > 0) {
-    console.log('First room:', rooms[0]);
-    console.log('First room meterReading:', rooms[0].meterReading);
-    console.log('First room building:', rooms[0].building);
-  }
 
   return (
     <div className="p-2">
@@ -191,7 +175,7 @@ const Statistics = () => {
                 {/* TABLE ACTIONS */}
                 <div className="flex justify-between items-center mb-4">
                   {/* ITEM COUNT */}
-                  <div className="text-sm text-slate-600">{rooms.length} items</div>
+                  <div className="text-sm text-slate-600">{rooms.length} phòng</div>
 
                   {/* BUTTONS */}
                   <div className="flex gap-2">
@@ -263,6 +247,8 @@ const Statistics = () => {
                   isEditing={isEditing}
                   editedValues={editedValues}
                   onChange={handleInputChange}
+                  selectedMonth={parseInt(selectedMonth)}
+                  selectedYear={parseInt(selectedYear)}
                 />
               </div>
             )}
@@ -276,6 +262,8 @@ const Statistics = () => {
           </div>
         </div>
       </div>
+
+      <ToastContainer toasts={toasts} />
     </div>
   );
 };
