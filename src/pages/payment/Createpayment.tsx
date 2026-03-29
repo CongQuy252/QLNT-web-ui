@@ -1,7 +1,7 @@
 import { Download } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-import { bulkCreateInvoices } from '@/api/invoice';
+import { bulkCreateInvoices, getBuildings, getInvoicePreview } from '@/api/invoice';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -19,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useInvoicePreview } from '@/hooks/useInvoicePreview';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('vi-VN', {
@@ -32,16 +31,79 @@ export default function InvoicePage() {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Use custom hook for data fetching with React Query and debounce
-  const {
-    invoiceData,
-    buildings,
-    isLoading,
-    filters,
-    updateFilters, // Debounced update for select changes
-    updateFiltersImmediate, // Immediate update for manual refresh
-    refetchInvoice,
-  } = useInvoicePreview();
+  // Direct API calls instead of hook
+  const [invoiceData, setInvoiceData] = useState<any[]>([]);
+  const [buildings, setBuildings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+    buildingId: 'all',
+  });
+
+  // Debounce function
+  const debounce = useCallback((func: Function, delay: number) => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    return (...args: any[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(null, args), delay);
+    };
+  }, []);
+
+  // Fetch buildings
+  const fetchBuildings = useCallback(async () => {
+    try {
+      const data = await getBuildings();
+      setBuildings(data);
+    } catch (error) {
+      console.error('Error fetching buildings:', error);
+      setBuildings([]);
+    }
+  }, []);
+
+  // Fetch invoice preview
+  const fetchInvoicePreview = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getInvoicePreview(filters.month, filters.year);
+      setInvoiceData(data);
+    } catch (error) {
+      console.error('Error fetching invoice preview:', error);
+      setInvoiceData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters.month, filters.year]);
+
+  // Debounced filter update
+  const debouncedUpdateFilters = useCallback(debounce(setFilters, 500), [debounce]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchBuildings();
+  }, [fetchBuildings]);
+
+  useEffect(() => {
+    fetchInvoicePreview();
+  }, [fetchInvoicePreview]);
+
+  // Update filters with debounce
+  const updateFilters = useCallback(
+    (newFilters: Partial<typeof filters>) => {
+      debouncedUpdateFilters((prev: typeof filters) => ({ ...prev, ...newFilters }));
+    },
+    [debouncedUpdateFilters],
+  );
+
+  // Immediate filter update
+  const updateFiltersImmediate = useCallback((newFilters: Partial<typeof filters>) => {
+    setFilters((prev: typeof filters) => ({ ...prev, ...newFilters }));
+  }, []);
+
+  // Refetch function
+  const refetchInvoice = useCallback(() => {
+    fetchInvoicePreview();
+  }, [fetchInvoicePreview]);
 
   const handleSelectRow = (roomId: string) => {
     setSelectedRows((prev) =>

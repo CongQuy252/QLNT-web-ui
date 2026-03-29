@@ -28,10 +28,7 @@ export const useMeterReadings = (
       params.append('page', page.toString());
       params.append('limit', limit.toString());
 
-      console.log('API URL:', `/meter-readings?${params.toString()}`);
-
       const response = await http.get(`/meter-readings?${params.toString()}`);
-      console.log('API Response data:', response.data);
 
       // Handle response format: { message, data: [...], pagination }
       if (response.data.data && response.data.pagination) {

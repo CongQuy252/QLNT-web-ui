@@ -4,12 +4,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
+import { getInvoices } from '@/api/invoice';
 import { useDeletePaymentMutation } from '@/api/payment';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
-import { useInvoices } from '@/hooks/useInvoices';
 import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
 import { useToast } from '@/hooks/useToast';
@@ -29,18 +29,55 @@ export default function Payment() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Use invoices hook instead of payments
-  const {
-    invoices,
-    pagination,
-    isLoading: invoicesLoading,
-    updateFilters,
-    setPage,
-  } = useInvoices({
-    page: currentPage,
-    limit: maxItemPerPage,
-    status: filterStatus === 'all' ? undefined : filterStatus.toUpperCase(),
-  });
+  // Direct API call instead of hook
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [pagination, setPagination] = useState<any>(null);
+  const [invoicesLoading, setInvoicesLoading] = useState(true);
+  const [invoicesError, setInvoicesError] = useState<string | null>(null);
+
+  // Fetch invoices data directly
+  const fetchInvoices = useCallback(async () => {
+    try {
+      setInvoicesLoading(true);
+      setInvoicesError(null);
+
+      const response = await getInvoices({
+        page: currentPage,
+        limit: maxItemPerPage,
+        status: filterStatus === 'all' ? undefined : filterStatus.toUpperCase(),
+      });
+
+      // Handle backend response structure
+      if (response && response.invoices) {
+        setInvoices(response.invoices);
+        setPagination(
+          response.pagination || {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: response.invoices.length,
+            itemsPerPage: maxItemPerPage,
+            hasNextPage: false,
+            hasPrevPage: false,
+          },
+        );
+      } else {
+        setInvoices([]);
+        setPagination(null);
+      }
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      setInvoicesError('Failed to fetch invoices');
+      setInvoices([]);
+      setPagination(null);
+    } finally {
+      setInvoicesLoading(false);
+    }
+  }, [currentPage, filterStatus]);
+
+  // Initial fetch and when filters change
+  useEffect(() => {
+    fetchInvoices();
+  }, [fetchInvoices]);
 
   const deletePaymentMutation = useDeletePaymentMutation();
 
@@ -74,7 +111,6 @@ export default function Payment() {
   const handlePageChange = (page: number) => {
     if (pagination && page >= 1 && page <= pagination.totalPages) {
       setCurrentPage(page);
-      setPage(page);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };

@@ -6,7 +6,6 @@ export const getBuildings = async () => {
     const response = await http.get('/buildings');
     return Array.isArray(response.data?.data) ? response.data.data : [];
   } catch (error) {
-    console.error('Error fetching buildings:', error);
     return [];
   }
 };
@@ -22,28 +21,19 @@ export const getInvoicePreview = async (month: number, year: number) => {
     const response = await http.get(`/invoices/invoice-preview?${params.toString()}`);
     const data = response.data;
 
-    console.log('API Response:', data);
-    console.log('Response structure:', typeof data, Array.isArray(data));
-
     // Handle backend response structure: { success: true, data: [...] }
     if (data && data.success && Array.isArray(data.data)) {
-      console.log('Backend response - data.data is array, length:', data.data.length);
       return data.data;
     } else if (Array.isArray(data)) {
-      console.log('Data is array, length:', data.length);
       return data;
     } else if (data && Array.isArray(data.data)) {
-      console.log('Data.data is array, length:', data.data.length);
       return data.data;
     } else if (data && Array.isArray(data.invoices)) {
-      console.log('Data.invoices is array, length:', data.invoices.length);
       return data.invoices;
     } else {
-      console.warn('Unexpected API response structure:', data);
       return [];
     }
   } catch (error) {
-    console.error('Error fetching invoice preview:', error);
     return [];
   }
 };
@@ -58,7 +48,6 @@ export const bulkCreateInvoices = async (roomIds: string[], month: number, year:
     });
     return response.data;
   } catch (error) {
-    console.error('Error creating bulk invoices:', error);
     throw error;
   }
 };
@@ -101,7 +90,6 @@ export const getInvoices = async (options: {
       return { invoices: [], pagination: {} };
     }
   } catch (error) {
-    console.error('Error fetching invoices:', error);
     throw error;
   }
 };
@@ -112,7 +100,6 @@ export const getInvoiceById = async (invoiceId: string) => {
     const response = await http.get(`/invoices/${invoiceId}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching invoice by ID:', error);
     throw error;
   }
 };
