@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { queryClient } from '@/lib/reactQuery';
 import { CreditCard } from 'lucide-react';
@@ -34,7 +35,7 @@ export default function Payment() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [pagination, setPagination] = useState<any>(null);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
-  const [invoicesError, setInvoicesError] = useState<string | null>(null);
+  const [_, setInvoicesError] = useState<string | null>(null);
 
   // Fetch invoices data directly
   const fetchInvoices = useCallback(async () => {
