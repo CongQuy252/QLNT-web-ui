@@ -345,16 +345,19 @@ export default function InvoicePage() {
                     </TableCell>
                     <TableCell className="w-32 border-r border-black">
                       {item.buildingName}
+                      {item.error && (
+                        <span className="ml-2 text-red-500 text-xs block">{item.error}</span>
+                      )}
                     </TableCell>
                     <TableCell className="w-24 border-r border-black">{item.roomName}</TableCell>
                     <TableCell className="w-32 border-r border-black text-right">
                       {formatCurrency(item.rentAmount || 0)}
                     </TableCell>
                     <TableCell className="w-32 border-r border-black text-right">
-                      {item.canCreateInvoice ? formatCurrency(item.electricityCost || 0) : '-'}
+                      {formatCurrency(item.electricityCost || 0)}
                     </TableCell>
                     <TableCell className="w-32 border-r border-black text-right">
-                      {item.canCreateInvoice ? formatCurrency(item.waterCost || 0) : '-'}
+                      {formatCurrency(item.waterCost || 0)}
                     </TableCell>
                     <TableCell className="w-32 border-r border-black text-right">
                       {formatCurrency(item.parkingFee || 0)}
