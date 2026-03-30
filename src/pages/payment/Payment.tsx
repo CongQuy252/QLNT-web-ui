@@ -1,30 +1,21 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { queryClient } from '@/lib/reactQuery';
 import { CreditCard } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
-import {
-  useCreatePaymentMutation,
-  useDeletePaymentMutation,
-  useGetPaymentsQuery,
-} from '@/api/payment';
+import { getInvoices } from '@/api/invoice';
+import { useDeletePaymentMutation } from '@/api/payment';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { LocalStorageKey, Path, QueriesKey, UserRole } from '@/constants/appConstants';
+import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
 import { useToast } from '@/hooks/useToast';
 import PaymentCard from '@/pages/payment/components/PaymentCard';
-import PaymentDialogWrapper from '@/pages/payment/components/PaymentDialogWrapper';
 import { maxItemPerPage } from '@/pages/payment/paymentConstants';
 
 export default function Payment() {
@@ -39,22 +30,58 @@ export default function Payment() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
 
-  const { data: paymentsData, isLoading: paymentsLoading } = useGetPaymentsQuery(
-    currentPage,
-    maxItemPerPage,
-    searchTerm,
-    filterStatus === 'all' ? '' : filterStatus,
-    !!userId && !isLoading && !isError && !!user,
-  );
+  // Direct API call instead of hook
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [pagination, setPagination] = useState<any>(null);
+  const [invoicesLoading, setInvoicesLoading] = useState(true);
+  const [_, setInvoicesError] = useState<string | null>(null);
 
-  const createPaymentMutation = useCreatePaymentMutation();
+  // Fetch invoices data directly
+  const fetchInvoices = useCallback(async () => {
+    try {
+      setInvoicesLoading(true);
+      setInvoicesError(null);
+
+      const response = await getInvoices({
+        page: currentPage,
+        limit: maxItemPerPage,
+        status: filterStatus === 'all' ? undefined : filterStatus.toUpperCase(),
+      });
+
+      // Handle backend response structure
+      if (response && response.invoices) {
+        setInvoices(response.invoices);
+        setPagination(
+          response.pagination || {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: response.invoices.length,
+            itemsPerPage: maxItemPerPage,
+            hasNextPage: false,
+            hasPrevPage: false,
+          },
+        );
+      } else {
+        setInvoices([]);
+        setPagination(null);
+      }
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      setInvoicesError('Failed to fetch invoices');
+      setInvoices([]);
+      setPagination(null);
+    } finally {
+      setInvoicesLoading(false);
+    }
+  }, [currentPage, filterStatus]);
+
+  // Initial fetch and when filters change
+  useEffect(() => {
+    fetchInvoices();
+  }, [fetchInvoices]);
 
   const deletePaymentMutation = useDeletePaymentMutation();
-
-  const payments = paymentsData?.payments || [];
-  const pagination = paymentsData?.pagination;
 
   const handleLogout = useCallback(() => {
     queryClient.clear();
@@ -63,12 +90,12 @@ export default function Payment() {
   }, [navigator]);
 
   useEffect(() => {
-    if (isLoading || paymentsLoading) {
+    if (isLoading || invoicesLoading) {
       show();
     } else {
       hide();
     }
-  }, [hide, isLoading, paymentsLoading, show]);
+  }, [hide, isLoading, invoicesLoading, show]);
 
   useEffect(() => {
     if (!isLoading && (isError || !user)) {
@@ -81,7 +108,7 @@ export default function Payment() {
   }
 
   // Remove client-side filtering since API handles it
-  const paginatedPayments = payments;
+  const paginatedInvoices = invoices;
 
   const handlePageChange = (page: number) => {
     if (pagination && page >= 1 && page <= pagination.totalPages) {
@@ -102,31 +129,12 @@ export default function Payment() {
           </p>
         </div>
         {user.role === UserRole.admin && (
-          <Dialog open={isInvoiceDialogOpen} onOpenChange={setIsInvoiceDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-slate-900 hover:bg-slate-800 text-white gap-2">
-                <FaFileInvoiceDollar className="w-4 h-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-screen h-screen max-w-none rounded-none flex flex-col">
-              <DialogHeader className="border-b px-4 py-3">
-                <DialogTitle>Lập hóa đơn mới</DialogTitle>
-              </DialogHeader>
-              <div className="flex-1 overflow-y-auto space-y-4 p-0.5">
-                <PaymentDialogWrapper
-                  onSubmit={async (invoice) => {
-                    try {
-                      await createPaymentMutation.mutateAsync(invoice);
-                      setIsInvoiceDialogOpen(false);
-                      queryClient.invalidateQueries({ queryKey: [QueriesKey.payments] });
-                    } catch (error) {
-                      console.error('Error creating payment:', error);
-                    }
-                  }}
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button
+            onClick={() => navigator(`/${Path.createpayment}`)}
+            className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
+          >
+            <FaFileInvoiceDollar className="w-4 h-4" />
+          </Button>
         )}
       </div>
 
@@ -174,10 +182,10 @@ export default function Payment() {
       </div>
 
       <div className="overflow-x-auto">
-        {paginatedPayments.map((payment) => (
+        {paginatedInvoices.map((invoice: any) => (
           <PaymentCard
-            key={payment._id}
-            payment={payment}
+            key={invoice._id}
+            payment={invoice}
             onDelete={(id) =>
               deletePaymentMutation.mutate(id, {
                 onSuccess: () => success('Xóa thanh toán thành công'),
@@ -188,11 +196,12 @@ export default function Payment() {
       </div>
 
       {/* Pagination */}
-      {pagination && payments.length > 0 && (
+      {pagination && invoices.length > 0 && (
         <div className="flex items-center justify-between p-4">
           <div className="text-sm text-slate-600">
-            {(pagination.page - 1) * pagination.limit + 1} -{' '}
-            {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total}
+            {(pagination.currentPage - 1) * pagination.itemsPerPage + 1} -{' '}
+            {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} /{' '}
+            {pagination.totalItems}
           </div>
 
           <div className="flex items-center gap-2">
@@ -200,20 +209,20 @@ export default function Payment() {
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1 || !pagination.hasPrev}
+              disabled={currentPage === 1 || !pagination.hasPrevPage}
             >
               Trước
             </Button>
 
             <span className="text-sm text-slate-600">
-              {pagination.page} / {pagination.totalPages}
+              {currentPage} / {pagination.totalPages}
             </span>
 
             <Button
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === pagination.totalPages || !pagination.hasNext}
+              disabled={currentPage === pagination.totalPages || !pagination.hasNextPage}
             >
               Sau
             </Button>
@@ -221,7 +230,7 @@ export default function Payment() {
         </div>
       )}
 
-      {payments.length === 0 && !paymentsLoading && (
+      {invoices.length === 0 && !invoicesLoading && (
         <div className="py-12 text-center">
           <CreditCard className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-600">Không tìm thấy khoản thanh toán nào phù hợp</p>

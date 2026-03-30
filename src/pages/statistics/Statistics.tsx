@@ -107,7 +107,7 @@ const Statistics = () => {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl font-bold text-slate-900">Thống kê chỉ số điện nước</h1>
 
-        <div className="bg-white rounded-lg shadow-md p-6 h-[615px]">
+        <div className="bg-white rounded-lg shadow-md p-6 h-153.75">
           <div className="w-full">
             <div className="border-b border-gray-200">
               <nav className="-mb-px flex" aria-label="Tabs">

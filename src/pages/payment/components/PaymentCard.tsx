@@ -16,11 +16,12 @@ import {
 } from '@/components/ui/dialog';
 import { UserRole } from '@/constants/appConstants';
 import { getStatusBadge, getStatusLabel } from '@/pages/payment/paymentConstants';
+import type { Invoice } from '@/types/invoice';
 import type { Payment } from '@/types/payment';
 import { formatCurrency, formatDate } from '@/utils/utils';
 
 interface PaymentCardProps {
-  payment: Payment;
+  payment: Payment | Invoice;
   onDelete?: (id: string) => void;
 }
 
@@ -30,21 +31,74 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
 
   const user = { role: 1 };
 
-  const { data: tenant } = useGetTenantByIdQuery(payment.tenantId, true);
+  // Handle both Payment and Invoice structures
+  const isInvoice = 'tenantId' in payment && typeof payment.tenantId === 'object';
 
-  // Normalize roomId to handle both string and object cases
-  const normalizedRoomId =
-    typeof payment.roomId === 'string'
-      ? payment.roomId
-      : (payment.roomId as any)?._id || payment.roomId;
+  // Get tenant info
+  let tenantName = '-';
+  let tenantIdForQuery = '';
 
-  const { data: roomData } = useGetRoomByIdQuery(normalizedRoomId);
-  const room = roomData?.room;
+  if (isInvoice) {
+    const invoice = payment as Invoice;
+    tenantName = invoice.tenantId.fullName;
+    tenantIdForQuery = invoice.tenantId._id;
+  } else {
+    const paymentData = payment as Payment;
+    tenantIdForQuery = paymentData.tenantId;
+    const { data: tenant } = useGetTenantByIdQuery(tenantIdForQuery, true);
+    tenantName = tenant?.userId.name || '-';
+  }
+
+  // Get room info
+  let roomNumber = '-';
+  let buildingName = '-';
+  let roomIdForQuery = '';
+
+  if (isInvoice) {
+    const invoice = payment as Invoice;
+    roomNumber = invoice.roomId.number;
+    buildingName = invoice.roomId.buildingId.name;
+    roomIdForQuery = invoice.roomId._id;
+  } else {
+    const paymentData = payment as Payment;
+    roomIdForQuery =
+      typeof paymentData.roomId === 'string'
+        ? paymentData.roomId
+        : (paymentData.roomId as any)?._id || paymentData.roomId;
+    const { data: roomData } = useGetRoomByIdQuery(roomIdForQuery);
+    const room = roomData?.room;
+    if (room) {
+      roomNumber = room.number;
+      buildingName = (room.buildingId as any)?.name || room.buildingId;
+    }
+  }
+
+  // Get amount and month/year
+  let amount = 0;
+  let monthYear = '';
+
+  if (isInvoice) {
+    const invoice = payment as Invoice;
+    amount = invoice.totalAmount;
+    monthYear = `Tháng ${invoice.month}/${invoice.year}`;
+  } else {
+    const paymentData = payment as Payment;
+    amount = paymentData.amount;
+    monthYear = `Tháng ${paymentData.month}`;
+  }
+
+  // Get status
+  const status = payment.status;
+
+  // Get dates
+  const dueDate = isInvoice ? (payment as Invoice).dueDate : (payment as Payment).dueDate;
+  const paidDate = isInvoice ? (payment as Invoice).paidDate : (payment as Payment).paidDate;
+  const notes = isInvoice ? undefined : (payment as Payment).notes;
 
   const navigate = useNavigate();
   const handleGoDetail = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/payments/${payment._id}`); // nhớ check đúng field id
+    navigate(`/payments/${payment._id}`);
   };
 
   return (
@@ -56,28 +110,24 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
           className="w-full text-left p-4 flex justify-between items-center hover:bg-slate-50 cursor-pointer"
         >
           <div onClick={handleGoDetail} className="cursor-pointer flex-1">
-            {user.role === UserRole.admin && (
-              <p className="text-sm text-slate-500">{tenant?.userId.name}</p>
-            )}
+            {user.role === UserRole.admin && <p className="text-sm text-slate-500">{tenantName}</p>}
 
             <p className="font-semibold text-slate-900">
-              {room
-                ? `${room.number} (Tòa ${(room.buildingId as any)?.name || room.buildingId})`
-                : '-'}
+              {roomNumber && buildingName ? `${roomNumber} (Tòa ${buildingName})` : '-'}
             </p>
 
             <p className="text-sm text-slate-500">
-              Tháng {payment.month} • {formatCurrency(payment.amount)}
+              {monthYear} • {formatCurrency(amount)}
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <span
               className={`inline-flex px-3 py-1 rounded-full text-xs font-medium text-nowrap ${getStatusBadge(
-                payment.status,
+                status,
               )}`}
             >
-              {getStatusLabel(payment.status)}
+              {getStatusLabel(status)}
             </span>
 
             {user.role === UserRole.admin && onDelete && (
@@ -102,20 +152,20 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
           <div className="border-t border-slate-100 px-4 py-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-slate-500">Hạn thanh toán</span>
-              <span className="font-medium">{formatDate(payment.dueDate)}</span>
+              <span className="font-medium">{dueDate ? formatDate(dueDate) : '-'}</span>
             </div>
 
             <div className="flex justify-between">
               <span className="text-slate-500">Số tiền</span>
-              <span className="font-semibold">{formatCurrency(payment.amount)}</span>
+              <span className="font-semibold">{formatCurrency(amount)}</span>
             </div>
 
             <div className="flex justify-between">
               <span className="text-slate-500">Ghi chú</span>
               <span className="text-right">
-                {payment.paidDate && payment.status === 'paid'
-                  ? `Thanh toán ngày ${formatDate(payment.paidDate)}`
-                  : payment.notes || '-'}
+                {paidDate && status === 'paid'
+                  ? `Thanh toán ngày ${formatDate(paidDate)}`
+                  : notes || '-'}
               </span>
             </div>
           </div>
