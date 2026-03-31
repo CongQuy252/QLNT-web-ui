@@ -103,3 +103,13 @@ export const getInvoiceById = async (invoiceId: string) => {
     throw error;
   }
 };
+
+// Delete invoice by ID
+export const deleteInvoice = async (invoiceId: string) => {
+  try {
+    const response = await http.delete(`/invoices/${invoiceId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

@@ -6,8 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
-import { getInvoices } from '@/api/invoice';
-import { useDeletePaymentMutation } from '@/api/payment';
+import { deleteInvoice, getInvoices } from '@/api/invoice';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,7 +80,18 @@ export default function Payment() {
     fetchInvoices();
   }, [fetchInvoices]);
 
-  const deletePaymentMutation = useDeletePaymentMutation();
+  const handleDeleteInvoice = useCallback(
+    async (invoiceId: string) => {
+      try {
+        await deleteInvoice(invoiceId);
+        success('Xóa hóa đơn thành công');
+        fetchInvoices(); // Refresh data
+      } catch (error) {
+        console.error('Error deleting invoice:', error);
+      }
+    },
+    [fetchInvoices],
+  );
 
   const handleLogout = useCallback(() => {
     queryClient.clear();
@@ -183,15 +193,7 @@ export default function Payment() {
 
       <div className="overflow-x-auto">
         {paginatedInvoices.map((invoice: any) => (
-          <PaymentCard
-            key={invoice._id}
-            payment={invoice}
-            onDelete={(id) =>
-              deletePaymentMutation.mutate(id, {
-                onSuccess: () => success('Xóa thanh toán thành công'),
-              })
-            }
-          />
+          <PaymentCard key={invoice._id} payment={invoice} onDelete={handleDeleteInvoice} />
         ))}
       </div>
 
