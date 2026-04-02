@@ -1,17 +1,11 @@
+'use client';
+
 import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { formatCurrency } from '@/utils/utils';
 
 interface RevenueRow {
   id: string;
@@ -22,7 +16,6 @@ interface RevenueRow {
 }
 
 export default function Dashboard() {
-  const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<RevenueRow[]>([
     {
       id: '1',
@@ -38,10 +31,46 @@ export default function Dashboard() {
       revenue: 12500000,
       expense: 3500000,
     },
+    {
+      id: '3',
+      date: '2024-01-15',
+      description: 'Bán hàng tháng 1',
+      revenue: 10800000,
+      expense: 3200000,
+    },
+    {
+      id: '4',
+      date: '2023-12-15',
+      description: 'Bán hàng tháng 12',
+      revenue: 18500000,
+      expense: 5500000,
+    },
+    {
+      id: '5',
+      date: '2023-11-15',
+      description: 'Bán hàng tháng 11',
+      revenue: 14200000,
+      expense: 4200000,
+    },
+    {
+      id: '6',
+      date: '2023-11-15',
+      description: 'Bán hàng tháng 12',
+      revenue: 14200000,
+      expense: 4200000,
+    },
+
+    {
+      id: '7',
+      date: '2023-11-15',
+      description: 'Bán hàng tháng 12',
+      revenue: 14200000,
+      expense: 4200000,
+    },
   ]);
 
   const [newRow, setNewRow] = useState({
-    date: '',
+    date: Date.now().toString(),
     description: '',
     revenue: '',
     expense: '',
@@ -49,16 +78,14 @@ export default function Dashboard() {
 
   const addRow = () => {
     if (newRow.date && newRow.description && newRow.revenue && newRow.expense) {
-      setRows([
-        {
-          id: Date.now().toString(),
-          date: newRow.date,
-          description: newRow.description,
-          revenue: parseFloat(newRow.revenue),
-          expense: parseFloat(newRow.expense),
-        },
-        ...rows,
-      ]);
+      const row: RevenueRow = {
+        id: Date.now().toString(),
+        date: newRow.date,
+        description: newRow.description,
+        revenue: parseFloat(newRow.revenue),
+        expense: parseFloat(newRow.expense),
+      };
+      setRows([row, ...rows]);
       setNewRow({ date: '', description: '', revenue: '', expense: '' });
     }
   };
@@ -67,135 +94,112 @@ export default function Dashboard() {
     setRows(rows.filter((row) => row.id !== id));
   };
 
-  const totals = {
-    revenue: rows.reduce((s, r) => s + r.revenue, 0),
-    expense: rows.reduce((s, r) => s + r.expense, 0),
+  const calculateTotals = () => {
+    return {
+      revenue: rows.reduce((sum, row) => sum + row.revenue, 0),
+      expense: rows.reduce((sum, row) => sum + row.expense, 0),
+    };
   };
 
+  const totals = calculateTotals();
   const profit = totals.revenue - totals.expense;
 
-  const Form = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-      <Input
-        type="date"
-        value={newRow.date}
-        onChange={(e) => setNewRow({ ...newRow, date: e.target.value })}
-      />
-      <Input
-        value={newRow.description}
-        onChange={(e) => setNewRow({ ...newRow, description: e.target.value })}
-        placeholder="Mô tả"
-      />
-      <Input
-        type="number"
-        value={newRow.revenue}
-        onChange={(e) => setNewRow({ ...newRow, revenue: e.target.value })}
-        placeholder="Thu"
-      />
-      <Input
-        type="number"
-        value={newRow.expense}
-        onChange={(e) => setNewRow({ ...newRow, expense: e.target.value })}
-        placeholder="Chi"
-      />
-      <div className="sticky bottom-0 bg-background pt-3 pb-4 border-t flex gap-3 justify-center">
-        <Button variant="outline" onClick={() => setOpen(false)} className="w-40">
-          Huỷ
-        </Button>
-
-        <Button
-          onClick={() => {
-            addRow();
-            setOpen(false);
-          }}
-          className="w-40"
-        >
-          Tạo
-        </Button>
-      </div>
-    </div>
-  );
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(value);
+  };
 
   return (
-    <main className="min-h-screen bg-background p-2 sm:p-4">
+    <main className="max-h-screen bg-background">
       <div className="max-w-7xl mx-auto">
-        {/* DESKTOP FORM */}
-        <div className="hidden md:block">
-          <Card className="mb-3">
-            <CardHeader>
-              <CardTitle>Thêm Ghi Chép Mới</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* MOBILE BUTTON + DIALOG */}
-        <div className="md:hidden mb-3">
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="w-full">Thêm record mới</Button>
-            </DialogTrigger>
-
-            <DialogContent className="fixed inset-0 w-screen h-screen max-w-none translate-x-0 translate-y-0 rounded-none p-4">
-              <DialogHeader className="sticky top-0 bg-background z-10 pb-2">
-                <DialogTitle>Thêm Ghi Chép</DialogTitle>
-              </DialogHeader>
-
-              <div className="mt-4 space-y-3 overflow-y-auto">
-                <Form />
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* TABLE (SCROLL MOBILE) */}
-        <Card className="p-2">
+        <Card className="mb-2">
+          <CardHeader>
+            <CardTitle>Thêm Ghi Chép Mới</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-5 gap-3">
+              <Input
+                type="date"
+                value={newRow.date}
+                onChange={(e) => setNewRow({ ...newRow, date: e.target.value })}
+                placeholder="Ngày"
+              />
+              <Input
+                value={newRow.description}
+                onChange={(e) => setNewRow({ ...newRow, description: e.target.value })}
+                placeholder="Mô tả (ví dụ: Bán hàng tháng 3)"
+              />
+              <Input
+                type="number"
+                value={newRow.revenue}
+                onChange={(e) => setNewRow({ ...newRow, revenue: e.target.value })}
+                placeholder="Tổng thu nhập"
+              />
+              <Input
+                type="number"
+                value={newRow.expense}
+                onChange={(e) => setNewRow({ ...newRow, expense: e.target.value })}
+                placeholder="Tổng chi phí"
+              />
+              <Button onClick={addRow} className="w-full">
+                Tạo bản ghi mới
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="p-2 pr-0">
           <CardContent className="px-0">
-            <div className="max-h-80 overflow-auto">
-              <table className="w-full min-w-[700px]">
+            <div className="max-h-80 overflow-y-auto">
+              <table className="w-full">
                 <thead className="sticky top-0 bg-background z-10 shadow-sm">
-                  <tr className="border-b">
-                    <th className="text-left px-4 py-3">Tháng</th>
-                    <th className="text-left px-4 py-3">Mô tả</th>
-                    <th className="text-right px-4 py-3">Thu</th>
-                    <th className="text-right px-4 py-3">Chi</th>
-                    <th className="text-right px-4 py-3">Lãi</th>
-                    <th className="text-center px-4 py-3">Xóa</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-3 px-4 font-semibold text-foreground">Tháng</th>
+                    <th className="text-left py-3 px-4 font-semibold text-foreground">Mô Tả</th>
+                    <th className="text-right py-3 px-4 font-semibold text-foreground">
+                      Doanh Thu
+                    </th>
+                    <th className="text-right py-3 px-4 font-semibold text-foreground">Chi Phí</th>
+                    <th className="text-right py-3 px-4 font-semibold text-foreground">
+                      Lợi Nhuận
+                    </th>
+                    <th className="text-center py-3 px-4 font-semibold text-foreground">
+                      Hành Động
+                    </th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {rows.map((row) => {
                     const rowProfit = row.revenue - row.expense;
-
                     return (
-                      <tr key={row.id} className="border-t hover:bg-muted/50">
-                        <td className="px-4 py-3">
+                      <tr
+                        key={row.id}
+                        className="border-t border-border hover:bg-muted/50 transition-colors"
+                      >
+                        <td className="py-3 px-4 text-foreground text-sm font-medium">
                           {new Date(row.date).toLocaleDateString('vi-VN', {
                             month: 'long',
                             year: 'numeric',
                           })}
                         </td>
-                        <td className="px-4 py-3">{row.description}</td>
-                        <td className="px-4 py-3 text-right text-green-600">
+                        <td className="py-3 px-4 text-foreground text-sm">{row.description}</td>
+                        <td className="py-3 px-4 text-right text-sm text-green-600 font-medium">
                           {formatCurrency(row.revenue)}
                         </td>
-                        <td className="px-4 py-3 text-right text-red-600">
+                        <td className="py-3 px-4 text-right text-sm text-red-600 font-medium">
                           {formatCurrency(row.expense)}
                         </td>
                         <td
-                          className={`px-4 py-3 text-right ${
-                            rowProfit >= 0 ? 'text-blue-600' : 'text-red-600'
-                          }`}
+                          className={`py-3 px-4 text-right text-sm font-medium ${rowProfit >= 0 ? 'text-blue-600' : 'text-red-600'}`}
                         >
                           {formatCurrency(rowProfit)}
                         </td>
-                        <td className="text-center">
+                        <td className="py-3 px-4 text-center">
                           <button
                             onClick={() => deleteRow(row.id)}
-                            className="p-2 text-destructive hover:bg-destructive/10 rounded"
+                            className="inline-flex items-center justify-center p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive"
+                            aria-label="Xóa"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -208,16 +212,14 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-
-        {/* TOTAL */}
         <div className="pt-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 gap-3 text-sm">
+          <div className="grid grid-cols-6 gap-4 text-sm">
             <div></div>
-            <div className="font-semibold">Tổng</div>
-            <div className="text-green-600 text-right font-bold">
+            <div className="font-semibold text-foreground">Tổng Cộng</div>
+            <div className="text-right font-bold text-green-600">
               {formatCurrency(totals.revenue)}
             </div>
-            <div className="text-red-600 text-right font-bold">
+            <div className="text-right font-bold text-red-600">
               {formatCurrency(totals.expense)}
             </div>
             <div
@@ -225,6 +227,7 @@ export default function Dashboard() {
             >
               {formatCurrency(profit)}
             </div>
+            <div></div>
           </div>
         </div>
       </div>
