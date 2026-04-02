@@ -31,61 +31,61 @@ const MeterReadingTable = ({
   const isEditable = (
     readingMonth?: number,
     readingYear?: number,
-    month?: number,
-    year?: number,
+    selectedMonth?: number,
+    selectedYear?: number,
   ) => {
-    if (!month || !year) return false;
+    if (!selectedMonth || !selectedYear) return false;
 
     const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
     const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
     const isAllowedMonth =
-      (month === currentMonth && year === currentYear) ||
-      (month === prevMonth && year === prevYear);
+      (selectedMonth === currentMonth && selectedYear === currentYear) ||
+      (selectedMonth === prevMonth && selectedYear === prevYear);
 
     if (!isAllowedMonth) return false;
 
     if (!readingMonth || !readingYear) return true;
 
-    return readingMonth === month && readingYear === year;
+    return readingMonth === selectedMonth && readingYear === selectedYear;
   };
 
   return (
     <div className="relative border border-gray-300 rounded-lg overflow-hidden">
       <div className="overflow-y-auto max-h-99 overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full min-w-100">
           <thead className="sticky top-0 z-10 bg-blue-200">
             <tr>
               {haveCheckBoxColumn && (
-                <th className="border px-4 py-2 w-10">
+                <th className="border px-2 py-2 w-10">
                   <Input type="checkbox" />
                 </th>
               )}
-              <th className="border px-4 py-2">Tên toà nhà</th>
-              <th className="border px-4 py-2">Tên phòng</th>
-              <th className="border px-4 py-2">Chỉ số điện</th>
-              <th className="border px-4 py-2">Chỉ số nước</th>
-              <th className="border px-4 py-2">Tháng</th>
-              <th className="border px-4 py-2">Năm</th>
+
+              <th className="border px-2 py-2">Tòa nhà</th>
+              <th className="border px-2 py-2">Phòng</th>
+              <th className="border px-2 py-2">Điện</th>
+              <th className="border px-2 py-2">Nước</th>
+              <th className="border px-2 py-2">Ngày</th>
             </tr>
           </thead>
 
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={haveCheckBoxColumn ? 7 : 6} className="text-center py-4">
+                <td colSpan={6} className="text-center py-4">
                   Đang tải dữ liệu...
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={haveCheckBoxColumn ? 7 : 6} className="text-center py-4 text-red-500">
+                <td colSpan={6} className="text-center py-4 text-red-500">
                   Lỗi: {error.message}
                 </td>
               </tr>
             ) : rooms.length === 0 ? (
               <tr>
-                <td colSpan={haveCheckBoxColumn ? 7 : 6} className="text-center py-4">
+                <td colSpan={6} className="text-center py-4">
                   Không có dữ liệu
                 </td>
               </tr>
@@ -101,15 +101,16 @@ const MeterReadingTable = ({
                 return (
                   <tr key={room._id} className={!canEdit ? 'bg-gray-100' : ''}>
                     {haveCheckBoxColumn && (
-                      <td className="border px-4 py-2 text-center">
+                      <td className="border px-2 py-2 text-center">
                         <Input type="checkbox" disabled={!canEdit} />
                       </td>
                     )}
-                    <td className="border px-4 py-2">
+
+                    <td className="border px-2 py-2">
                       <div className="break-normal">{room.building?.name || '-'}</div>
                     </td>
 
-                    <td className="border px-4 py-2 max-w-xs">
+                    <td className="border px-2 py-2 max-w-xs">
                       <div
                         className="truncate overflow-hidden whitespace-nowrap"
                         title={room.number || '-'}
@@ -118,7 +119,7 @@ const MeterReadingTable = ({
                       </div>
                     </td>
 
-                    <td className="border px-4 py-2">
+                    <td className="border px-2 py-2">
                       {isEditing ? (
                         <Input
                           type="number"
@@ -138,7 +139,8 @@ const MeterReadingTable = ({
                         room.meterReading?.electricityReading || '-'
                       )}
                     </td>
-                    <td className="border px-4 py-2">
+
+                    <td className="border px-2 py-2">
                       {isEditing ? (
                         <Input
                           type="number"
@@ -156,11 +158,11 @@ const MeterReadingTable = ({
                         room.meterReading?.waterReading || '-'
                       )}
                     </td>
-                    <td className="border px-4 py-2 text-center">
-                      {room.meterReading?.month || '-'}
-                    </td>
-                    <td className="border px-4 py-2 text-center">
-                      {room.meterReading?.year || '-'}
+
+                    <td className="border px-2 py-2">
+                      {room.meterReading?.createdAt
+                        ? new Date(room.meterReading.createdAt).toLocaleDateString('vi-VN')
+                        : '-'}
                     </td>
                   </tr>
                 );

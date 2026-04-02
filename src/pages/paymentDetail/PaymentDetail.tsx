@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { queryClient } from '@/lib/reactQuery';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -37,7 +38,7 @@ export default function PaymentDetail() {
         // Handle backend response structure: { success: true, data: {...} }
         const data = response.success && response.data ? response.data : response;
         setInvoice(data);
-      } catch (error) {
+      } catch {
         setInvoiceError('Failed to fetch invoice');
       } finally {
         setInvoiceLoading(false);
