@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { FaRegEdit } from 'react-icons/fa';
+import { LiaSave } from 'react-icons/lia';
+import { MdCancel } from 'react-icons/md';
 
 import { bulkUpsertMeterReadings } from '@/api/meterReading';
 import { useRoomsWithMeterReadings } from '@/api/room';
@@ -107,7 +110,7 @@ const Statistics = () => {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl font-bold text-slate-900">Thống kê chỉ số điện nước</h1>
 
-        <div className="bg-white rounded-lg shadow-md p-6 h-[615px]">
+        <div className="bg-white rounded-lg shadow-md p-6 h-153.75">
           <div className="w-full">
             <div className="border-b border-gray-200">
               <nav className="-mb-px flex" aria-label="Tabs">
@@ -136,36 +139,36 @@ const Statistics = () => {
 
             {activeTab === 'table' && (
               <div className="mt-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-0">
-                  <div className="flex items-end justify-between mb-6">
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-2 md:gap-0">
+                  <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4">
                     <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <Label className="w-36">Tìm theo room</Label>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <Label className="sm:w-36">Tìm theo room</Label>
                         <Input
                           type="text"
                           placeholder="Nhập tên phòng"
                           value={inputRoomNumber}
                           onChange={(e) => setInputRoomNumber(e.target.value)}
                           onBlur={() => setSelectedRoom(inputRoomNumber)}
-                          className="w-64"
+                          className="w-full"
                         />
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <Label className="w-36">Tìm theo tên tòa nhà</Label>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <Label className="sm:w-36">Tìm theo tên tòa nhà</Label>
                         <Input
                           type="text"
                           placeholder="Nhập tên tòa nhà"
                           value={buildingInput}
                           onChange={(e) => setBuildingInput(e.target.value)}
                           onBlur={() => setSelectedBuilding(buildingInput)}
-                          className="w-64"
+                          className="w-full"
                         />
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                  <div className="flex sm:flex-row gap-2 w-full md:w-auto">
                     <div className="w-full sm:w-40">
                       <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                         <SelectTrigger>
@@ -202,18 +205,17 @@ const Statistics = () => {
                     {isEditing && (
                       <Button
                         variant="outline"
-                        className="w-full sm:w-auto"
+                        className="w-12 sm:w-auto"
                         onClick={() => {
                           setEditedValues({});
                           setIsEditing(false);
                         }}
-                      >
-                        Cancel
-                      </Button>
+                        icon={<MdCancel className="h-4 w-4 text-red-500" />}
+                      />
                     )}
 
                     <Button
-                      className="bg-black text-white hover:bg-gray-800 w-full sm:w-auto"
+                      className="bg-black text-white hover:bg-gray-800 w-12 sm:w-auto"
                       onClick={() => {
                         if (isEditing) {
                           handleSave();
@@ -222,7 +224,11 @@ const Statistics = () => {
                         }
                       }}
                     >
-                      {isEditing ? 'Lưu' : 'Edit'}
+                      {isEditing ? (
+                        <LiaSave className="h-4 w-4" />
+                      ) : (
+                        <FaRegEdit className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>

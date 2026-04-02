@@ -31,23 +31,23 @@ const MeterReadingTable = ({
   const isEditable = (
     readingMonth?: number,
     readingYear?: number,
-    selectedMonth?: number,
-    selectedYear?: number,
+    month?: number,
+    year?: number,
   ) => {
-    if (!selectedMonth || !selectedYear) return false;
+    if (!month || !year) return false;
 
     const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
     const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
     const isAllowedMonth =
-      (selectedMonth === currentMonth && selectedYear === currentYear) ||
-      (selectedMonth === prevMonth && selectedYear === prevYear);
+      (month === currentMonth && year === currentYear) ||
+      (month === prevMonth && year === prevYear);
 
     if (!isAllowedMonth) return false;
 
     if (!readingMonth || !readingYear) return true;
 
-    return readingMonth === selectedMonth && readingYear === selectedYear;
+    return readingMonth === month && readingYear === year;
   };
 
   return (
@@ -61,31 +61,31 @@ const MeterReadingTable = ({
                   <Input type="checkbox" />
                 </th>
               )}
-
-              <th className="border px-4 py-2">Tòa nhà</th>
-              <th className="border px-4 py-2">Phòng</th>
-              <th className="border px-4 py-2">Điện</th>
-              <th className="border px-4 py-2">Nước</th>
-              <th className="border px-4 py-2">Ngày</th>
+              <th className="border px-4 py-2">Tên toà nhà</th>
+              <th className="border px-4 py-2">Tên phòng</th>
+              <th className="border px-4 py-2">Chỉ số điện</th>
+              <th className="border px-4 py-2">Chỉ số nước</th>
+              <th className="border px-4 py-2">Tháng</th>
+              <th className="border px-4 py-2">Năm</th>
             </tr>
           </thead>
 
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="text-center py-4">
+                <td colSpan={haveCheckBoxColumn ? 7 : 6} className="text-center py-4">
                   Đang tải dữ liệu...
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={6} className="text-center py-4 text-red-500">
+                <td colSpan={haveCheckBoxColumn ? 7 : 6} className="text-center py-4 text-red-500">
                   Lỗi: {error.message}
                 </td>
               </tr>
             ) : rooms.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-4">
+                <td colSpan={haveCheckBoxColumn ? 7 : 6} className="text-center py-4">
                   Không có dữ liệu
                 </td>
               </tr>
@@ -105,7 +105,6 @@ const MeterReadingTable = ({
                         <Input type="checkbox" disabled={!canEdit} />
                       </td>
                     )}
-
                     <td className="border px-4 py-2">
                       <div className="break-normal">{room.building?.name || '-'}</div>
                     </td>
@@ -139,7 +138,6 @@ const MeterReadingTable = ({
                         room.meterReading?.electricityReading || '-'
                       )}
                     </td>
-
                     <td className="border px-4 py-2">
                       {isEditing ? (
                         <Input
@@ -158,11 +156,11 @@ const MeterReadingTable = ({
                         room.meterReading?.waterReading || '-'
                       )}
                     </td>
-
-                    <td className="border px-4 py-2">
-                      {room.meterReading?.createdAt
-                        ? new Date(room.meterReading.createdAt).toLocaleDateString('vi-VN')
-                        : '-'}
+                    <td className="border px-4 py-2 text-center">
+                      {room.meterReading?.month || '-'}
+                    </td>
+                    <td className="border px-4 py-2 text-center">
+                      {room.meterReading?.year || '-'}
                     </td>
                   </tr>
                 );

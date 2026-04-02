@@ -1,6 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { http } from '@/lib/axios';
-import type { IMeterReading, CreateMeterReadingDto, UpdateMeterReadingDto, MeterReadingResponse, BulkMeterReadingDto, BulkMeterReadingResponse } from '@/types/meterReading';
+import type {
+  BulkMeterReadingDto,
+  BulkMeterReadingResponse,
+  CreateMeterReadingDto,
+  IMeterReading,
+  MeterReadingResponse,
+  UpdateMeterReadingDto,
+} from '@/types/meterReading';
 
 // Get all meter readings with filters
 export const useMeterReadings = (
@@ -8,7 +16,7 @@ export const useMeterReadings = (
   buildingId?: string,
   month?: string,
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
 ) => {
   return useQuery<MeterReadingResponse>({
     queryKey: ['meterReadings', roomId, buildingId, month, page, limit],
@@ -20,19 +28,16 @@ export const useMeterReadings = (
       params.append('page', page.toString());
       params.append('limit', limit.toString());
 
-      console.log('API URL:', `/meter-readings?${params.toString()}`);
-      
       const response = await http.get(`/meter-readings?${params.toString()}`);
-      console.log('API Response data:', response.data);
-      
+
       // Handle response format: { message, data: [...], pagination }
       if (response.data.data && response.data.pagination) {
         return {
           meterReadings: response.data.data,
-          pagination: response.data.pagination
+          pagination: response.data.pagination,
         };
       }
-      
+
       throw new Error('Invalid response format');
     },
     enabled: true,
@@ -93,9 +98,8 @@ export const useDeleteMeterReading = () => {
 };
 
 export const bulkUpsertMeterReadings = async (
-  data: BulkMeterReadingDto
+  data: BulkMeterReadingDto,
 ): Promise<BulkMeterReadingResponse> => {
   const response = await http.post('/meter-readings/bulk', data);
   return response.data;
 };
-

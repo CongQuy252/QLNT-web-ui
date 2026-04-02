@@ -5,6 +5,7 @@ import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type { Payment } from '@/types/payment';
+import type { RoomsWithMeterReadingsResponse } from '@/types/room';
 
 export const useGetPaymentByIdQuery = (paymentId?: string, isEnable = true) => {
   const handleHttpError = useHandleHttpError();
@@ -124,5 +125,66 @@ export const useDeletePaymentMutation = () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
     onError: handleHttpError,
+  });
+};
+
+export const useRoomsWithMeterReadingsForPayment = (
+  month: number,
+  year: number,
+  searchParams?: {
+    buildingId?: string;
+    buildingName?: string;
+    roomNumber?: string;
+    hasInvoice?: boolean;
+  },
+  pagination?: {
+    page?: number;
+    limit?: number;
+  },
+) => {
+  const page = pagination?.page || 1;
+  const limit = pagination?.limit || 10;
+
+  return useQuery<RoomsWithMeterReadingsResponse>({
+    queryKey: [
+      'roomsWithMeterReadingsForPayment',
+      month,
+      year,
+      searchParams?.buildingId,
+      searchParams?.buildingName,
+      searchParams?.roomNumber,
+      searchParams?.hasInvoice,
+      page,
+      limit,
+    ],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append('month', month.toString());
+      params.append('year', year.toString());
+
+      if (searchParams?.buildingId) {
+        params.append('buildingId', searchParams.buildingId);
+      }
+
+      if (searchParams?.buildingName) {
+        params.append('buildingName', searchParams.buildingName);
+      }
+
+      if (searchParams?.roomNumber) {
+        params.append('roomNumber', searchParams.roomNumber);
+      }
+
+      if (searchParams?.hasInvoice !== undefined) {
+        params.append('hasInvoice', searchParams.hasInvoice.toString());
+      }
+
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+
+      const response = await http.get(`/payments/rooms-with-meter-readings?${params.toString()}`);
+
+      return response.data;
+    },
+    enabled: !!month && !!year,
   });
 };

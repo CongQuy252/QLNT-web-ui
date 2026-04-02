@@ -6,6 +6,7 @@ export enum Path {
   tenants = 'tenants',
   payments = 'payments',
   statistics = 'statistics',
+  createpayment = 'payments/createpayment',
   buildingId = ':buildingId',
   roomId = ':roomId',
   userId = ':userId',
