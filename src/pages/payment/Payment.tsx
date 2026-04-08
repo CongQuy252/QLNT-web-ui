@@ -27,7 +27,7 @@ export default function Payment() {
   const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'unpaid' | 'overdue'>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
   // Direct API call instead of hook
@@ -42,11 +42,13 @@ export default function Payment() {
       setInvoicesLoading(true);
       setInvoicesError(null);
 
-      const response = await getInvoices({
+      const params = {
         page: currentPage,
         limit: maxItemPerPage,
-        status: filterStatus === 'all' ? undefined : filterStatus.toUpperCase(),
-      });
+        status: filterStatus === 'all' ? undefined : filterStatus.toLowerCase(),
+      };
+
+      const response = await getInvoices(params);
 
       // Handle backend response structure
       if (response && response.invoices) {
@@ -66,7 +68,6 @@ export default function Payment() {
         setPagination(null);
       }
     } catch (error) {
-      console.error('Error fetching invoices:', error);
       setInvoicesError('Failed to fetch invoices');
       setInvoices([]);
       setPagination(null);
@@ -74,6 +75,11 @@ export default function Payment() {
       setInvoicesLoading(false);
     }
   }, [currentPage, filterStatus]);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus]);
 
   // Initial fetch and when filters change
   useEffect(() => {
@@ -171,7 +177,7 @@ export default function Payment() {
           </div>
         </div>
         <div className="flex gap-2 mb-5 w-full overflow-x-auto">
-          {(['all', 'paid', 'pending', 'overdue'] as const).map((status) => (
+          {(['all', 'paid', 'unpaid', 'overdue'] as const).map((status) => (
             <Button
               key={status}
               variant={filterStatus === status ? 'default' : 'outline'}
@@ -184,7 +190,7 @@ export default function Payment() {
             >
               {status === 'all' && 'Tất cả'}
               {status === 'paid' && 'Đã thanh toán'}
-              {status === 'pending' && 'Chờ thanh toán'}
+              {status === 'unpaid' && 'Chưa thanh toán'}
               {status === 'overdue' && 'Quá hạn'}
             </Button>
           ))}
@@ -192,9 +198,27 @@ export default function Payment() {
       </div>
 
       <div className="overflow-x-auto">
-        {paginatedInvoices.map((invoice: any) => (
-          <PaymentCard key={invoice._id} payment={invoice} onDelete={handleDeleteInvoice} />
-        ))}
+        {paginatedInvoices.length > 0 ? (
+          paginatedInvoices.map((invoice: any) => (
+            <PaymentCard key={invoice._id} payment={invoice} onDelete={handleDeleteInvoice} />
+          ))
+        ) : (
+          <div className="text-center py-8 text-slate-500">
+            {invoicesLoading
+              ? 'Đang tải...'
+              : `Không tìm thấy hóa đơn nào cho trạng thái: ${
+                  filterStatus === 'all'
+                    ? 'Tất cả'
+                    : filterStatus === 'paid'
+                      ? 'Đã thanh toán'
+                      : filterStatus === 'unpaid'
+                        ? 'Chưa thanh toán'
+                        : filterStatus === 'overdue'
+                          ? 'Quá hạn'
+                          : filterStatus
+                }`}
+          </div>
+        )}
       </div>
 
       {/* Pagination */}

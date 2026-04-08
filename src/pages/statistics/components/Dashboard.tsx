@@ -1,108 +1,139 @@
 'use client';
 
-import { Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
+import { getBuildings } from '@/api/building';
+import { createExpense, deleteExpense, getExpenses } from '@/api/expense';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-
-interface RevenueRow {
-  id: string;
-  date: string;
-  description: string;
-  revenue: number;
-  expense: number;
-}
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/useToast';
+import type { Building } from '@/types/building';
+import type { CreateExpenseInput, Expense, ExpenseCategory } from '@/types/expense';
 
 export default function Dashboard() {
-  const [rows, setRows] = useState<RevenueRow[]>([
-    {
-      id: '1',
-      date: '2024-03-15',
-      description: 'Bán hàng tháng 3',
-      revenue: 15000000,
-      expense: 4500000,
-    },
-    {
-      id: '2',
-      date: '2024-02-15',
-      description: 'Bán hàng tháng 2',
-      revenue: 12500000,
-      expense: 3500000,
-    },
-    {
-      id: '3',
-      date: '2024-01-15',
-      description: 'Bán hàng tháng 1',
-      revenue: 10800000,
-      expense: 3200000,
-    },
-    {
-      id: '4',
-      date: '2023-12-15',
-      description: 'Bán hàng tháng 12',
-      revenue: 18500000,
-      expense: 5500000,
-    },
-    {
-      id: '5',
-      date: '2023-11-15',
-      description: 'Bán hàng tháng 11',
-      revenue: 14200000,
-      expense: 4200000,
-    },
-    {
-      id: '6',
-      date: '2023-11-15',
-      description: 'Bán hàng tháng 12',
-      revenue: 14200000,
-      expense: 4200000,
-    },
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [buildings, setBuildings] = useState<Building[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { error, success } = useToast();
 
-    {
-      id: '7',
-      date: '2023-11-15',
-      description: 'Bán hàng tháng 12',
-      revenue: 14200000,
-      expense: 4200000,
-    },
-  ]);
-
-  const [newRow, setNewRow] = useState({
-    date: Date.now().toString(),
+  const [newExpense, setNewExpense] = useState<CreateExpenseInput>({
+    buildingId: '',
+    title: '',
     description: '',
-    revenue: '',
-    expense: '',
+    amount: 0,
+    category: 'other' as ExpenseCategory,
+    expenseDate: new Date().toISOString().split('T')[0],
   });
 
-  const addRow = () => {
-    if (newRow.date && newRow.description && newRow.revenue && newRow.expense) {
-      const row: RevenueRow = {
-        id: Date.now().toString(),
-        date: newRow.date,
-        description: newRow.description,
-        revenue: parseFloat(newRow.revenue),
-        expense: parseFloat(newRow.expense),
-      };
-      setRows([row, ...rows]);
-      setNewRow({ date: '', description: '', revenue: '', expense: '' });
+  // Fetch buildings on mount
+  useEffect(() => {
+    const fetchBuildings = async () => {
+      try {
+        const buildingsData = await getBuildings();
+        setBuildings(buildingsData);
+      } catch (err) {
+        error('Lỗi khi tải danh sách tòa nhà');
+      }
+    };
+
+    fetchBuildings();
+  }, [error]);
+
+  // Fetch expenses on mount
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      try {
+        const data = await getExpenses({ limit: 100 });
+        setExpenses(data.expenses);
+      } catch (err) {
+        error('Lỗi khi tải danh sách chi phí');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExpenses();
+  }, [error]);
+
+  const addExpense = async () => {
+    if (!newExpense.buildingId || !newExpense.title || !newExpense.amount || !newExpense.category) {
+      error('Vui lòng điền đầy đủ thông tin bắt buộc');
+      return;
+    }
+
+    try {
+      const createdExpense = await createExpense(newExpense);
+      setExpenses([createdExpense, ...expenses]);
+      success('Tạo chi phí thành công');
+
+      // Reset form and close dialog
+      setNewExpense({
+        buildingId: '',
+        title: '',
+        description: '',
+        amount: 0,
+        category: 'other' as ExpenseCategory,
+        expenseDate: new Date().toISOString().split('T')[0],
+      });
+      setIsDialogOpen(false);
+    } catch (err) {
+      error('Lỗi khi tạo chi phí');
     }
   };
 
-  const deleteRow = (id: string) => {
-    setRows(rows.filter((row) => row.id !== id));
+  const deleteExpenseItem = async (id: string) => {
+    try {
+      await deleteExpense(id);
+      setExpenses(expenses.filter((expense) => expense._id !== id));
+      success('Xóa chi phí thành công');
+    } catch (err) {
+      error('Lỗi khi xóa chi phí');
+    }
   };
 
   const calculateTotals = () => {
+    if (!expenses || !Array.isArray(expenses)) {
+      return { total: 0 };
+    }
     return {
-      revenue: rows.reduce((sum, row) => sum + row.revenue, 0),
-      expense: rows.reduce((sum, row) => sum + row.expense, 0),
+      total: expenses.reduce((sum, expense) => sum + expense.amount, 0),
     };
   };
 
   const totals = calculateTotals();
-  const profit = totals.revenue - totals.expense;
+
+  const getCategoryLabel = (category: ExpenseCategory) => {
+    switch (category) {
+      case 'maintenance':
+        return 'Bảo trì';
+      case 'furniture':
+        return 'Nội thất';
+      case 'utility':
+        return 'Tiện ích';
+      case 'tax':
+        return 'Thuế';
+      case 'other':
+        return 'Khác';
+      default:
+        return 'Khác';
+    }
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -112,125 +143,254 @@ export default function Dashboard() {
   };
 
   return (
-    <main className="max-h-screen bg-background">
-      <div className="max-w-7xl mx-auto">
-        <Card className="mb-2">
-          <CardHeader>
-            <CardTitle>Thêm Ghi Chép Mới</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-5 gap-3">
-              <Input
-                type="date"
-                value={newRow.date}
-                onChange={(e) => setNewRow({ ...newRow, date: e.target.value })}
-                placeholder="Ngày"
-              />
-              <Input
-                value={newRow.description}
-                onChange={(e) => setNewRow({ ...newRow, description: e.target.value })}
-                placeholder="Mô tả (ví dụ: Bán hàng tháng 3)"
-              />
-              <Input
-                type="number"
-                value={newRow.revenue}
-                onChange={(e) => setNewRow({ ...newRow, revenue: e.target.value })}
-                placeholder="Tổng thu nhập"
-              />
-              <Input
-                type="number"
-                value={newRow.expense}
-                onChange={(e) => setNewRow({ ...newRow, expense: e.target.value })}
-                placeholder="Tổng chi phí"
-              />
-              <Button onClick={addRow} className="w-full">
-                Tạo bản ghi mới
-              </Button>
+    <div className="min-h-screen ">
+      <div className="max-w-7xl space-y-4">
+        {/* Total Summary */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div className="text-sm text-gray-600">
+              <span className="font-semibold">Tổng Chi Phí:</span>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="p-2 pr-0">
-          <CardContent className="px-0">
-            <div className="max-h-80 overflow-y-auto">
+            <div className="text-xl sm:text-2xl font-bold text-red-600">
+              {formatCurrency(totals.total)}
+            </div>
+          </div>
+        </div>
+
+        {/* Header with Add Button */}
+        <div className="flex justify-end">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Thêm Chi Phí
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden">
+              <div className="flex flex-col max-h-[90vh]">
+                <div className="sticky top-0 z-10 border-b py-2">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-semibold">Thêm chi phí</DialogTitle>
+                  </DialogHeader>
+                </div>
+
+                <div className="overflow-y-auto space-y-2 pb-2">
+                  {/* Building and Date - Same row on desktop, separate on mobile */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    {/* Building Select */}
+                    <div className="space-y-2 ">
+                      <label className="text-sm font-medium text-gray-700">Tòa nhà</label>
+                      <Select
+                        value={newExpense.buildingId}
+                        onValueChange={(value) =>
+                          setNewExpense({ ...newExpense, buildingId: value })
+                        }
+                      >
+                        <SelectTrigger className="h-10 w-full">
+                          <SelectValue placeholder="Chọn tòa nhà" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {buildings.map((building) => (
+                            <SelectItem key={building._id} value={building._id}>
+                              {building.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Date Input */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Ngày</label>
+                      <Input
+                        type="date"
+                        value={newExpense.expenseDate}
+                        onChange={(e) =>
+                          setNewExpense({ ...newExpense, expenseDate: e.target.value })
+                        }
+                        className="h-10 w-full"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Title Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Tiêu đề</label>
+                    <Input
+                      value={newExpense.title}
+                      onChange={(e) => setNewExpense({ ...newExpense, title: e.target.value })}
+                      placeholder="Ví dụ: Tiền điện"
+                      className="h-10 w-full"
+                    />
+                  </div>
+
+                  {/* Description Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Mô tả chi tiết</label>
+                    <Input
+                      value={newExpense.description}
+                      onChange={(e) =>
+                        setNewExpense({ ...newExpense, description: e.target.value })
+                      }
+                      placeholder="Mô tả chi tiết"
+                      className="h-10 w-full"
+                    />
+                  </div>
+
+                  {/* Category and Amount - Same row on desktop, separate on mobile */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Category Select */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Danh mục</label>
+                      <Select
+                        value={newExpense.category}
+                        onValueChange={(value: ExpenseCategory) =>
+                          setNewExpense({ ...newExpense, category: value })
+                        }
+                      >
+                        <SelectTrigger className="h-10 w-full">
+                          <SelectValue placeholder="Chọn danh mục" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="maintenance">Bảo trì</SelectItem>
+                          <SelectItem value="furniture">Nội thất</SelectItem>
+                          <SelectItem value="utility">Tiện ích</SelectItem>
+                          <SelectItem value="tax">Thuế</SelectItem>
+                          <SelectItem value="other">Khác</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Amount Input */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Số tiền</label>
+                      <Input
+                        type="number"
+                        value={newExpense.amount}
+                        onChange={(e) =>
+                          setNewExpense({
+                            ...newExpense,
+                            amount: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        placeholder="Số tiền"
+                        className="h-10 w-full"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="flex gap-3 pt-4 pb-8">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                      className="flex-1"
+                    >
+                      Hủy
+                    </Button>
+                    <Button onClick={addExpense} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                      Tạo chi phí
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Expenses List */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-700">Danh sách Chi phí</h2>
+          </div>
+
+          <div className="overflow-x-auto">
+            <div className="min-w-[800px]">
               <table className="w-full">
-                <thead className="sticky top-0 bg-background z-10 shadow-sm">
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 font-semibold text-foreground">Tháng</th>
-                    <th className="text-left py-3 px-4 font-semibold text-foreground">Mô Tả</th>
-                    <th className="text-right py-3 px-4 font-semibold text-foreground">
-                      Doanh Thu
+                <thead className="sticky top-0 bg-white z-10 shadow-sm">
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
+                      Tòa Nhà
                     </th>
-                    <th className="text-right py-3 px-4 font-semibold text-foreground">Chi Phí</th>
-                    <th className="text-right py-3 px-4 font-semibold text-foreground">
-                      Lợi Nhuận
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
+                      Ngày
                     </th>
-                    <th className="text-center py-3 px-4 font-semibold text-foreground">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
+                      Tiêu Đề
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm hidden sm:table-cell">
+                      Mô Tả
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
+                      Danh Mục
+                    </th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
+                      Số Tiền
+                    </th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
                       Hành Động
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row) => {
-                    const rowProfit = row.revenue - row.expense;
-                    return (
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-8 text-gray-500 text-sm">
+                        Đang tải dữ liệu...
+                      </td>
+                    </tr>
+                  ) : !expenses || expenses.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-8 text-gray-500 text-sm">
+                        Không có dữ liệu chi phí
+                      </td>
+                    </tr>
+                  ) : (
+                    expenses.map((expense) => (
                       <tr
-                        key={row.id}
-                        className="border-t border-border hover:bg-muted/50 transition-colors"
+                        key={expense._id}
+                        className="border-t border-gray-100 hover:bg-gray-50 transition-colors"
                       >
-                        <td className="py-3 px-4 text-foreground text-sm font-medium">
-                          {new Date(row.date).toLocaleDateString('vi-VN', {
-                            month: 'long',
-                            year: 'numeric',
-                          })}
+                        <td className="py-3 px-4 text-gray-800 text-sm font-medium">
+                          <div className="max-w-[100px] truncate">
+                            {expense.buildingId?.name || '-'}
+                          </div>
                         </td>
-                        <td className="py-3 px-4 text-foreground text-sm">{row.description}</td>
-                        <td className="py-3 px-4 text-right text-sm text-green-600 font-medium">
-                          {formatCurrency(row.revenue)}
+                        <td className="py-3 px-4 text-gray-600 text-sm">
+                          {new Date(expense.expenseDate).toLocaleDateString('vi-VN')}
+                        </td>
+                        <td className="py-3 px-4 text-gray-800 text-sm font-medium">
+                          <div className="max-w-[120px] truncate">{expense.title}</div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600 text-sm hidden sm:table-cell">
+                          <div className="max-w-[150px] truncate">{expense.description || '-'}</div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600 text-sm">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100">
+                            {getCategoryLabel(expense.category)}
+                          </span>
                         </td>
                         <td className="py-3 px-4 text-right text-sm text-red-600 font-medium">
-                          {formatCurrency(row.expense)}
-                        </td>
-                        <td
-                          className={`py-3 px-4 text-right text-sm font-medium ${rowProfit >= 0 ? 'text-blue-600' : 'text-red-600'}`}
-                        >
-                          {formatCurrency(rowProfit)}
+                          {formatCurrency(expense.amount)}
                         </td>
                         <td className="py-3 px-4 text-center">
                           <button
-                            onClick={() => deleteRow(row.id)}
-                            className="inline-flex items-center justify-center p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive"
+                            onClick={() => deleteExpenseItem(expense._id)}
+                            className="inline-flex items-center justify-center p-2 hover:bg-red-50 rounded-lg transition-colors text-red-600"
                             aria-label="Xóa"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </td>
                       </tr>
-                    );
-                  })}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
-          </CardContent>
-        </Card>
-        <div className="pt-4">
-          <div className="grid grid-cols-6 gap-4 text-sm">
-            <div></div>
-            <div className="font-semibold text-foreground">Tổng Cộng</div>
-            <div className="text-right font-bold text-green-600">
-              {formatCurrency(totals.revenue)}
-            </div>
-            <div className="text-right font-bold text-red-600">
-              {formatCurrency(totals.expense)}
-            </div>
-            <div
-              className={`text-right font-bold ${profit >= 0 ? 'text-blue-600' : 'text-red-600'}`}
-            >
-              {formatCurrency(profit)}
-            </div>
-            <div></div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
