@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
 
 import { useGetBuildingById } from '@/api/building';
 import {
@@ -21,9 +22,12 @@ export const useRooms = () => {
   const queryClient = useQueryClient();
   const { success } = useToast();
   const { hide, show } = useLoading();
+  const location = useLocation();
+  const params = useParams();
+  const { status } = location.state || {};
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('0');
+  const [filterStatus, setFilterStatus] = useState<string>(status ?? '0');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 12;
 
@@ -43,6 +47,7 @@ export const useRooms = () => {
     limit: pageSize,
     search: debouncedSearchTerm,
     status: filterStatus,
+    buildingId: params.buildingId || '',
   });
 
   const rooms = data?.rooms || [];
@@ -76,8 +81,8 @@ export const useRooms = () => {
       ...room,
       buildingId: (room.buildingId as any)?._id || room.buildingId,
       // Ensure waterCalculationType is set based on available water price fields
-      waterCalculationType: room.waterCalculationType || 
-        (room.waterPricePerPerson ? 'person' : 'm3'),
+      waterCalculationType:
+        room.waterCalculationType || (room.waterPricePerPerson ? 'person' : 'm3'),
     };
     setEditRoom(normalizedRoom);
     setIsEditDialogOpen(true);

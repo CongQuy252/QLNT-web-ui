@@ -18,19 +18,27 @@ export const useGetRoomsQueries = ({
   limit = 10,
   search = '',
   status = '',
+  buildingId = '',
   isEnabled = true,
 }) => {
   const handleHttpError = useHandleHttpError();
   return useQuery({
-    queryKey: [QueriesKey.rooms, page, limit, search, status],
+    queryKey: [QueriesKey.rooms, page, limit, search, status, buildingId],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
       });
 
-      if (search) params.append('search', search);
-      if (status && status !== '0') params.append('status', status);
+      if (search) {
+        params.append('search', search);
+      }
+      if (buildingId) {
+        params.append('buildingId', buildingId);
+      }
+      if (status && status !== '0') {
+        params.append('status', status);
+      }
 
       const response = await http.get<RoomListResponse>(`/rooms?${params.toString()}`);
 

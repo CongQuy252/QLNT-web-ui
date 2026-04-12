@@ -2,6 +2,7 @@ import { queryClient } from '@/lib/reactQuery';
 import { Edit, Home, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 import { useUpdateUserMutation } from '@/api/user';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ToastContainer } from '@/components/ui/toast/Toast';
-import { QueriesKey } from '@/constants/appConstants';
+import { Path, QueriesKey } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
 import { useToast } from '@/hooks/useToast';
 import EditTenantDialog from '@/pages/rooms/components/EditTenantDialog';
@@ -33,6 +34,7 @@ import { formatCurrency, formatNumber, parseNumber } from '@/utils/utils';
 
 const Rooms = () => {
   const isMobile = useMobile();
+  const navigator = useNavigate();
   const { success, error: errorToast, toasts } = useToast();
   const updateTenantMutation = useUpdateUserMutation();
   const {
@@ -83,9 +85,6 @@ const Rooms = () => {
   const [tenantEditing, setTenantEditing] = useState<string>('');
   const [isOpenViewTenant, setIsOpenViewTenant] = useState(false);
   const [tenantUserId, setTenantUserId] = useState<string>('');
-  /*
-  Thực hiện update tenant với tenant id
-*/
 
   const handleClickEditTenantButton = (userId?: string) => {
     if (!userId) {
@@ -412,6 +411,9 @@ const Rooms = () => {
                 key={status}
                 variant={filterStatus === status ? 'default' : 'outline'}
                 onClick={() => {
+                  if (status === '0') {
+                    navigator(`/${Path.rooms}`);
+                  }
                   setFilterStatus(status);
                   setCurrentPage(1);
                 }}
