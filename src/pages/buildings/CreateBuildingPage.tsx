@@ -71,11 +71,8 @@ const CreateBuildingPage = () => {
   const defaultElectricityUnitPrice = useWatch({ control, name: 'defaultElectricityUnitPrice' }) as
     | number
     | undefined;
-  const defaultInternetFee = useWatch({ control, name: 'defaultInternetFee' }) as
-    | number
-    | undefined;
   const defaultParkingFee = useWatch({ control, name: 'defaultParkingFee' }) as number | undefined;
-  const defaultServiceFee = useWatch({ control, name: 'defaultServiceFee' }) as number | undefined;
+  const defaultLivingFee = useWatch({ control, name: 'defaultLivingFee' }) as number | undefined;
   const defaultWaterPricePerPerson = useWatch({ control, name: 'defaultWaterPricePerPerson' }) as
     | number
     | undefined;
@@ -108,9 +105,8 @@ const CreateBuildingPage = () => {
           waterCalculationType === 'person' ? defaultWaterPricePerPerson : undefined,
         waterPricePerCubicMeter:
           waterCalculationType === 'm3' ? defaultWaterPricePerCubicMeter : undefined,
-        internetFee: defaultInternetFee,
         parkingFee: defaultParkingFee,
-        serviceFee: defaultServiceFee,
+        livingFee: defaultLivingFee,
         description: '',
       };
       roomsToAdd.push(defaultValues);
@@ -147,9 +143,8 @@ const CreateBuildingPage = () => {
       defaultElectricityUnitPrice: undefined,
       defaultWaterPricePerPerson: undefined,
       defaultWaterPricePerCubicMeter: undefined,
-      defaultInternetFee: undefined,
       defaultParkingFee: undefined,
-      defaultServiceFee: undefined,
+      defaultLivingFee: undefined,
       defaultArea: undefined,
       waterCalculationType: 'm3',
     });
@@ -366,29 +361,6 @@ const CreateBuildingPage = () => {
                 )}
               </div>
               <div>
-                <Label htmlFor="defaultInternetFee" className="text-sm font-medium text-slate-700">
-                  Phí Internet
-                </Label>
-                <Controller
-                  name="defaultInternetFee"
-                  control={control}
-                  render={({ field }) => (
-                    <Input
-                      type="text"
-                      value={formatNumber((field.value as number | undefined) ?? 0)}
-                      onChange={(e) => {
-                        const value = parseNumber(e.target.value);
-                        field.onChange(value !== undefined ? value : 0);
-                      }}
-                      className="mt-1"
-                    />
-                  )}
-                />
-                {errors.defaultInternetFee && (
-                  <p className="text-xs text-red-500 mt-1">{errors.defaultInternetFee.message}</p>
-                )}
-              </div>
-              <div>
                 <Label htmlFor="defaultParkingFee" className="text-sm font-medium text-slate-700">
                   Phí Gửi Xe
                 </Label>
@@ -412,11 +384,11 @@ const CreateBuildingPage = () => {
                 )}
               </div>
               <div>
-                <Label htmlFor="defaultServiceFee" className="text-sm font-medium text-slate-700">
-                  Phí Dịch Vụ
+                <Label htmlFor="defaultLivingFee" className="text-sm font-medium text-slate-700">
+                  Phí Sinh Hoạt
                 </Label>
                 <Controller
-                  name="defaultServiceFee"
+                  name="defaultLivingFee"
                   control={control}
                   render={({ field }) => (
                     <Input
@@ -430,8 +402,8 @@ const CreateBuildingPage = () => {
                     />
                   )}
                 />
-                {errors.defaultServiceFee && (
-                  <p className="text-xs text-red-500 mt-1">{errors.defaultServiceFee.message}</p>
+                {errors.defaultLivingFee && (
+                  <p className="text-xs text-red-500 mt-1">{errors.defaultLivingFee.message}</p>
                 )}
               </div>
               <div>
@@ -475,10 +447,16 @@ const CreateBuildingPage = () => {
                 </Label>
                 <Controller
                   control={control}
-                  name={waterCalculationType === 'person' ? 'defaultWaterPricePerPerson' : 'defaultWaterPricePerCubicMeter'}
+                  name={
+                    waterCalculationType === 'person'
+                      ? 'defaultWaterPricePerPerson'
+                      : 'defaultWaterPricePerCubicMeter'
+                  }
                   key={waterCalculationType} // Add key to force re-render on type change
                   render={({ field }) => {
-                    const displayValue = (field.value !== undefined && field.value !== null ? field.value : 0) as number;
+                    const displayValue = (
+                      field.value !== undefined && field.value !== null ? field.value : 0
+                    ) as number;
                     return (
                       <Input
                         type="text"
@@ -571,13 +549,10 @@ const CreateBuildingPage = () => {
                       Giá nước/m³
                     </TableHead>
                     <TableHead className="w-32 border border-gray-200 font-semibold">
-                      Phí internet
-                    </TableHead>
-                    <TableHead className="w-32 border border-gray-200 font-semibold">
                       Phí gửi xe
                     </TableHead>
                     <TableHead className="w-40 border border-gray-200 font-semibold">
-                      Phí dịch vụ khác
+                      Phí sinh hoạt
                     </TableHead>
                     <TableHead className="w-40 border border-gray-200 font-semibold">
                       Mô tả
@@ -633,13 +608,6 @@ const CreateBuildingPage = () => {
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
                         <Input
-                          {...register(`rooms.${index}.internetFee`)}
-                          type="number"
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
-                        />
-                      </TableCell>
-                      <TableCell className="border border-gray-200 p-2">
-                        <Input
                           {...register(`rooms.${index}.parkingFee`)}
                           type="number"
                           className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
@@ -647,7 +615,7 @@ const CreateBuildingPage = () => {
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
                         <Input
-                          {...register(`rooms.${index}.serviceFee`)}
+                          {...register(`rooms.${index}.livingFee`)}
                           type="number"
                           className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
                         />
