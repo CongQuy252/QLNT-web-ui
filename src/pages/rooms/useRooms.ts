@@ -12,7 +12,7 @@ import {
   useUpdateRoomMutation,
 } from '@/api/room';
 import { useNonTenantUsersQuery } from '@/api/user';
-import { QueriesKey } from '@/constants/appConstants';
+import { QueriesKey, WaterType, debounceTime } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
 import type { Room } from '@/types/room';
@@ -31,11 +31,10 @@ export const useRooms = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 12;
 
-  // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-    }, 300);
+    }, debounceTime);
 
     return () => {
       clearTimeout(timer);
@@ -76,13 +75,11 @@ export const useRooms = () => {
   const filteredUsers = tenants;
 
   const handleEditRoom = (room: Room) => {
-    // Normalize buildingId to always be string
     const normalizedRoom = {
       ...room,
       buildingId: (room.buildingId as any)?._id || room.buildingId,
-      // Ensure waterCalculationType is set based on available water price fields
       waterCalculationType:
-        room.waterCalculationType || (room.waterPricePerPerson ? 'person' : 'm3'),
+        room.waterCalculationType || (room.waterPricePerPerson ? WaterType.person : WaterType.m3),
     };
     setEditRoom(normalizedRoom);
     setIsEditDialogOpen(true);
@@ -188,12 +185,10 @@ export const useRooms = () => {
           setSelectedUser(undefined);
           setRoomSelected(undefined);
           setAssignConfirmOpen(false);
-          // Invalidate lại query users để refresh danh sách
           queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
           queryClient.invalidateQueries({
             queryKey: [QueriesKey.buildings],
           });
-          // Hiển thị thông báo thành công
           success(`Đã gán ${selectedUser.name} vào phòng ${roomSelected.number} thành công!`);
         },
         onError: () => {
