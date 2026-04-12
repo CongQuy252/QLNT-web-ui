@@ -9,7 +9,6 @@ import Payment from '@/pages/payment/Payment';
 import PaymentDetail from '@/pages/paymentDetail/PaymentDetail';
 import Rooms from '@/pages/rooms/Rooms';
 import Statistics from '@/pages/statistics/Statistics';
-import Tenant from '@/pages/tenant/Tenant';
 
 import PrivateRoute from './PrivateRoute';
 
@@ -20,7 +19,7 @@ const CreatePaymentPage = lazy(() => import('@/pages/payment/Createpayment'));
 export const routes: RouteObject[] = [
   {
     path: '/',
-    element: <PrivateRoute />, // ✅ chỉ check login
+    element: <PrivateRoute />,
     children: [
       { index: true, element: <Home /> },
 
@@ -42,10 +41,6 @@ export const routes: RouteObject[] = [
               {
                 path: `/${Path.rooms}`,
                 element: <Rooms />,
-              },
-              {
-                path: `/${Path.tenants}`,
-                element: <Tenant />,
               },
               {
                 path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}`,
@@ -82,7 +77,7 @@ export const routes: RouteObject[] = [
   },
 
   {
-    path: '/login',
+    path: `/${Path.login}`,
     element: <LoginPage />,
   },
 
@@ -108,10 +103,6 @@ export const breadcrumbRoutes = [
   {
     path: `/${Path.rooms}`,
     breadcrumb: 'Quản Lý Phòng',
-  },
-  {
-    path: `/${Path.tenants}`,
-    breadcrumb: 'Quản Lý Người Thuê',
   },
   {
     path: `/${Path.statistics}`,
