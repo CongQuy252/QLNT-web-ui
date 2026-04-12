@@ -78,7 +78,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
       defaultWaterPricePerCubicMeter: undefined,
       defaultInternetFee: undefined,
       defaultParkingFee: undefined,
-      defaultServiceFee: undefined,
+      defaultLivingFee: undefined,
       defaultArea: undefined,
     },
   });
@@ -111,7 +111,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         defaultWaterPricePerCubicMeter: undefined,
         defaultInternetFee: undefined,
         defaultParkingFee: undefined,
-        defaultServiceFee: undefined,
+        defaultLivingFee: undefined,
         defaultArea: undefined,
       });
     }
@@ -135,7 +135,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         defaultWaterPricePerCubicMeter: building.defaultWaterPricePerCubicMeter,
         defaultInternetFee: building.defaultInternetFee,
         defaultParkingFee: building.defaultParkingFee,
-        defaultServiceFee: building.defaultServiceFee,
+        defaultLivingFee: building.defaultLivingFee,
         defaultArea: building.defaultArea,
       });
     }
@@ -502,27 +502,27 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   </div>
                   <div>
                     <Label
-                      htmlFor="defaultServiceFee"
+                      htmlFor="defaultLivingFee"
                       className="text-sm font-medium text-slate-700"
                     >
-                      Phí Dịch Vụ (VNĐ/tháng)
+                      Phí Sinh Hoạt (VNĐ/tháng)
                     </Label>
                     <Input
                       type="text"
-                      name="defaultServiceFee"
-                      value={formatNumber((watch('defaultServiceFee') as number) ?? '')}
+                      name="defaultLivingFee"
+                      value={formatNumber((watch('defaultLivingFee') as number) ?? '')}
                       onChange={(e) => {
                         const rawValue = parseNumber(e.target.value);
 
-                        setValue('defaultServiceFee', rawValue ? Number(rawValue) : undefined, {
+                        setValue('defaultLivingFee', rawValue ? Number(rawValue) : undefined, {
                           shouldValidate: true,
                           shouldDirty: true,
                         });
                       }}
                       className="mt-1"
                     />
-                    {errors.defaultServiceFee && (
-                      <p className="text-xs text-red-500">{errors.defaultServiceFee.message}</p>
+                    {errors.defaultLivingFee && (
+                      <p className="text-xs text-red-500">{errors.defaultLivingFee.message}</p>
                     )}
                   </div>
                   <div>

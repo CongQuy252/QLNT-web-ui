@@ -16,6 +16,7 @@ import PrivateRoute from './PrivateRoute';
 const LoginPage = lazy(() => import('@/pages/login/Login'));
 const CreateBuildingPage = lazy(() => import('@/pages/buildings/CreateBuildingPage'));
 const CreatePaymentPage = lazy(() => import('@/pages/payment/Createpayment'));
+const EditRoomPage = lazy(() => import('@/pages/rooms/EditRoom'));
 
 export const routes: RouteObject[] = [
   {
@@ -42,6 +43,10 @@ export const routes: RouteObject[] = [
               {
                 path: `/${Path.rooms}`,
                 element: <Rooms />,
+              },
+              {
+                path: `/${Path.rooms}/:roomId/edit`,
+                element: <EditRoomPage />,
               },
               {
                 path: `/${Path.tenants}`,
