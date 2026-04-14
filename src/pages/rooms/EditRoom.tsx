@@ -1,9 +1,9 @@
+import { queryClient } from '@/lib/reactQuery';
 import { ArrowLeft, Edit, Plus, Trash2, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGetRoomByIdQuery, useUpdateRoomMutation } from '@/api/room';
-import { useNonTenantUsersQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,8 +27,6 @@ const EditRoom = () => {
   const { roomId } = useParams<{ roomId: string }>();
 
   const { data: roomData, isLoading, error } = useGetRoomByIdQuery(roomId || '', !!roomId);
-  const { data: usersData, isLoading: usersLoading } = useNonTenantUsersQuery({}, true);
-  const users = usersData?.data || [];
   const updateRoomMutation = useUpdateRoomMutation();
 
   const [editRoom, setEditRoom] = useState<Room | null>(null);
@@ -52,7 +50,6 @@ const EditRoom = () => {
         waterPricePerCubicMeter: room.waterPricePerCubicMeter,
         parkingFee: room.parkingFee,
         livingFee: room.livingFee,
-        deposit: room.deposit,
         members: room.members,
         description: room.description,
         isDeleted: room.isDeleted,
@@ -77,7 +74,6 @@ const EditRoom = () => {
       waterPricePerCubicMeter: editRoom.waterPricePerCubicMeter,
       parkingFee: editRoom.parkingFee,
       livingFee: editRoom.livingFee,
-      deposit: editRoom.deposit,
       members: editRoom.members.map((member) => ({
         userId: member.userId || '',
         name: member.name,
@@ -93,6 +89,8 @@ const EditRoom = () => {
       { id: roomId, data: roomData },
       {
         onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['rooms'] });
+          queryClient.invalidateQueries({ queryKey: ['room', roomId] });
           navigate('/rooms');
         },
       },
@@ -101,21 +99,16 @@ const EditRoom = () => {
 
   const handleAddMember = (memberData: Member) => {
     if (!editRoom) return;
-
     if (editingMemberIndex !== undefined) {
-      // Edit existing member
       const updatedMembers = [...editRoom.members];
       updatedMembers[editingMemberIndex] = { ...memberData };
       setEditRoom({ ...editRoom, members: updatedMembers });
     } else {
-      // Add new member
       setEditRoom({
         ...editRoom,
         members: [...editRoom.members, { ...memberData }],
       });
     }
-
-    // Reset editing state
     setEditingMember(null);
     setEditingMemberIndex(undefined);
   };
@@ -130,27 +123,6 @@ const EditRoom = () => {
     setEditingMember(null);
     setEditingMemberIndex(undefined);
     setIsAddMemberOpen(true);
-  };
-
-  const handleSelectRepresentative = (userId: string) => {
-    const selectedUser = users.find((user) => user._id === userId);
-    if (selectedUser && editRoom) {
-      const newMember: Member = {
-        userId: selectedUser._id,
-        name: selectedUser.name,
-        phone: selectedUser.phone,
-        licensePlate: '',
-        cccdImages: {
-          front: { url: '', publicId: '' },
-          back: { url: '', publicId: '' },
-        },
-        isRepresentative: true,
-      };
-      setEditRoom({
-        ...editRoom,
-        members: [...editRoom.members, newMember],
-      });
-    }
   };
 
   if (isLoading) {
@@ -310,50 +282,87 @@ const EditRoom = () => {
                       }
                     />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">Tiền cọc (VNĐ)</Label>
-                    <Input
-                      type="text"
-                      value={formatNumber(editRoom.deposit || 0)}
-                      onChange={(e) =>
-                        setEditRoom({ ...editRoom, deposit: parseNumber(e.target.value) ?? 0 })
-                      }
-                    />
-                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">
-                      Gia nuoc (VNÐ/nguoi)
-                    </Label>
-                    <Input
-                      type="text"
-                      value={formatNumber(editRoom.waterPricePerPerson || 0)}
-                      onChange={(e) => {
-                        const value = parseNumber(e.target.value) ?? 0;
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">Giá water (VNÐ)</Label>
+
+                  {/* Toggle buttons */}
+                  <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentValue =
+                          editRoom.waterPricePerPerson || editRoom.waterPricePerCubicMeter || 0;
                         setEditRoom({
                           ...editRoom,
-                          waterPricePerPerson: value,
+                          waterPricePerPerson: currentValue,
+                          waterPricePerCubicMeter: 0,
                         });
                       }}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">Gia nuoc (VNÐ/m³)</Label>
-                    <Input
-                      type="text"
-                      value={formatNumber(editRoom.waterPricePerCubicMeter || 0)}
-                      onChange={(e) => {
-                        const value = parseNumber(e.target.value) ?? 0;
+                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                        editRoom.waterPricePerPerson > 0
+                          ? 'bg-white text-blue-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Theo/nguoi
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentValue =
+                          editRoom.waterPricePerPerson || editRoom.waterPricePerCubicMeter || 0;
                         setEditRoom({
                           ...editRoom,
-                          waterPricePerCubicMeter: value,
+                          waterPricePerCubicMeter: currentValue,
+                          waterPricePerPerson: 0,
                         });
                       }}
-                    />
+                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                        editRoom.waterPricePerCubicMeter > 0 || editRoom.waterPricePerPerson === 0
+                          ? 'bg-white text-blue-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Theo/m³
+                    </button>
                   </div>
+
+                  {/* Input field */}
+                  {editRoom.waterPricePerPerson > 0 ? (
+                    <div>
+                      <Label className="text-xs text-slate-600 mb-1 block">Theo/nguoi</Label>
+                      <Input
+                        type="text"
+                        value={formatNumber(editRoom.waterPricePerPerson || 0)}
+                        onChange={(e) => {
+                          const value = parseNumber(e.target.value) ?? 0;
+                          setEditRoom({
+                            ...editRoom,
+                            waterPricePerPerson: value,
+                            waterPricePerCubicMeter: 0,
+                          });
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <Label className="text-xs text-slate-600 mb-1 block">Theo/m³</Label>
+                      <Input
+                        type="text"
+                        value={formatNumber(editRoom.waterPricePerCubicMeter || 0)}
+                        onChange={(e) => {
+                          const value = parseNumber(e.target.value) ?? 0;
+                          setEditRoom({
+                            ...editRoom,
+                            waterPricePerCubicMeter: value,
+                            waterPricePerPerson: 0,
+                          });
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>
@@ -374,25 +383,6 @@ const EditRoom = () => {
                 >
                   <Plus className="w-4 h-4 mr-1" />
                 </Button>
-              </div>
-
-              {/* Chọn người đại diện */}
-              <div className="mb-6">
-                <Label className="text-sm font-medium text-slate-700 mb-2 block">
-                  Chọn người đại diện nhanh
-                </Label>
-                <Select onValueChange={handleSelectRepresentative} disabled={usersLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn người đại diện..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map((user) => (
-                      <SelectItem key={user._id} value={user._id}>
-                        {user.name} - {user.phone}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
 
               {editRoom.members.length > 0 ? (

@@ -1,28 +1,20 @@
-import { queryClient } from '@/lib/reactQuery';
 import { Edit, Home, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useUpdateUserMutation } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { ToastContainer } from '@/components/ui/toast/Toast';
-import { QueriesKey } from '@/constants/appConstants';
 import { useToast } from '@/hooks/useToast';
-import EditTenantDialog from '@/pages/rooms/components/EditTenantDialog';
-import { UserCard } from '@/pages/rooms/components/UserCard';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
 import { useRooms } from '@/pages/rooms/useRooms';
 import { ROOMSTATUS, type Room } from '@/types/room';
-import type { UpdateTenantRequest } from '@/types/user';
 import { formatCurrency } from '@/utils/utils';
 
 const Rooms = () => {
   const navigate = useNavigate();
-  const { success, error: errorToast, toasts } = useToast();
-  const updateTenantMutation = useUpdateUserMutation();
+  const { toasts } = useToast();
   const {
     totalItems,
     isLoading,
@@ -45,57 +37,6 @@ const Rooms = () => {
     navigate(`/rooms/${room._id}/edit`);
   };
 
-  const [isOpenEditTenant, setIsOpenEditTenant] = useState(false);
-  const [tenantEditing, setTenantEditing] = useState<string>('');
-  const [isOpenViewTenant, setIsOpenViewTenant] = useState(false);
-  const [tenantUserId, setTenantUserId] = useState<string>('');
-
-  const handleSaveEditTenant = (data: UpdateTenantRequest) => {
-    if (!tenantEditing) {
-      errorToast('Không tìm thấy ID người thuê');
-      return;
-    }
-
-    const formData = new FormData();
-    if (data.name) formData.append('name', data.name);
-    if (data.phone) formData.append('phone', data.phone);
-    if (data.cccd) formData.append('cccd', data.cccd);
-
-    if (data.cccdImagesFront && data.cccdImagesFront instanceof File) {
-      formData.append('cccdFront', data.cccdImagesFront);
-    }
-
-    if (data.cccdImagesBack && data.cccdImagesBack instanceof File) {
-      formData.append('cccdBack', data.cccdImagesBack);
-    }
-
-    updateTenantMutation.mutate(
-      {
-        userId: tenantEditing,
-        data: formData,
-      },
-      {
-        onSuccess: () => {
-          success('Cập nhật người thuê thành công');
-          setIsOpenEditTenant(false);
-          setTenantEditing('');
-          queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
-          queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
-          queryClient.invalidateQueries({ queryKey: [QueriesKey.user] });
-          queryClient.invalidateQueries({ queryKey: [QueriesKey.occupiedRooms] });
-        },
-        onError: () => {
-          errorToast('Có lỗi xảy ra khi cập nhật người thuê');
-        },
-      },
-    );
-  };
-
-  const handleClickViewTenant = (userId: string) => {
-    setIsOpenViewTenant(true);
-    setTenantUserId(userId);
-  };
-
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between">
@@ -112,7 +53,7 @@ const Rooms = () => {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setCurrentPage(1); // Reset về trang 1 khi search
+              setCurrentPage(1);
             }}
             className="peer"
           />
@@ -217,13 +158,7 @@ const Rooms = () => {
                       className={`p-3 ${representativeMember ? 'bg-slate-50' : 'flex-1'} rounded-lg`}
                     >
                       {representativeMember && room.status === ROOMSTATUS.OCCUPIED && (
-                        <div
-                          onClick={() =>
-                            representativeMember.userId &&
-                            handleClickViewTenant(representativeMember.userId)
-                          }
-                          className="cursor-pointer"
-                        >
+                        <div>
                           <p className="font-semibold text-slate-900 text-ellipsis">
                             {representativeMember.name}
                           </p>
@@ -277,24 +212,6 @@ const Rooms = () => {
           onConfirm={handleConfirmDelete}
           onCancel={() => setConfirmOpen(false)}
           loading={deleteRoomMutation.isPending}
-        />
-      )}
-
-      {tenantEditing && (
-        <EditTenantDialog
-          open={isOpenEditTenant}
-          onOpenChange={setIsOpenEditTenant}
-          userId={tenantEditing}
-          onSubmit={handleSaveEditTenant}
-        />
-      )}
-
-      {isOpenViewTenant && (
-        <UserCard
-          userId={tenantUserId}
-          variant="dialog"
-          open={isOpenViewTenant}
-          onClose={() => setIsOpenViewTenant(false)}
         />
       )}
 

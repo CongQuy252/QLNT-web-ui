@@ -563,7 +563,7 @@ const CreateBuildingPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {fields.map((field: any, index: number) => (
+                  {fields.map((field: RoomInput & { id: string }, index: number) => (
                     <TableRow key={field.id} className="hover:bg-gray-50">
                       <TableCell className="border border-gray-200 p-2">
                         <Input
