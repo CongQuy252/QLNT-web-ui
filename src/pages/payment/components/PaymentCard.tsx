@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ChevronDown, ChevronUp, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -34,43 +33,37 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
   // Handle both Payment and Invoice structures
   const isInvoice = 'tenantId' in payment && typeof payment.tenantId === 'object';
 
+  // Get tenant and room IDs for queries
+  const tenantIdForQuery = isInvoice
+    ? (payment as Invoice).tenantId._id
+    : (payment as Payment).tenantId;
+
+  const roomIdForQuery = isInvoice ? (payment as Invoice).roomId._id : (payment as Payment).roomId;
+
+  // Always call hooks at the top level
+  const { data: tenant } = useGetTenantByIdQuery(tenantIdForQuery, true);
+  const { data: roomData } = useGetRoomByIdQuery(roomIdForQuery);
+
   // Get tenant info
   let tenantName = '-';
-  let tenantIdForQuery = '';
-
   if (isInvoice) {
     const invoice = payment as Invoice;
     tenantName = invoice.tenantId.fullName;
-    tenantIdForQuery = invoice.tenantId._id;
   } else {
-    const paymentData = payment as Payment;
-    tenantIdForQuery = paymentData.tenantId;
-    const { data: tenant } = useGetTenantByIdQuery(tenantIdForQuery, true);
     tenantName = tenant?.userId.name || '-';
   }
 
   // Get room info
   let roomNumber = '-';
   let buildingName = '-';
-  let roomIdForQuery = '';
-
-  if (isInvoice) {
+  const room = roomData?.room;
+  if (room) {
+    roomNumber = room.number;
+    buildingName = typeof room.buildingId === 'object' ? room.buildingId.name : room.buildingId;
+  } else if (isInvoice) {
     const invoice = payment as Invoice;
     roomNumber = invoice.roomId.number;
     buildingName = invoice.roomId.buildingId.name;
-    roomIdForQuery = invoice.roomId._id;
-  } else {
-    const paymentData = payment as Payment;
-    roomIdForQuery =
-      typeof paymentData.roomId === 'string'
-        ? paymentData.roomId
-        : (paymentData.roomId as any)?._id || paymentData.roomId;
-    const { data: roomData } = useGetRoomByIdQuery(roomIdForQuery);
-    const room = roomData?.room;
-    if (room) {
-      roomNumber = room.number;
-      buildingName = (room.buildingId as any)?.name || room.buildingId;
-    }
   }
 
   // Get amount and month/year

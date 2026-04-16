@@ -5,8 +5,9 @@ import type { User } from '@/types/user';
 
 export interface Tenant {
   _id: string;
-  userId: Pick<User, '_id' | 'name' | 'email' | 'phone' | 'cccd'> & Partial<Pick<User, 'cccdImages'>>;
-  roomId: Pick<Room, '_id' | 'number' | 'floor' | 'area' | 'price' | 'buildingId'>;
+  userId: Pick<User, '_id' | 'name' | 'email' | 'phone' | 'cccd'> &
+    Partial<Pick<User, 'cccdImages'>>;
+  roomId: Pick<Room, '_id' | 'number' | 'area' | 'price' | 'buildingId'>;
   moveInDate: string;
   contractEndDate: string;
   status: TenantStatus;
