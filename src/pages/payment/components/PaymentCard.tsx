@@ -27,24 +27,17 @@ interface PaymentCardProps {
 export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
   const user = { role: 1 };
-
-  // Handle both Payment and Invoice structures
   const isInvoice = 'tenantId' in payment && typeof payment.tenantId === 'object';
 
-  // Get tenant and room IDs for queries
   const tenantIdForQuery = isInvoice
     ? (payment as Invoice).tenantId._id
     : (payment as Payment).tenantId;
 
   const roomIdForQuery = isInvoice ? (payment as Invoice).roomId._id : (payment as Payment).roomId;
-
-  // Always call hooks at the top level
   const { data: tenant } = useGetTenantByIdQuery(tenantIdForQuery, true);
   const { data: roomData } = useGetRoomByIdQuery(roomIdForQuery);
 
-  // Get tenant info
   let tenantName = '-';
   if (isInvoice) {
     const invoice = payment as Invoice;
@@ -53,7 +46,6 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
     tenantName = tenant?.userId.name || '-';
   }
 
-  // Get room info
   let roomNumber = '-';
   let buildingName = '-';
   const room = roomData?.room;
@@ -65,8 +57,6 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
     roomNumber = invoice.roomId.number;
     buildingName = invoice.roomId.buildingId.name;
   }
-
-  // Get amount and month/year
   let amount = 0;
   let monthYear = '';
 
@@ -79,11 +69,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
     amount = paymentData.amount;
     monthYear = `Tháng ${paymentData.month}`;
   }
-
-  // Get status
   const status = payment.status;
-
-  // Get dates
   const dueDate = isInvoice ? (payment as Invoice).dueDate : (payment as Payment).dueDate;
   const paidDate = isInvoice ? (payment as Invoice).paidDate : (payment as Payment).paidDate;
   const notes = isInvoice ? undefined : (payment as Payment).notes;
