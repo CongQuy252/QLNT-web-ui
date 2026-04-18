@@ -58,7 +58,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
     reset,
     watch,
     setValue,
@@ -154,19 +154,12 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
 
   const onSubmit = useCallback<SubmitHandler<BuildingFormInput>>(
     (data) => {
-      console.log('Form submitted with data:', data);
-      console.log('Form errors:', errors);
-      console.log('Form is valid:', isValid);
-
       const cityName = getCityName(data.city);
-      console.log('City name resolved:', cityName);
 
       const districtName =
         wards?.find((w) => w.code.toString() === data.district)?.name || data.district;
-      console.log('District name resolved:', districtName);
 
       if (!districtName.trim()) {
-        console.error('District name is empty');
         return;
       }
 
@@ -176,18 +169,15 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         district: districtName,
       };
 
-      console.log('Processed data:', processedData);
-
       try {
         const parsed = buildingSchema.parse(processedData);
-        console.log('Schema parsed successfully:', parsed);
         handleSave(parsed);
         setIsOpen(false);
       } catch (validationError) {
         console.error('Schema validation failed:', validationError);
       }
     },
-    [getCityName, wards, errors, isValid, handleSave, setIsOpen],
+    [getCityName, wards, handleSave, setIsOpen],
   );
 
   return (

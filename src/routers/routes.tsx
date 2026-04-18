@@ -52,8 +52,12 @@ export const routes: RouteObject[] = [
                 path: `/${Path.tenants}`,
                 element: <Tenant />,
               },
+              // {
+              //   path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}`,
+              //   element: <Rooms />,
+              // },
               {
-                path: `/${Path.buildings}/${Path.buildingId}/${Path.rooms}`,
+                path: [Path.rooms, Path.buildingId].join('/'),
                 element: <Rooms />,
               },
               {
