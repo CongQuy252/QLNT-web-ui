@@ -4,7 +4,17 @@ import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
-import type { BuildingListResponse, GetBuildingByIdResponse } from '@/types/building';
+import type { Building, BuildingListResponse, GetBuildingByIdResponse } from '@/types/building';
+
+// Simple API function for direct usage
+export const getBuildings = async (): Promise<Building[]> => {
+  try {
+    const response = await http.get<BuildingListResponse>('/buildings');
+    return response.data.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const useGetBuildingQueries = (isEnabled = true) => {
   return useQuery({

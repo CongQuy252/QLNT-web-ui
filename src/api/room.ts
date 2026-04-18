@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
+import { usePagination } from '@/hooks/usePagination';
 import { http } from '@/lib/axios';
 import type {
   GetRoomByIdResponse,
@@ -14,22 +15,27 @@ import type { RoomsWithMeterReadingsResponse } from '@/types/room';
 export type { RoomWithMeterReading, RoomsWithMeterReadingsResponse } from '@/types/room';
 
 export const useGetRoomsQueries = ({
-  page = 1,
-  limit = 10,
   search = '',
   status = '',
   isEnabled = true,
+  initialPage = 1,
+  initialLimit = 10,
 }) => {
   const handleHttpError = useHandleHttpError();
+  const pagination = usePagination({
+    initialPage,
+    initialLimit,
+  });
+
   return useQuery({
-    queryKey: [QueriesKey.rooms, page, limit, search, status],
+    queryKey: [QueriesKey.rooms, pagination.page, pagination.limit, search, status],
     queryFn: async () => {
       const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString(),
       });
 
-      if (search) params.append('search', search);
+      if (search) params.append('number', search);
       if (status && status !== '0') params.append('status', status);
 
       const response = await http.get<RoomListResponse>(`/rooms?${params.toString()}`);
@@ -42,6 +48,7 @@ export const useGetRoomsQueries = ({
     enabled: isEnabled,
     meta: { handleError: handleHttpError },
     placeholderData: (prev) => prev,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
@@ -132,23 +139,6 @@ export const useDeleteRoomMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
       queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
-    },
-    onError: handleHttpError,
-  });
-};
-
-export const useRemoveTenantMutation = () => {
-  const queryClient = useQueryClient();
-  const handleHttpError = useHandleHttpError();
-
-  return useMutation({
-    mutationFn: async (roomId: string) => {
-      const response = await http.post(`/rooms/${roomId}/remove-tenant`);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
-      queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
     },
     onError: handleHttpError,
   });

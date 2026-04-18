@@ -16,16 +16,29 @@ type Props = {
 type InvoiceState = {
   tenantId: string;
   roomId: string;
-  month: string;
+  month: number;
+  year: number;
   dueDate: string;
   notes?: string;
 
+  // ĐIỆN
   electricityPrevious: number;
   electricityCurrent: number;
+  electricityUsage: number;
+  electricityUnitPrice: number;
+  electricityCost: number;
 
+  // NƯỚC
   waterPrevious: number;
   waterCurrent: number;
+  waterUsage: number;
+  waterUnitPrice: number;
+  waterCost: number;
 
+  // PHÍ
+  rentAmount: number;
+  parkingFee: number;
+  livingFee: number;
   otherFee: number;
 };
 
@@ -33,17 +46,29 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
   const [invoice, setInvoice] = useState<InvoiceState>({
     tenantId: '',
     roomId: '',
-    month: new Date().toISOString().slice(0, 7),
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
     dueDate: new Date().toISOString().slice(0, 10),
 
+    // ĐIỆN
     electricityPrevious: 0,
     electricityCurrent: 0,
+    electricityUsage: 0,
+    electricityUnitPrice: 0,
+    electricityCost: 0,
 
+    // NƯỚC
     waterPrevious: 0,
     waterCurrent: 0,
+    waterUsage: 0,
+    waterUnitPrice: 0,
+    waterCost: 0,
 
+    // PHÍ
+    rentAmount: 0,
+    parkingFee: 0,
+    livingFee: 0,
     otherFee: 0,
-
     notes: '',
   });
 
@@ -64,21 +89,11 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
         ? Math.max(waterUsage, 0) * (room.waterPricePerCubicMeter || 0)
         : (room.waterPricePerPerson ?? 0);
 
-    const internetFee = room.internetFee || 0;
-
     const parkingFee = room.parkingFee || 0;
 
-    const serviceFee = room.serviceFee || 0;
+    const livingFee = room.livingFee || 0;
 
-    return (
-      room.price +
-      electricityAmount +
-      waterAmount +
-      internetFee +
-      parkingFee +
-      serviceFee +
-      invoice.otherFee
-    );
+    return room.price + electricityAmount + waterAmount + parkingFee + livingFee + invoice.otherFee;
   }, [
     getRoomById,
     invoice.electricityCurrent,
@@ -93,55 +108,63 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
     const room = getRoomById(invoice.roomId);
     if (!room) throw new Error('Room not found');
 
+    // ĐIỆN
     const electricityUsage = invoice.electricityCurrent - invoice.electricityPrevious;
-
-    const waterUsage = invoice.waterCurrent - invoice.waterPrevious;
-
     const electricityAmount = Math.max(electricityUsage, 0) * (room.electricityUnitPrice || 0);
 
-    const waterAmount =
-      (room.waterPricePerCubicMeter ?? 0 > 0)
-        ? Math.max(waterUsage, 0) * (room.waterPricePerCubicMeter || 0)
-        : (room.waterPricePerPerson ?? 0);
+    // NƯỚC
+    const waterUsage = invoice.waterCurrent - invoice.waterPrevious;
+    let waterAmount = 0;
+    let waterUnitPrice = 0;
 
-    const internetFee = room.internetFee || 0;
+    if (room.waterPricePerCubicMeter && room.waterPricePerCubicMeter > 0) {
+      waterAmount = Math.max(waterUsage, 0) * room.waterPricePerCubicMeter;
+      waterUnitPrice = room.waterPricePerCubicMeter;
+    } else if (room.waterPricePerPerson && room.waterPricePerPerson > 0) {
+      waterAmount = Math.max(waterUsage, 0) * room.waterPricePerPerson;
+      waterUnitPrice = room.waterPricePerPerson;
+    }
 
+    const waterCost = waterAmount;
+
+    // PHÍ
+    const rentAmount = room.price || 0;
     const parkingFee = room.parkingFee || 0;
+    const livingFee = room.livingFee || 0;
+    const otherFee = invoice.otherFee || 0;
 
-    const serviceFee = room.serviceFee || 0;
-
-    const total =
-      room.price +
-      electricityAmount +
-      waterAmount +
-      internetFee +
-      parkingFee +
-      serviceFee +
-      invoice.otherFee;
+    const totalAmount =
+      rentAmount + electricityAmount + waterCost + parkingFee + livingFee + otherFee;
 
     return {
       tenantId: invoice.tenantId,
       roomId: invoice.roomId,
       month: invoice.month,
+      year: invoice.year,
       dueDate: invoice.dueDate,
       notes: invoice.notes,
 
-      rentAmount: room.price,
-
+      // ĐIỆN
       electricityPrevious: invoice.electricityPrevious,
       electricityCurrent: invoice.electricityCurrent,
-      electricityAmount,
+      electricityUsage,
+      electricityUnitPrice: room.electricityUnitPrice || 0,
+      electricityCost: electricityAmount,
 
+      // NƯỚC
       waterPrevious: invoice.waterPrevious,
       waterCurrent: invoice.waterCurrent,
-      waterAmount,
+      waterUsage,
+      waterUnitPrice,
+      waterCost,
 
-      internetFeeAmount: internetFee,
-      parkingFeeAmount: parkingFee,
-      serviceFeeAmount: serviceFee,
-      otherFee: invoice.otherFee,
+      // PHÍ
+      rentAmount,
+      parkingFee,
+      livingFee,
+      otherFee,
 
-      amount: total,
+      totalAmount,
     };
   };
 
@@ -149,12 +172,17 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
     const room = occupiedRooms.find((r) => r._id === roomId);
     if (!room) return;
 
+    // Là tenant dau tien tu members array (hoac representative)
+    const firstMember = room.members[0];
+    const representativeMember = room.members.find((m) => m.isRepresentative);
+    const selectedMember = representativeMember || firstMember;
+
     setInvoice((prev) => ({
       ...prev,
       roomId,
-      tenantId: room.currentTenant?._id || '',
+      tenantId: selectedMember?.userId || '',
 
-      // reset lại chỉ số khi đổi phòng
+      // reset lagi hanya index khi doi phòng
       electricityPrevious: 0,
       electricityCurrent: 0,
       waterPrevious: 0,
@@ -187,11 +215,17 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
           title="Chọn phòng đã có người thuê"
         >
           <option value="">-- Chọn phòng --</option>
-          {occupiedRooms.map((room) => (
-            <option key={room._id} value={room._id}>
-              {room.number} - {room.currentTenant?.name}
-            </option>
-          ))}
+          {occupiedRooms.map((room) => {
+            const representative = room.members.find((m) => m.isRepresentative);
+            const firstMember = room.members[0];
+            const selectedMember = representative || firstMember;
+
+            return (
+              <option key={room._id} value={room._id}>
+                {room.number} - {selectedMember?.name || 'Ch có thành viên'}
+              </option>
+            );
+          })}
         </select>
       </div>
 
@@ -243,9 +277,11 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
             </Label>
             <Input
               id="month"
-              type="month"
+              type="number"
+              min="1"
+              max="12"
               value={invoice.month}
-              onChange={(e) => setInvoice({ ...invoice, month: e.target.value })}
+              onChange={(e) => setInvoice({ ...invoice, month: parseInt(e.target.value) || 1 })}
               className="mt-1"
             />
           </div>
@@ -392,10 +428,10 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="w-24 text-sm font-medium">Wifi</span>
-                {selectedRoom?.internetFee ? (
+                <span className="w-24 text-sm font-medium">Phí sinh hoạt</span>
+                {selectedRoom?.livingFee ? (
                   <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
-                    {selectedRoom.internetFee.toLocaleString()} VNĐ
+                    {selectedRoom.livingFee.toLocaleString()} VNĐ
                   </span>
                 ) : (
                   <span className="text-xs text-slate-400">Không áp dụng</span>
@@ -415,25 +451,12 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
                 )}
               </div>
             </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="w-24 text-sm font-medium">Phí dịch vụ</span>
-                {selectedRoom?.serviceFee ? (
-                  <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
-                    {selectedRoom.serviceFee.toLocaleString()} VNĐ
-                  </span>
-                ) : (
-                  <span className="text-xs text-slate-400">Không áp dụng</span>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Summary Section */}
-      <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-lg p-4">
+      <div className="bg-linear-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-lg p-4">
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-lg font-semibold text-slate-800">Tổng cộng:</span>

@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { queryClient } from '@/lib/reactQuery';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { getInvoiceById } from '@/api/invoice';
+import { confirmPayment } from '@/api/paymentTransaction';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -37,7 +39,7 @@ export default function PaymentDetail() {
         // Handle backend response structure: { success: true, data: {...} }
         const data = response.success && response.data ? response.data : response;
         setInvoice(data);
-      } catch (error) {
+      } catch {
         setInvoiceError('Failed to fetch invoice');
       } finally {
         setInvoiceLoading(false);
@@ -47,12 +49,45 @@ export default function PaymentDetail() {
     fetchInvoice();
   }, [paymentId]);
 
-  const { success } = useToast();
+  const { success, error } = useToast();
 
-  const handleMarkAsPaid = () => {
-    // TODO: Implement invoice update mutation
-    // For now, just show success message
-    success('Đã cập nhật trạng thái thanh toán');
+  const handleMarkAsPaid = async () => {
+    if (!invoice) {
+      error('Không có thông tin hóa đơn');
+      return;
+    }
+
+    try {
+      show();
+
+      // Calculate remaining amount to pay
+      const remainingAmount = invoice.totalAmount - (invoice.totalPaid || 0);
+
+      await confirmPayment({
+        invoiceId: invoice._id,
+        amount: remainingAmount,
+        paidAt: new Date(),
+        paymentMethod: 'cash',
+        note: 'Đánh dấu đã thanh toán đầy đủ',
+      });
+
+      // Update local state
+      setInvoice({
+        ...invoice,
+        status: PaymentStatus.PAID,
+        totalPaid: invoice.totalAmount,
+      });
+
+      success('Đã cập nhật trạng thái thanh toán thành công');
+
+      // Refresh invoice data
+      queryClient.invalidateQueries({ queryKey: ['invoice', paymentId] });
+    } catch (err: any) {
+      console.error('Payment confirmation error:', err);
+      error(err.response?.data?.message || 'Lỗi khi cập nhật trạng thái thanh toán');
+    } finally {
+      hide();
+    }
   };
 
   const handleLogout = useCallback(() => {
