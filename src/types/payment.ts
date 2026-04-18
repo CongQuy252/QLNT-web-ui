@@ -1,73 +1,46 @@
-export enum PaymentStatus {
-  PENDING = 'pending',
-  PAID = 'paid',
-  OVERDUE = 'overdue',
+export interface InvoiceForm {
+  tenantId: string;
+  roomId: string;
+  month: number;
+  year: number;
+  dueDate: string;
+  notes?: string;
+
+  // ĐIỆN
+  electricityPrevious: number;
+  electricityCurrent: number;
+  electricityUsage: number;
+  electricityUnitPrice: number;
+  electricityCost: number;
+
+  // NƯỚC
+  waterPrevious: number;
+  waterCurrent: number;
+  waterUsage: number;
+  waterUnitPrice: number;
+  waterCost: number;
+
+  // PHÍ
+  rentAmount: number;
+  parkingFee: number;
+  livingFee: number;
+  otherFee: number;
+
+  totalAmount: number;
 }
 
 export interface Payment {
   _id: string;
+  invoiceId: string;
   tenantId: string;
   roomId: string;
-  month: string;
-  electricityPrevious: number;
-  electricityCurrent: number;
-  electricityAmount: number;
-  waterPrevious: number;
-  waterCurrent: number;
-  waterAmount: number;
-  otherFee?: number;
-  rentAmount: number;
-  internetFeeAmount: number;
-  parkingFeeAmount: number;
-  serviceFeeAmount: number;
   amount: number;
+  month: number;
+  year: number;
   dueDate: string;
   paidDate?: string;
-  status: PaymentStatus;
   notes?: string;
+  status: 'unpaid' | 'partial' | 'paid' | 'overdue';
   createdAt: string;
   updatedAt: string;
-}
-
-export type PaymentItem = Payment;
-
-export type InvoiceForm = Omit<Payment, '_id' | 'status' | 'paidDate' | 'createdAt' | 'updatedAt'>;
-
-export interface TenantOption {
-  user: {
-    _id: string;
-    name: string;
-  };
-}
-
-export interface GetPaymentByUserId {
-  _id: string;
-  tenantId: string;
-  roomId: {
-    _id: string;
-    number: string;
-    buildingId: {
-      _id: string;
-      name: string;
-    };
-    floor: number;
-  };
-  month: string;
-  electricityPrevious: number;
-  electricityCurrent: number;
-  electricityAmount: number;
-  waterPrevious: number;
-  waterCurrent: number;
-  waterAmount: number;
-  otherFee: number;
-  rentAmount: number;
-  internetFeeAmount: number;
-  parkingFeeAmount: number;
-  serviceFeeAmount: number;
-  amount: number;
-  dueDate: string;
-  status: PaymentStatus;
-  createdAt: string;
-  updatedAt: string;
-  __v: 0;
 }

@@ -4,13 +4,31 @@ const roomSchema = z.object({
   number: z.string().min(1, { error: 'Tên phòng không được để trống' }),
   area: z.coerce.number().min(0, { error: 'Diện tích phải lớn hơn 0' }).optional(),
   price: z.coerce.number().min(0, { error: 'Giá thuê phải lớn hơn hoặc bằng 0' }).optional(),
-  electricityUnitPrice: z.coerce.number().min(0, { error: 'Giá điện phải lớn hơn hoặc bằng 0' }).optional(),
-  waterUnitPrice: z.coerce.number().min(0, { error: 'Giá nước phải lớn hơn hoặc bằng 0' }).optional(),
-  waterPricePerPerson: z.coerce.number().min(0, { error: 'Giá nước/người phải lớn hơn hoặc bằng 0' }).optional(),
-  waterPricePerCubicMeter: z.coerce.number().min(0, { error: 'Giá nước/m³ phải lớn hơn hoặc bằng 0' }).optional(),
-  internetFee: z.coerce.number().min(0, { error: 'Phí internet phải lớn hơn hoặc bằng 0' }).optional(),
+  electricityUnitPrice: z.coerce
+    .number()
+    .min(0, { error: 'Giá điện phải lớn hơn hoặc bằng 0' })
+    .optional(),
+  waterUnitPrice: z.coerce
+    .number()
+    .min(0, { error: 'Giá nước phải lớn hơn hoặc bằng 0' })
+    .optional(),
+  waterPricePerPerson: z.coerce
+    .number()
+    .min(0, { error: 'Giá nước/người phải lớn hơn hoặc bằng 0' })
+    .optional(),
+  waterPricePerCubicMeter: z.coerce
+    .number()
+    .min(0, { error: 'Giá nước/m³ phải lớn hơn hoặc bằng 0' })
+    .optional(),
+  internetFee: z.coerce
+    .number()
+    .min(0, { error: 'Phí internet phải lớn hơn hoặc bằng 0' })
+    .optional(),
   parkingFee: z.coerce.number().min(0, { error: 'Phí gửi xe phải lớn hơn hoặc bằng 0' }).optional(),
-  serviceFee: z.coerce.number().min(0, { error: 'Phí dịch vụ phải lớn hơn hoặc bằng 0' }).optional(),
+  livingFee: z.coerce
+    .number()
+    .min(0, { error: 'Phí sinh hoạt phải lớn hơn hoặc bằng 0' })
+    .optional(),
   description: z.string().optional(),
 });
 
@@ -46,9 +64,9 @@ export const buildingSchema = z.object({
     .number()
     .min(0, { error: 'Phí gửi xe phải lớn hơn hoặc bằng 0' })
     .optional(),
-  defaultServiceFee: z.coerce
+  defaultLivingFee: z.coerce
     .number()
-    .min(0, { error: 'Phí dịch vụ phải lớn hơn hoặc bằng 0' })
+    .min(0, { error: 'Phí sinh hoạt phải lớn hơn hoặc bằng 0' })
     .optional(),
   defaultArea: z.coerce.number().min(0, { error: 'Diện tích phải lớn hơn 0' }).optional(),
   rooms: z.array(roomSchema).optional(),

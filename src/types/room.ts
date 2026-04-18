@@ -6,28 +6,41 @@ export enum ROOMSTATUS {
   MAINTENANCE = 'maintenance',
 }
 
+export interface Member {
+  userId?: string;
+  name: string;
+  phone: string;
+  licensePlate: string;
+  cccdImages: {
+    front: {
+      url: string;
+      publicId: string;
+    };
+    back: {
+      url: string;
+      publicId: string;
+    };
+  };
+  isRepresentative: boolean;
+}
+
 export interface Room {
   _id: string;
   number: string;
   buildingId: string;
   buildingName?: string; // For display purposes
-  floor: number;
   area: number;
+  status: ROOMSTATUS;
   price: number;
   electricityUnitPrice: number;
-  waterPricePerPerson?: number;
-  waterPricePerCubicMeter?: number;
-  waterCalculationType?: 'm3' | 'person';
-  internetFee?: number;
-  parkingFee?: number;
-  serviceFee?: number;
-  status: ROOMSTATUS;
-  currentTenant?: {
-    _id: string;
-    email: string;
-    name: string;
-  };
+  waterPricePerPerson: number;
+  waterPricePerCubicMeter: number;
+  parkingFee: number;
+  livingFee: number;
+  deposit?: number;
+  members: Member[];
   description?: string;
+  isDeleted: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -44,23 +57,18 @@ export interface GetRoom {
     _id: string;
     name: string;
   };
-  floor: number;
   area: number;
+  status: ROOMSTATUS;
   price: number;
   electricityUnitPrice: number;
-  waterPricePerPerson?: number;
-  waterPricePerCubicMeter?: number;
-  waterCalculationType?: 'm3' | 'person';
-  internetFee?: number;
-  parkingFee?: number;
-  serviceFee?: number;
-  status: ROOMSTATUS;
+  waterPricePerPerson: number;
+  waterPricePerCubicMeter: number;
+  parkingFee: number;
+  livingFee: number;
+  deposit?: number;
+  members: Member[];
   description?: string;
-  currentTenant?: {
-    _id: string;
-    email: string;
-    name: string;
-  };
+  isDeleted: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -69,17 +77,16 @@ export interface PutRoom {
   id: string;
   number: string;
   buildingId: string;
-  floor: number;
   area: number;
+  status: ROOMSTATUS;
   price: number;
   electricityUnitPrice: number;
-  waterPricePerPerson?: number;
-  waterPricePerCubicMeter?: number;
-  waterCalculationType?: 'm3' | 'person';
-  internetFee?: number;
-  parkingFee?: number;
-  serviceFee?: number;
-  status: ROOMSTATUS;
+  waterPricePerPerson: number;
+  waterPricePerCubicMeter: number;
+  parkingFee: number;
+  livingFee: number;
+  deposit?: number;
+  members?: Member[];
   description?: string;
 }
 

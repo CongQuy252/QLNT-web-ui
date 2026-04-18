@@ -73,7 +73,7 @@ const Buildings = () => {
       <div
         key={status.label}
         className={`p-3 rounded-lg border h-full flex flex-col justify-between cursor-pointer ${status.bg} ${status.border}`}
-        onClick={() => handleClickRoomStatusCount(`${building?.id}/${Path.rooms}`, status.status)}
+        onClick={() => handleClickRoomStatusCount(`/${Path.rooms}/${building?.id}`, status.status)}
       >
         <div className="flex items-center gap-2 mb-1">
           <Home className={`h-4 w-4 shrink-0 ${status.icon}`} />

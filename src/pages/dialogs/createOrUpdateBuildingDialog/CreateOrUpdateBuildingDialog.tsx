@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -58,7 +58,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
     reset,
     watch,
     setValue,
@@ -78,7 +78,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
       defaultWaterPricePerCubicMeter: undefined,
       defaultInternetFee: undefined,
       defaultParkingFee: undefined,
-      defaultServiceFee: undefined,
+      defaultLivingFee: undefined,
       defaultArea: undefined,
     },
   });
@@ -108,10 +108,10 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         defaultRoomPrice: undefined,
         defaultElectricityUnitPrice: undefined,
         defaultWaterPricePerPerson: undefined,
-      defaultWaterPricePerCubicMeter: undefined,
+        defaultWaterPricePerCubicMeter: undefined,
         defaultInternetFee: undefined,
         defaultParkingFee: undefined,
-        defaultServiceFee: undefined,
+        defaultLivingFee: undefined,
         defaultArea: undefined,
       });
     }
@@ -135,7 +135,7 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         defaultWaterPricePerCubicMeter: building.defaultWaterPricePerCubicMeter,
         defaultInternetFee: building.defaultInternetFee,
         defaultParkingFee: building.defaultParkingFee,
-        defaultServiceFee: building.defaultServiceFee,
+        defaultLivingFee: building.defaultLivingFee,
         defaultArea: building.defaultArea,
       });
     }
@@ -154,19 +154,12 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
 
   const onSubmit = useCallback<SubmitHandler<BuildingFormInput>>(
     (data) => {
-      console.log('Form submitted with data:', data);
-      console.log('Form errors:', errors);
-      console.log('Form is valid:', isValid);
-
       const cityName = getCityName(data.city);
-      console.log('City name resolved:', cityName);
 
       const districtName =
         wards?.find((w) => w.code.toString() === data.district)?.name || data.district;
-      console.log('District name resolved:', districtName);
 
       if (!districtName.trim()) {
-        console.error('District name is empty');
         return;
       }
 
@@ -176,18 +169,15 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
         district: districtName,
       };
 
-      console.log('Processed data:', processedData);
-
       try {
         const parsed = buildingSchema.parse(processedData);
-        console.log('Schema parsed successfully:', parsed);
         handleSave(parsed);
         setIsOpen(false);
       } catch (validationError) {
         console.error('Schema validation failed:', validationError);
       }
     },
-    [getCityName, wards, errors, isValid, handleSave, setIsOpen],
+    [getCityName, wards, handleSave, setIsOpen],
   );
 
   return (
@@ -400,52 +390,66 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                     )}
                   </div>
                   <RadioGroup
-                  value={watch('waterCalculationType')}
-                  onValueChange={(value) => setValue('waterCalculationType', value as 'm3' | 'person')}
-                  className="flex gap-6 mb-3"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="m3" id="water-m3" />
-                    <Label htmlFor="water-m3" className="text-sm font-normal cursor-pointer">
-                      m³
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="person" id="water-person" />
-                    <Label htmlFor="water-person" className="text-sm font-normal cursor-pointer">
-                      Người
-                    </Label>
-                  </div>
-                </RadioGroup>
+                    value={watch('waterCalculationType')}
+                    onValueChange={(value) =>
+                      setValue('waterCalculationType', value as 'm3' | 'person')
+                    }
+                    className="flex gap-6 mb-3"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="m3" id="water-m3" />
+                      <Label htmlFor="water-m3" className="text-sm font-normal cursor-pointer">
+                        m³
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="person" id="water-person" />
+                      <Label htmlFor="water-person" className="text-sm font-normal cursor-pointer">
+                        Người
+                      </Label>
+                    </div>
+                  </RadioGroup>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">
-                      {watch('waterCalculationType') === 'person' ? 'Giá Nước (VNĐ/người)' : 'Giá Nước (VNĐ/m³)'}
-                    </Label>
-                    <Controller
-                      control={control}
-                      name={watch('waterCalculationType') === 'person' ? 'defaultWaterPricePerPerson' : 'defaultWaterPricePerCubicMeter'}
-                      render={({ field }) => (
-                        <Input
-                          type="text"
-                          value={formatNumber((field.value as number | undefined) ?? 0)}
-                          onChange={(e) => {
-                            const value = parseNumber(e.target.value);
-                            field.onChange(value !== undefined ? value : 0);
-                          }}
-                          className="mt-1"
-                        />
-                      )}
-                    />
-                    {watch('waterCalculationType') === 'person' && errors.defaultWaterPricePerPerson && (
-                      <p className="text-xs text-red-500">{errors.defaultWaterPricePerPerson.message}</p>
-                    )}
-                    {watch('waterCalculationType') === 'm3' && errors.defaultWaterPricePerCubicMeter && (
-                      <p className="text-xs text-red-500">{errors.defaultWaterPricePerCubicMeter.message}</p>
-                    )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-slate-700">
+                        {watch('waterCalculationType') === 'person'
+                          ? 'Giá Nước (VNĐ/người)'
+                          : 'Giá Nước (VNĐ/m³)'}
+                      </Label>
+                      <Controller
+                        control={control}
+                        name={
+                          watch('waterCalculationType') === 'person'
+                            ? 'defaultWaterPricePerPerson'
+                            : 'defaultWaterPricePerCubicMeter'
+                        }
+                        render={({ field }) => (
+                          <Input
+                            type="text"
+                            value={formatNumber((field.value as number | undefined) ?? 0)}
+                            onChange={(e) => {
+                              const value = parseNumber(e.target.value);
+                              field.onChange(value !== undefined ? value : 0);
+                            }}
+                            className="mt-1"
+                          />
+                        )}
+                      />
+                      {watch('waterCalculationType') === 'person' &&
+                        errors.defaultWaterPricePerPerson && (
+                          <p className="text-xs text-red-500">
+                            {errors.defaultWaterPricePerPerson.message}
+                          </p>
+                        )}
+                      {watch('waterCalculationType') === 'm3' &&
+                        errors.defaultWaterPricePerCubicMeter && (
+                          <p className="text-xs text-red-500">
+                            {errors.defaultWaterPricePerCubicMeter.message}
+                          </p>
+                        )}
+                    </div>
                   </div>
-                </div>
                   <div>
                     <Label
                       htmlFor="defaultInternetFee"
@@ -498,27 +502,27 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
                   </div>
                   <div>
                     <Label
-                      htmlFor="defaultServiceFee"
+                      htmlFor="defaultLivingFee"
                       className="text-sm font-medium text-slate-700"
                     >
-                      Phí Dịch Vụ (VNĐ/tháng)
+                      Phí Sinh Hoạt (VNĐ/tháng)
                     </Label>
                     <Input
                       type="text"
-                      name="defaultServiceFee"
-                      value={formatNumber((watch('defaultServiceFee') as number) ?? '')}
+                      name="defaultLivingFee"
+                      value={formatNumber((watch('defaultLivingFee') as number) ?? '')}
                       onChange={(e) => {
                         const rawValue = parseNumber(e.target.value);
 
-                        setValue('defaultServiceFee', rawValue ? Number(rawValue) : undefined, {
+                        setValue('defaultLivingFee', rawValue ? Number(rawValue) : undefined, {
                           shouldValidate: true,
                           shouldDirty: true,
                         });
                       }}
                       className="mt-1"
                     />
-                    {errors.defaultServiceFee && (
-                      <p className="text-xs text-red-500">{errors.defaultServiceFee.message}</p>
+                    {errors.defaultLivingFee && (
+                      <p className="text-xs text-red-500">{errors.defaultLivingFee.message}</p>
                     )}
                   </div>
                   <div>

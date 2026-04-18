@@ -1,3 +1,5 @@
+export const debounceTime = 300;
+
 export enum Path {
   root = 'user',
   login = 'login',
@@ -38,10 +40,10 @@ export enum QueriesKey {
 }
 
 export enum RoomStatus {
-  all = '0', //all
-  available = 'available', // available
-  occupied = 'occupied', // occupied
-  maintenance = 'maintenance', // maintenance
+  all = '0',
+  available = 'available',
+  occupied = 'occupied',
+  maintenance = 'maintenance',
 }
 
 export enum Mode {
@@ -69,4 +71,9 @@ export enum PaymentStatus {
   PENDING = 'pending',
   PAID = 'paid',
   OVERDUE = 'overdue',
+}
+
+export enum WaterType {
+  person = 'person',
+  m3 = 'm3',
 }
