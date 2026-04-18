@@ -306,7 +306,7 @@ const EditRoom = () => {
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
-                      Theo/nguoi
+                      Theo người
                     </button>
                     <button
                       type="button"
@@ -325,14 +325,14 @@ const EditRoom = () => {
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
-                      Theo/m³
+                      Theo m³
                     </button>
                   </div>
 
                   {/* Input field */}
                   {editRoom.waterPricePerPerson > 0 ? (
                     <div>
-                      <Label className="text-xs text-slate-600 mb-1 block">Theo/nguoi</Label>
+                      <Label className="text-xs text-slate-600 mb-1 block">Theo người</Label>
                       <Input
                         type="text"
                         value={formatNumber(editRoom.waterPricePerPerson || 0)}
@@ -348,7 +348,7 @@ const EditRoom = () => {
                     </div>
                   ) : (
                     <div>
-                      <Label className="text-xs text-slate-600 mb-1 block">Theo/m³</Label>
+                      <Label className="text-xs text-slate-600 mb-1 block">Theo m³</Label>
                       <Input
                         type="text"
                         value={formatNumber(editRoom.waterPricePerCubicMeter || 0)}
@@ -374,7 +374,7 @@ const EditRoom = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  Thanh vien ({editRoom.members.length})
+                  Thành viên ({editRoom.members.length})
                 </h2>
                 <Button
                   size="sm"
