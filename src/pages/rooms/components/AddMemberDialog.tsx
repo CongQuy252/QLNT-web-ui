@@ -37,16 +37,28 @@ const AddMemberDialog = ({
     isRepresentative: editingMember?.isRepresentative || false,
   });
 
-  // Auto-fill form when editing member
   useEffect(() => {
-    if (editingMember && open) {
-      setFormData({
-        name: editingMember.name,
-        phone: editingMember.phone,
-        licensePlate: editingMember.licensePlate,
-        cccdImages: editingMember.cccdImages,
-        isRepresentative: editingMember.isRepresentative,
-      });
+    if (open) {
+      if (editingMember) {
+        setFormData({
+          name: editingMember.name,
+          phone: editingMember.phone,
+          licensePlate: editingMember.licensePlate,
+          cccdImages: editingMember.cccdImages,
+          isRepresentative: editingMember.isRepresentative,
+        });
+      } else {
+        setFormData({
+          name: '',
+          phone: '',
+          licensePlate: '',
+          cccdImages: {
+            front: { url: '', publicId: '' },
+            back: { url: '', publicId: '' },
+          },
+          isRepresentative: false,
+        });
+      }
     }
   }, [editingMember, open]);
 
