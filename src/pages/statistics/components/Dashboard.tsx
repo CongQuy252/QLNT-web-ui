@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/useToast';
 import type { Building } from '@/types/building';
 import type { CreateExpenseInput, Expense, ExpenseCategory } from '@/types/expense';
@@ -47,7 +48,7 @@ export default function Dashboard() {
       try {
         const buildingsData = await getBuildings();
         setBuildings(buildingsData);
-      } catch (err) {
+      } catch {
         error('Lỗi khi tải danh sách tòa nhà');
       }
     };
@@ -61,7 +62,7 @@ export default function Dashboard() {
       try {
         const data = await getExpenses({ limit: 100 });
         setExpenses(data.expenses);
-      } catch (err) {
+      } catch {
         error('Lỗi khi tải danh sách chi phí');
       } finally {
         setIsLoading(false);
@@ -72,7 +73,7 @@ export default function Dashboard() {
   }, [error]);
 
   const addExpense = async () => {
-    if (!newExpense.buildingId || !newExpense.title || !newExpense.amount || !newExpense.category) {
+    if (!newExpense.buildingId || !newExpense.title || !newExpense.amount) {
       error('Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
@@ -92,7 +93,7 @@ export default function Dashboard() {
         expenseDate: new Date().toISOString().split('T')[0],
       });
       setIsDialogOpen(false);
-    } catch (err) {
+    } catch {
       error('Lỗi khi tạo chi phí');
     }
   };
@@ -102,7 +103,7 @@ export default function Dashboard() {
       await deleteExpense(id);
       setExpenses(expenses.filter((expense) => expense._id !== id));
       success('Xóa chi phí thành công');
-    } catch (err) {
+    } catch {
       error('Lỗi khi xóa chi phí');
     }
   };
@@ -117,23 +118,6 @@ export default function Dashboard() {
   };
 
   const totals = calculateTotals();
-
-  const getCategoryLabel = (category: ExpenseCategory) => {
-    switch (category) {
-      case 'maintenance':
-        return 'Bảo trì';
-      case 'furniture':
-        return 'Nội thất';
-      case 'utility':
-        return 'Tiện ích';
-      case 'tax':
-        return 'Thuế';
-      case 'other':
-        return 'Khác';
-      default:
-        return 'Khác';
-    }
-  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -224,59 +208,34 @@ export default function Dashboard() {
                     />
                   </div>
 
-                  {/* Description Input */}
+                  {/* Amount Input */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Mô tả chi tiết</label>
+                    <label className="text-sm font-medium text-gray-700">Số tiền</label>
                     <Input
-                      value={newExpense.description}
+                      type="number"
+                      value={newExpense.amount}
                       onChange={(e) =>
-                        setNewExpense({ ...newExpense, description: e.target.value })
+                        setNewExpense({
+                          ...newExpense,
+                          amount: parseFloat(e.target.value) || 0,
+                        })
                       }
-                      placeholder="Mô tả chi tiết"
+                      placeholder="Số tiền"
                       className="h-10 w-full"
                     />
                   </div>
 
-                  {/* Category and Amount - Same row on desktop, separate on mobile */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Category Select */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">Danh mục</label>
-                      <Select
-                        value={newExpense.category}
-                        onValueChange={(value: ExpenseCategory) =>
-                          setNewExpense({ ...newExpense, category: value })
-                        }
-                      >
-                        <SelectTrigger className="h-10 w-full">
-                          <SelectValue placeholder="Chọn danh mục" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="maintenance">Bảo trì</SelectItem>
-                          <SelectItem value="furniture">Nội thất</SelectItem>
-                          <SelectItem value="utility">Tiện ích</SelectItem>
-                          <SelectItem value="tax">Thuế</SelectItem>
-                          <SelectItem value="other">Khác</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Amount Input */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">Số tiền</label>
-                      <Input
-                        type="number"
-                        value={newExpense.amount}
-                        onChange={(e) =>
-                          setNewExpense({
-                            ...newExpense,
-                            amount: parseFloat(e.target.value) || 0,
-                          })
-                        }
-                        placeholder="Số tiền"
-                        className="h-10 w-full"
-                      />
-                    </div>
+                  {/* Description Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Mô tả chi tiết</label>
+                    <Textarea
+                      value={newExpense.description}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                        setNewExpense({ ...newExpense, description: e.target.value })
+                      }
+                      placeholder="Mô tả chi tiết"
+                      className="min-h-[80px] w-full resize-none"
+                    />
                   </div>
 
                   {/* Submit Button */}
@@ -321,9 +280,6 @@ export default function Dashboard() {
                     <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm hidden sm:table-cell">
                       Mô Tả
                     </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
-                      Danh Mục
-                    </th>
                     <th className="text-right py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
                       Số Tiền
                     </th>
@@ -335,13 +291,13 @@ export default function Dashboard() {
                 <tbody>
                   {isLoading ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-8 text-gray-500 text-sm">
+                      <td colSpan={6} className="text-center py-8 text-gray-500 text-sm">
                         Đang tải dữ liệu...
                       </td>
                     </tr>
                   ) : !expenses || expenses.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-8 text-gray-500 text-sm">
+                      <td colSpan={6} className="text-center py-8 text-gray-500 text-sm">
                         Không có dữ liệu chi phí
                       </td>
                     </tr>
@@ -364,11 +320,6 @@ export default function Dashboard() {
                         </td>
                         <td className="py-3 px-4 text-gray-600 text-sm hidden sm:table-cell">
                           <div className="max-w-[150px] truncate">{expense.description || '-'}</div>
-                        </td>
-                        <td className="py-3 px-4 text-gray-600 text-sm">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100">
-                            {getCategoryLabel(expense.category)}
-                          </span>
                         </td>
                         <td className="py-3 px-4 text-right text-sm text-red-600 font-medium">
                           {formatCurrency(expense.amount)}

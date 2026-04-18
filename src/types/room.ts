@@ -37,7 +37,7 @@ export interface Room {
   waterPricePerCubicMeter: number;
   parkingFee: number;
   livingFee: number;
-  deposit: number;
+  deposit?: number;
   members: Member[];
   description?: string;
   isDeleted: boolean;
@@ -65,7 +65,7 @@ export interface GetRoom {
   waterPricePerCubicMeter: number;
   parkingFee: number;
   livingFee: number;
-  deposit: number;
+  deposit?: number;
   members: Member[];
   description?: string;
   isDeleted: boolean;
@@ -85,7 +85,7 @@ export interface PutRoom {
   waterPricePerCubicMeter: number;
   parkingFee: number;
   livingFee: number;
-  deposit: number;
+  deposit?: number;
   members?: Member[];
   description?: string;
 }

@@ -37,16 +37,28 @@ const AddMemberDialog = ({
     isRepresentative: editingMember?.isRepresentative || false,
   });
 
-  // Auto-fill form when editing member
   useEffect(() => {
-    if (editingMember && open) {
-      setFormData({
-        name: editingMember.name,
-        phone: editingMember.phone,
-        licensePlate: editingMember.licensePlate,
-        cccdImages: editingMember.cccdImages,
-        isRepresentative: editingMember.isRepresentative,
-      });
+    if (open) {
+      if (editingMember) {
+        setFormData({
+          name: editingMember.name,
+          phone: editingMember.phone,
+          licensePlate: editingMember.licensePlate,
+          cccdImages: editingMember.cccdImages,
+          isRepresentative: editingMember.isRepresentative,
+        });
+      } else {
+        setFormData({
+          name: '',
+          phone: '',
+          licensePlate: '',
+          cccdImages: {
+            front: { url: '', publicId: '' },
+            back: { url: '', publicId: '' },
+          },
+          isRepresentative: false,
+        });
+      }
     }
   }, [editingMember, open]);
 
@@ -125,6 +137,22 @@ const AddMemberDialog = ({
                 onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
               />
             </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="isRepresentative"
+                  checked={formData.isRepresentative}
+                  onChange={(e) => setFormData({ ...formData, isRepresentative: e.target.checked })}
+                  className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                  aria-label="Là người đại diện"
+                />
+                <Label htmlFor="isRepresentative" className="text-sm font-medium text-slate-700">
+                  Là người đại diện
+                </Label>
+              </div>
+            </div>
           </div>
           <div className="space-y-4">
             <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
@@ -161,9 +189,36 @@ const AddMemberDialog = ({
                     </div>
                   ) : (
                     <div className="space-y-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setFormData({
+                                ...formData,
+                                cccdImages: {
+                                  ...formData.cccdImages,
+                                  front: { url: reader.result as string, publicId: '' },
+                                },
+                              });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="hidden"
+                        id="frontImageInput"
+                        aria-label="Tải ảnh CCCD mặt trước"
+                      />
                       <IdCard className="w-8 h-8 mx-auto text-slate-400" />
                       <p className="text-sm text-slate-500">Nhấn để tải ảnh mặt trước</p>
-                      <Button size="sm" variant="outline">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => document.getElementById('frontImageInput')?.click()}
+                      >
                         Chọn ảnh
                       </Button>
                     </div>
@@ -199,9 +254,36 @@ const AddMemberDialog = ({
                     </div>
                   ) : (
                     <div className="space-y-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setFormData({
+                                ...formData,
+                                cccdImages: {
+                                  ...formData.cccdImages,
+                                  back: { url: reader.result as string, publicId: '' },
+                                },
+                              });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="hidden"
+                        id="backImageInput"
+                        aria-label="Tải ảnh CCCD mặt sau"
+                      />
                       <IdCard className="w-8 h-8 mx-auto text-slate-400" />
                       <p className="text-sm text-slate-500">Nhấn để tải ảnh mặt sau</p>
-                      <Button size="sm" variant="outline">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => document.getElementById('backImageInput')?.click()}
+                      >
                         Chọn ảnh
                       </Button>
                     </div>

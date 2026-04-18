@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ChevronDown, ChevronUp, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -28,52 +27,36 @@ interface PaymentCardProps {
 export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
   const user = { role: 1 };
-
-  // Handle both Payment and Invoice structures
   const isInvoice = 'tenantId' in payment && typeof payment.tenantId === 'object';
 
-  // Get tenant info
-  let tenantName = '-';
-  let tenantIdForQuery = '';
+  const tenantIdForQuery = isInvoice
+    ? (payment as Invoice).tenantId._id
+    : (payment as Payment).tenantId;
 
+  const roomIdForQuery = isInvoice ? (payment as Invoice).roomId._id : (payment as Payment).roomId;
+  const { data: tenant } = useGetTenantByIdQuery(tenantIdForQuery, true);
+  const { data: roomData } = useGetRoomByIdQuery(roomIdForQuery);
+
+  let tenantName = '-';
   if (isInvoice) {
     const invoice = payment as Invoice;
     tenantName = invoice.tenantId.fullName;
-    tenantIdForQuery = invoice.tenantId._id;
   } else {
-    const paymentData = payment as Payment;
-    tenantIdForQuery = paymentData.tenantId;
-    const { data: tenant } = useGetTenantByIdQuery(tenantIdForQuery, true);
     tenantName = tenant?.userId.name || '-';
   }
 
-  // Get room info
   let roomNumber = '-';
   let buildingName = '-';
-  let roomIdForQuery = '';
-
-  if (isInvoice) {
+  const room = roomData?.room;
+  if (room) {
+    roomNumber = room.number;
+    buildingName = typeof room.buildingId === 'object' ? room.buildingId.name : room.buildingId;
+  } else if (isInvoice) {
     const invoice = payment as Invoice;
     roomNumber = invoice.roomId.number;
     buildingName = invoice.roomId.buildingId.name;
-    roomIdForQuery = invoice.roomId._id;
-  } else {
-    const paymentData = payment as Payment;
-    roomIdForQuery =
-      typeof paymentData.roomId === 'string'
-        ? paymentData.roomId
-        : (paymentData.roomId as any)?._id || paymentData.roomId;
-    const { data: roomData } = useGetRoomByIdQuery(roomIdForQuery);
-    const room = roomData?.room;
-    if (room) {
-      roomNumber = room.number;
-      buildingName = (room.buildingId as any)?.name || room.buildingId;
-    }
   }
-
-  // Get amount and month/year
   let amount = 0;
   let monthYear = '';
 
@@ -86,11 +69,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
     amount = paymentData.amount;
     monthYear = `Tháng ${paymentData.month}`;
   }
-
-  // Get status
   const status = payment.status;
-
-  // Get dates
   const dueDate = isInvoice ? (payment as Invoice).dueDate : (payment as Payment).dueDate;
   const paidDate = isInvoice ? (payment as Invoice).paidDate : (payment as Payment).paidDate;
   const notes = isInvoice ? undefined : (payment as Payment).notes;
