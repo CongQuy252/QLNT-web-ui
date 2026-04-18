@@ -1,4 +1,4 @@
-import { BarChart3, CreditCard, DoorOpen, Users } from 'lucide-react';
+import { BarChart3, CreditCard, DoorOpen } from 'lucide-react';
 import type { IconType } from 'react-icons/lib';
 import { MdApartment } from 'react-icons/md';
 
@@ -32,14 +32,6 @@ export const ownerListFunctions: NavigationItem[] = [
   },
   {
     rowId: '4',
-    title: 'Quản lý Người Thuê',
-    description: 'Thông tin người thuê, hợp đồng, liên hệ',
-    icon: Users,
-    path: `/${Path.tenants}`,
-    color: 'from-purple-500 to-purple-600',
-  },
-  {
-    rowId: '5',
     title: 'Thanh Toán',
     description: 'Theo dõi khoản thanh toán, doanh thu',
     icon: CreditCard,
@@ -47,7 +39,7 @@ export const ownerListFunctions: NavigationItem[] = [
     color: 'from-green-500 to-green-600',
   },
   {
-    rowId: '6',
+    rowId: '5',
     title: 'Thống Kê',
     description: 'Xem báo cáo doanh thu, thống kê',
     icon: BarChart3,
