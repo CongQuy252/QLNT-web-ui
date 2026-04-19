@@ -13,6 +13,7 @@ export enum Path {
   roomId = ':roomId',
   userId = ':userId',
   paymentId = ':paymentId',
+  users = 'users',
 }
 
 export enum Breadcrumb {

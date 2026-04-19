@@ -9,6 +9,7 @@ import Payment from '@/pages/payment/Payment';
 import PaymentDetail from '@/pages/paymentDetail/PaymentDetail';
 import Rooms from '@/pages/rooms/Rooms';
 import Statistics from '@/pages/statistics/Statistics';
+import UsersPage from '@/pages/users/Users';
 
 import PrivateRoute from './PrivateRoute';
 
@@ -54,6 +55,10 @@ export const routes: RouteObject[] = [
               {
                 path: `/${Path.statistics}`,
                 element: <Statistics />,
+              },
+              {
+                path: `/${Path.users}`,
+                element: <UsersPage />,
               },
             ],
           },
