@@ -21,10 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/useToast';
 import type { Building } from '@/types/building';
-import type { CreateExpenseInput, Expense, ExpenseCategory } from '@/types/expense';
+import type { CreateExpenseInput, Expense } from '@/types/expense';
 
 export default function Dashboard() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -35,10 +34,11 @@ export default function Dashboard() {
 
   const [newExpense, setNewExpense] = useState<CreateExpenseInput>({
     buildingId: '',
-    title: '',
-    description: '',
-    amount: 0,
-    category: 'other' as ExpenseCategory,
+    electricityAmount: 0,
+    waterAmount: 0,
+    houseAmount: 0,
+    livingFeeAmount: 0,
+    otherFee: 0,
     expenseDate: new Date().toISOString().split('T')[0],
   });
 
@@ -73,8 +73,8 @@ export default function Dashboard() {
   }, [error]);
 
   const addExpense = async () => {
-    if (!newExpense.buildingId || !newExpense.title || !newExpense.amount) {
-      error('Vui lòng điền đầy đủ thông tin bắt buộc');
+    if (!newExpense.buildingId) {
+      error('Vui lòng chọn tòa nhà');
       return;
     }
 
@@ -86,10 +86,11 @@ export default function Dashboard() {
       // Reset form and close dialog
       setNewExpense({
         buildingId: '',
-        title: '',
-        description: '',
-        amount: 0,
-        category: 'other' as ExpenseCategory,
+        electricityAmount: 0,
+        waterAmount: 0,
+        houseAmount: 0,
+        livingFeeAmount: 0,
+        otherFee: 0,
         expenseDate: new Date().toISOString().split('T')[0],
       });
       setIsDialogOpen(false);
@@ -99,11 +100,18 @@ export default function Dashboard() {
   };
 
   const deleteExpenseItem = async (id: string) => {
+    if (!id) {
+      error('Không tìm thấy ID chi phí để xóa');
+      return;
+    }
+
     try {
+      console.log('Deleting expense with ID:', id);
       await deleteExpense(id);
       setExpenses(expenses.filter((expense) => expense._id !== id));
       success('Xóa chi phí thành công');
-    } catch {
+    } catch (err) {
+      console.error('Delete expense error:', err);
       error('Lỗi khi xóa chi phí');
     }
   };
@@ -113,7 +121,16 @@ export default function Dashboard() {
       return { total: 0 };
     }
     return {
-      total: expenses.reduce((sum, expense) => sum + expense.amount, 0),
+      total: expenses.reduce(
+        (sum, expense) =>
+          sum +
+          expense.electricityAmount +
+          expense.waterAmount +
+          expense.houseAmount +
+          expense.livingFeeAmount +
+          expense.otherFee,
+        0,
+      ),
     };
   };
 
@@ -197,44 +214,85 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Title Input */}
+                  {/* Electricity Amount */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Tiêu đề</label>
-                    <Input
-                      value={newExpense.title}
-                      onChange={(e) => setNewExpense({ ...newExpense, title: e.target.value })}
-                      placeholder="Ví dụ: Tiền điện"
-                      className="h-10 w-full"
-                    />
-                  </div>
-
-                  {/* Amount Input */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Số tiền</label>
+                    <label className="text-sm font-medium text-gray-700">Tiền điện</label>
                     <Input
                       type="number"
-                      value={newExpense.amount}
+                      value={newExpense.electricityAmount}
                       onChange={(e) =>
                         setNewExpense({
                           ...newExpense,
-                          amount: parseFloat(e.target.value) || 0,
+                          electricityAmount: parseFloat(e.target.value) || 0,
                         })
                       }
-                      placeholder="Số tiền"
+                      placeholder="Số tiền điện"
                       className="h-10 w-full"
                     />
                   </div>
 
-                  {/* Description Input */}
+                  {/* Water Amount */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Mô tả chi tiết</label>
-                    <Textarea
-                      value={newExpense.description}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                        setNewExpense({ ...newExpense, description: e.target.value })
+                    <label className="text-sm font-medium text-gray-700">Tiền nước</label>
+                    <Input
+                      type="number"
+                      value={newExpense.waterAmount}
+                      onChange={(e) =>
+                        setNewExpense({
+                          ...newExpense,
+                          waterAmount: parseFloat(e.target.value) || 0,
+                        })
                       }
-                      placeholder="Mô tả chi tiết"
-                      className="min-h-[80px] w-full resize-none"
+                      placeholder="Số tiền nước"
+                      className="h-10 w-full"
+                    />
+                  </div>
+
+                  {/* House Amount */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Tiền nhà</label>
+                    <Input
+                      type="number"
+                      value={newExpense.houseAmount}
+                      onChange={(e) =>
+                        setNewExpense({
+                          ...newExpense,
+                          houseAmount: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      placeholder="Số tiền nhà"
+                      className="h-10 w-full"
+                    />
+                  </div>
+
+                  {/* Living Fee Amount */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Phí sinh hoạt</label>
+                    <Input
+                      type="number"
+                      value={newExpense.livingFeeAmount}
+                      onChange={(e) =>
+                        setNewExpense({
+                          ...newExpense,
+                          livingFeeAmount: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      placeholder="Phí sinh hoạt"
+                      className="h-10 w-full"
+                    />
+                  </div>
+
+                  {/* Other Fee Amount */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Phí khác</label>
+                    <Input
+                      type="number"
+                      value={newExpense.otherFee}
+                      onChange={(e) =>
+                        setNewExpense({ ...newExpense, otherFee: parseFloat(e.target.value) || 0 })
+                      }
+                      placeholder="Phí khác"
+                      className="h-10 w-full"
                     />
                   </div>
 
@@ -275,10 +333,19 @@ export default function Dashboard() {
                       Ngày
                     </th>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
-                      Tiêu Đề
+                      Tiền Điện
                     </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm hidden sm:table-cell">
-                      Mô Tả
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
+                      Tiền Nước
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
+                      Tiền Nhà
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
+                      Phí Sinh Hoạt
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
+                      Phí Khác
                     </th>
                     <th className="text-right py-3 px-4 font-semibold text-gray-700 text-xs sm:text-sm">
                       Số Tiền
@@ -291,50 +358,68 @@ export default function Dashboard() {
                 <tbody>
                   {isLoading ? (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-gray-500 text-sm">
+                      <td colSpan={10} className="text-center py-8 text-gray-500 text-sm">
                         Đang tải dữ liệu...
                       </td>
                     </tr>
                   ) : !expenses || expenses.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-gray-500 text-sm">
+                      <td colSpan={10} className="text-center py-8 text-gray-500 text-sm">
                         Không có dữ liệu chi phí
                       </td>
                     </tr>
                   ) : (
-                    expenses.map((expense) => (
-                      <tr
-                        key={expense._id}
-                        className="border-t border-gray-100 hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="py-3 px-4 text-gray-800 text-sm font-medium">
-                          <div className="max-w-[100px] truncate">
-                            {expense.buildingId?.name || '-'}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-gray-600 text-sm">
-                          {new Date(expense.expenseDate).toLocaleDateString('vi-VN')}
-                        </td>
-                        <td className="py-3 px-4 text-gray-800 text-sm font-medium">
-                          <div className="max-w-[120px] truncate">{expense.title}</div>
-                        </td>
-                        <td className="py-3 px-4 text-gray-600 text-sm hidden sm:table-cell">
-                          <div className="max-w-[150px] truncate">{expense.description || '-'}</div>
-                        </td>
-                        <td className="py-3 px-4 text-right text-sm text-red-600 font-medium">
-                          {formatCurrency(expense.amount)}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <button
-                            onClick={() => deleteExpenseItem(expense._id)}
-                            className="inline-flex items-center justify-center p-2 hover:bg-red-50 rounded-lg transition-colors text-red-600"
-                            aria-label="Xóa"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                    expenses.map((expense) => {
+                      console.log('Expense item:', expense);
+                      return (
+                        <tr
+                          key={expense._id || 'temp-' + Math.random()}
+                          className="border-t border-gray-100 hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="py-3 px-4 text-gray-800 text-sm font-medium">
+                            <div className="max-w-[100px] truncate">
+                              {expense.buildingId?.name || '-'}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-gray-600 text-sm">
+                            {new Date(expense.expenseDate).toLocaleDateString('vi-VN')}
+                          </td>
+                          <td className="py-3 px-4 text-right text-sm text-red-600 font-medium">
+                            {formatCurrency(expense.electricityAmount)}
+                          </td>
+                          <td className="py-3 px-4 text-right text-sm text-red-600 font-medium">
+                            {formatCurrency(expense.waterAmount)}
+                          </td>
+                          <td className="py-3 px-4 text-right text-sm text-red-600 font-medium">
+                            {formatCurrency(expense.houseAmount)}
+                          </td>
+                          <td className="py-3 px-4 text-right text-sm text-red-600 font-medium">
+                            {formatCurrency(expense.livingFeeAmount)}
+                          </td>
+                          <td className="py-3 px-4 text-right text-sm text-red-600 font-medium">
+                            {formatCurrency(expense.otherFee)}
+                          </td>
+                          <td className="py-3 px-4 text-right text-sm font-bold text-blue-600">
+                            {formatCurrency(
+                              expense.electricityAmount +
+                                expense.waterAmount +
+                                expense.houseAmount +
+                                expense.livingFeeAmount +
+                                expense.otherFee,
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              onClick={() => deleteExpenseItem(expense._id)}
+                              className="inline-flex items-center justify-center p-2 hover:bg-red-50 rounded-lg transition-colors text-red-600"
+                              aria-label="Xóa"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
