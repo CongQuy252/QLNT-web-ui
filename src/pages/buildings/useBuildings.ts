@@ -50,10 +50,6 @@ export const useBuildings = () => {
 
   const handleSave = async (data: BuildingFormInput) => {
     try {
-      console.log('Building data to save:', data);
-      console.log('isEditMode:', isEditMode);
-      console.log('editingBuilding:', editingBuilding);
-
       if (isEditMode && editingBuilding) {
         // Check if building has any occupied rooms before updating
         const occupiedRooms = editingBuilding.roomStatus?.occupied ?? 0;
@@ -66,14 +62,11 @@ export const useBuildings = () => {
           return;
         }
 
-        console.log('Updating building with data:', data);
         await updateBuildingMutation.mutateAsync({
           id: editingBuilding._id,
           data,
         });
       } else {
-        console.log('Creating new building with data:', data);
-
         // Map defaultArea to area for backend room validation
         const payload = {
           ...data,

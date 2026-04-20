@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
 
 import { useDeleteRoomMutation, useGetRoomsQueries } from '@/api/room';
+import { debounceTime } from '@/constants/appConstants';
 import type { Room } from '@/types/room';
 
 export const useRooms = () => {
+  const location = useLocation();
+  const params = useParams();
+  const { status } = location.state || {};
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('0');
+  const [filterStatus, setFilterStatus] = useState<string>(status ?? '0');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 12;
   const [roomSelected, setRoomSelected] = useState<Room>();
@@ -16,7 +21,7 @@ export const useRooms = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-    }, 500);
+    }, debounceTime);
 
     return () => {
       clearTimeout(timer);
@@ -28,6 +33,7 @@ export const useRooms = () => {
     initialLimit: pageSize,
     search: debouncedSearchTerm,
     status: filterStatus,
+    buildingId: params.buildingId || '',
   });
 
   const rooms = data?.rooms || [];

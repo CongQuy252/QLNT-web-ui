@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { ToastContainer } from '@/components/ui/toast/Toast';
+import { Path } from '@/constants/appConstants';
 import { useToast } from '@/hooks/useToast';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
 import { useRooms } from '@/pages/rooms/useRooms';
@@ -78,6 +79,9 @@ const Rooms = () => {
                 key={status}
                 variant={filterStatus === status ? 'default' : 'outline'}
                 onClick={() => {
+                  if (status === '0') {
+                    navigate(`/${Path.rooms}`);
+                  }
                   setFilterStatus(status);
                   setCurrentPage(1);
                 }}

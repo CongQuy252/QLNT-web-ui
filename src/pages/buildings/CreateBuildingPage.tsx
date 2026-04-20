@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
@@ -29,7 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { QueriesKey } from '@/constants/appConstants';
+import { Path, QueriesKey, WaterType } from '@/constants/appConstants';
 import { useToast } from '@/hooks/useToast';
 import { useProvinceOptions } from '@/pages/dialogs/createOrUpdateBuildingDialog/hooks/getAddress';
 import {
@@ -60,13 +60,12 @@ const CreateBuildingPage = () => {
   } = useForm<BuildingFormInput>({
     resolver: zodResolver(buildingSchema),
     defaultValues: {
-      waterCalculationType: 'm3',
+      waterCalculationType: WaterType.m3,
       rooms: [],
     },
-    mode: 'onChange', // Enable real-time validation
+    mode: 'onChange',
   });
 
-  // Use useWatch for specific fields to get proper typing
   const defaultRoomPrice = useWatch({ control, name: 'defaultRoomPrice' }) as number | undefined;
   const defaultElectricityUnitPrice = useWatch({ control, name: 'defaultElectricityUnitPrice' }) as
     | number
@@ -80,9 +79,7 @@ const CreateBuildingPage = () => {
     control,
     name: 'defaultWaterPricePerCubicMeter',
   }) as number | undefined;
-  const waterCalculationType = useWatch({ control, name: 'waterCalculationType' }) as
-    | 'm3'
-    | 'person';
+  const waterCalculationType = useWatch({ control, name: 'waterCalculationType' }) as WaterType;
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -98,13 +95,13 @@ const CreateBuildingPage = () => {
         price: defaultRoomPrice,
         electricityUnitPrice: defaultElectricityUnitPrice,
         waterUnitPrice:
-          waterCalculationType === 'person'
+          waterCalculationType === WaterType.person
             ? defaultWaterPricePerPerson
             : defaultWaterPricePerCubicMeter,
         waterPricePerPerson:
-          waterCalculationType === 'person' ? defaultWaterPricePerPerson : undefined,
+          waterCalculationType === WaterType.person ? defaultWaterPricePerPerson : undefined,
         waterPricePerCubicMeter:
-          waterCalculationType === 'm3' ? defaultWaterPricePerCubicMeter : undefined,
+          waterCalculationType === WaterType.m3 ? defaultWaterPricePerCubicMeter : undefined,
         parkingFee: defaultParkingFee,
         livingFee: defaultLivingFee,
         description: '',
@@ -120,7 +117,7 @@ const CreateBuildingPage = () => {
 
   const selectedCityCode = watch('city');
   const districtsQuery = useDistrictsQuery(selectedCityCode);
-  const wards = districtsQuery.data?.wards || [];
+  const wards = useMemo(() => districtsQuery.data?.wards || [], [districtsQuery.data?.wards]);
 
   const getCityName = useCallback(
     (cityCode: string) => {
@@ -130,7 +127,6 @@ const CreateBuildingPage = () => {
     [cities],
   );
 
-  // Reset form when component mounts
   useEffect(() => {
     reset({
       name: '',
@@ -146,7 +142,7 @@ const CreateBuildingPage = () => {
       defaultParkingFee: undefined,
       defaultLivingFee: undefined,
       defaultArea: undefined,
-      waterCalculationType: 'm3',
+      waterCalculationType: WaterType.m3,
     });
   }, [reset]);
 
@@ -171,15 +167,11 @@ const CreateBuildingPage = () => {
       try {
         const parsed = buildingSchema.parse(processedData);
         await createBuildingMutation.mutateAsync(parsed);
-
-        // Invalidate queries to refresh data
         queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
         queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
-
         success('Tòa nhà đã được tạo thành công!');
-        navigate('/buildings');
-      } catch (validationError) {
-        console.error('Schema validation failed:', validationError);
+        navigate(`/${Path.buildings}`);
+      } catch {
         showError('Có lỗi xảy ra khi tạo tòa nhà. Vui lòng kiểm tra lại thông tin.');
       }
     },

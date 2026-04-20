@@ -17,6 +17,7 @@ export type { RoomWithMeterReading, RoomsWithMeterReadingsResponse } from '@/typ
 export const useGetRoomsQueries = ({
   search = '',
   status = '',
+  buildingId = '',
   isEnabled = true,
   initialPage = 1,
   initialLimit = 10,
@@ -28,15 +29,22 @@ export const useGetRoomsQueries = ({
   });
 
   return useQuery({
-    queryKey: [QueriesKey.rooms, pagination.page, pagination.limit, search, status],
+    queryKey: [QueriesKey.rooms, pagination.page, pagination.limit, search, status, buildingId],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
       });
 
-      if (search) params.append('number', search);
-      if (status && status !== '0') params.append('status', status);
+      if (search) {
+        params.append('search', search);
+      }
+      if (buildingId) {
+        params.append('buildingId', buildingId);
+      }
+      if (status && status !== '0') {
+        params.append('status', status);
+      }
 
       const response = await http.get<RoomListResponse>(`/rooms?${params.toString()}`);
 
@@ -48,7 +56,7 @@ export const useGetRoomsQueries = ({
     enabled: isEnabled,
     meta: { handleError: handleHttpError },
     placeholderData: (prev) => prev,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 };
 
