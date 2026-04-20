@@ -82,8 +82,6 @@ export default function Dashboard() {
       const createdExpense = await createExpense(newExpense);
       setExpenses([createdExpense, ...expenses]);
       success('Tạo chi phí thành công');
-
-      // Reset form and close dialog
       setNewExpense({
         buildingId: '',
         electricityAmount: 0,
@@ -106,7 +104,6 @@ export default function Dashboard() {
     }
 
     try {
-      console.log('Deleting expense with ID:', id);
       await deleteExpense(id);
       setExpenses(expenses.filter((expense) => expense._id !== id));
       success('Xóa chi phí thành công');
@@ -370,7 +367,6 @@ export default function Dashboard() {
                     </tr>
                   ) : (
                     expenses.map((expense) => {
-                      console.log('Expense item:', expense);
                       return (
                         <tr
                           key={expense._id || 'temp-' + Math.random()}
