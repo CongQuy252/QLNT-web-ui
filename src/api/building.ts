@@ -8,6 +8,7 @@ import type { Building, BuildingListResponse, GetBuildingByIdResponse } from '@/
 
 // Simple API function for direct usage
 export const getBuildings = async (): Promise<Building[]> => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const response = await http.get<BuildingListResponse>('/buildings');
     return response.data.data;

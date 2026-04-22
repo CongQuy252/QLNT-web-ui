@@ -8,6 +8,7 @@ import type {
 
 // Get expenses with filters and pagination
 export const getExpenses = async (params?: GetExpensesParams): Promise<ExpensesResponse> => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const { buildingId, category, startDate, endDate, page = 1, limit = 10 } = params || {};
 
@@ -42,6 +43,7 @@ export const getExpenses = async (params?: GetExpensesParams): Promise<ExpensesR
 
 // Create expense
 export const createExpense = async (data: CreateExpenseInput): Promise<Expense> => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const response = await http.post('/expenses', data);
     return response.data;
@@ -55,6 +57,7 @@ export const updateExpense = async (
   id: string,
   expenseData: Partial<Expense>,
 ): Promise<Expense> => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const response = await http.put(`/expenses/${id}`, expenseData);
     return response.data;
@@ -65,6 +68,7 @@ export const updateExpense = async (
 
 // Delete expense
 export const deleteExpense = async (id: string): Promise<void> => {
+  // eslint-disable-next-line no-useless-catch
   try {
     await http.delete(`/expenses/${id}`);
   } catch (error) {

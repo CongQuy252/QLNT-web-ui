@@ -5,12 +5,11 @@ export const getBuildings = async () => {
   try {
     const response = await http.get('/buildings');
     return Array.isArray(response.data?.data) ? response.data.data : [];
-  } catch (error) {
+  } catch {
     return [];
   }
 };
 
-// Get invoice preview data
 export const getInvoicePreview = async (month: number, year: number) => {
   try {
     const params = new URLSearchParams({
@@ -21,7 +20,6 @@ export const getInvoicePreview = async (month: number, year: number) => {
     const response = await http.get(`/invoices/invoice-preview?${params.toString()}`);
     const data = response.data;
 
-    // Handle backend response structure: { success: true, data: [...] }
     if (data && data.success && Array.isArray(data.data)) {
       return data.data;
     } else if (Array.isArray(data)) {
@@ -33,13 +31,14 @@ export const getInvoicePreview = async (month: number, year: number) => {
     } else {
       return [];
     }
-  } catch (error) {
+  } catch {
     return [];
   }
 };
 
 // Bulk create invoices
 export const bulkCreateInvoices = async (roomIds: string[], month: number, year: number) => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const response = await http.post('/invoices/bulk-create', {
       roomIds,
@@ -52,7 +51,6 @@ export const bulkCreateInvoices = async (roomIds: string[], month: number, year:
   }
 };
 
-// Get invoices list with pagination and filters
 export const getInvoices = async (options: {
   month?: number;
   year?: number;
@@ -62,13 +60,13 @@ export const getInvoices = async (options: {
   page: number;
   limit: number;
 }) => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const params = new URLSearchParams({
       page: options.page.toString(),
       limit: options.limit.toString(),
     });
 
-    // Only add optional parameters if they exist
     if (options.month) params.append('month', options.month.toString());
     if (options.year) params.append('year', options.year.toString());
     if (options.buildingId) params.append('buildingId', options.buildingId);
@@ -78,15 +76,11 @@ export const getInvoices = async (options: {
     const response = await http.get(`/invoices?${params.toString()}`);
     const data = response.data;
 
-    // Handle backend response structure
     if (data && data.data) {
-      // Backend returns { data: { invoices: [...], pagination: {...} } }
       return data.data;
     } else if (data) {
-      // Backend returns { invoices: [...], pagination: {...} } directly
       return data;
     } else {
-      // Fallback
       return { invoices: [], pagination: {} };
     }
   } catch (error) {
@@ -94,8 +88,8 @@ export const getInvoices = async (options: {
   }
 };
 
-// Get invoice by ID
 export const getInvoiceById = async (invoiceId: string) => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const response = await http.get(`/invoices/${invoiceId}`);
     return response.data;
@@ -106,6 +100,7 @@ export const getInvoiceById = async (invoiceId: string) => {
 
 // Delete invoice by ID
 export const deleteInvoice = async (invoiceId: string) => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const response = await http.delete(`/invoices/${invoiceId}`);
     return response.data;
