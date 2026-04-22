@@ -159,10 +159,7 @@ export default function Dashboard() {
         <div className="flex justify-end">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Thêm Chi Phí
-              </Button>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Thêm Chi Phí</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden">
               <div className="flex flex-col max-h-[90vh]">
