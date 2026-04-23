@@ -19,6 +19,7 @@ export default function DashboardSummary() {
       setIsLoading(true);
       const data = await getDashboardSummary(selectedMonth, selectedYear);
       setSummary(data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error('Error fetching dashboard summary:', err);
       error(err.response?.data?.message || 'Lỗi khi tải dữ liệu tổng quan');
@@ -30,6 +31,7 @@ export default function DashboardSummary() {
   // Fetch data on mount and when filters change
   useEffect(() => {
     fetchDashboardSummary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth, selectedYear]);
 
   // Format currency
