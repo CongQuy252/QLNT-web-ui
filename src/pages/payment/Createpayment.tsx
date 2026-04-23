@@ -139,7 +139,13 @@ export default function InvoicePage() {
 
         refetchInvoice();
       } else {
-        error('Không tạo được hóa đơn nào. Vui lòng kiểm tra lại các phòng đã chọn.');
+        const errorMessage = result.failed.map(
+          (err: { roomName: string; error: string }) => `[${err.roomName}]: ${err.error}\n`,
+        );
+
+        error(
+          errorMessage ?? 'Không tạo được hóa đơn nào. Vui lòng kiểm tra lại các phòng đã chọn.',
+        );
       }
     } catch {
       error('Có lỗi xảy ra khi tạo hóa đơn. Vui lòng thử lại.');

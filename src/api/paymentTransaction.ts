@@ -66,6 +66,7 @@ export interface DashboardSummary {
 export const confirmPayment = async (
   data: ConfirmPaymentInput,
 ): Promise<ConfirmPaymentResponse> => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const response = await http.post('/payments/confirm', data);
     return response.data;
@@ -78,6 +79,7 @@ export const getRevenueByBuilding = async (
   month?: number,
   year?: number,
 ): Promise<RevenueByBuilding[]> => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const params = new URLSearchParams();
     if (month !== undefined) params.append('month', month.toString());
@@ -101,6 +103,7 @@ export const getExpensesByBuilding = async (
   month?: number,
   year?: number,
 ): Promise<ExpenseByBuilding[]> => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const params = new URLSearchParams();
     if (month !== undefined) params.append('month', month.toString());
@@ -124,6 +127,7 @@ export const getDashboardSummary = async (
   month?: number,
   year?: number,
 ): Promise<DashboardSummary> => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const params = new URLSearchParams();
     if (month !== undefined) params.append('month', month.toString());

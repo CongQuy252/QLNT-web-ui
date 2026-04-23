@@ -1,5 +1,5 @@
+import { AlertCircle, CheckCircle, X, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
 
 export interface ToastProps {
   message: string;
@@ -69,7 +69,7 @@ export const Toast = ({ message, type, duration = 3000, onClose }: ToastProps) =
       `}
     >
       {getIcon()}
-      <p className={`text-sm font-medium ${getTextColor()}`}>{message}</p>
+      <div className={`text-sm font-medium whitespace-pre-line ${getTextColor()}`}>{message}</div>
       <button
         onClick={() => {
           setIsVisible(false);

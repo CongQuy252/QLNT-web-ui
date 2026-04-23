@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { http } from '@/lib/axios';
+
 import { QueriesKey } from '@/constants/appConstants';
+import { http } from '@/lib/axios';
 
 // Get payments by user ID
 export const useGetPaymentByUserId = (userId?: string, isEnabled = true) => {
@@ -17,6 +18,7 @@ export const useGetPaymentByUserId = (userId?: string, isEnabled = true) => {
 
 // Get payment by ID
 export const getPaymentById = async (paymentId: string) => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const response = await http.get(`/payments/${paymentId}`);
     return response.data;
