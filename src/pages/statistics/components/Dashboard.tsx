@@ -1,6 +1,4 @@
-'use client';
-
-import { Plus, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getBuildings } from '@/api/building';
