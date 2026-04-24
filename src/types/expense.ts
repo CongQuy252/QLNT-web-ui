@@ -12,10 +12,11 @@ export interface Expense {
     _id: string;
     name: string;
   };
-  title: string;
-  category: ExpenseCategory;
-  amount: number;
-  description: string;
+  electricityAmount: number;
+  waterAmount: number;
+  houseAmount: number;
+  livingFeeAmount: number;
+  otherFee: number;
   expenseDate: string;
   createdAt: string;
   updatedAt: string;
@@ -23,10 +24,11 @@ export interface Expense {
 
 export interface CreateExpenseInput {
   buildingId: string;
-  title: string;
-  description?: string;
-  amount: number;
-  category: ExpenseCategory;
+  electricityAmount: number;
+  waterAmount: number;
+  houseAmount: number;
+  livingFeeAmount: number;
+  otherFee: number;
   expenseDate: string;
 }
 
