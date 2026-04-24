@@ -96,6 +96,7 @@ export default function Payment() {
         console.error('Error deleting invoice:', error);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [fetchInvoices],
   );
 

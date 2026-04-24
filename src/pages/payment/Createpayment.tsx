@@ -274,10 +274,7 @@ export default function InvoicePage() {
                 Tiền gửi xe
               </TableHead>
               <TableHead className="w-32 border-r border-black text-right font-bold text-black">
-                Tiền internet
-              </TableHead>
-              <TableHead className="w-32 border-r border-black text-right font-bold text-black">
-                Phí dịch vụ
+                Tiền sinh hoạt
               </TableHead>
               <TableHead className="w-32 text-right font-bold text-black">Phí khác</TableHead>
             </TableRow>
@@ -328,10 +325,7 @@ export default function InvoicePage() {
                     {formatCurrency(item.parkingFee || 0)}
                   </TableCell>
                   <TableCell className="w-32 border-r border-black text-right">
-                    {formatCurrency(item.internetFee || 0)}
-                  </TableCell>
-                  <TableCell className="w-32 border-r border-black text-right">
-                    {formatCurrency(item.serviceFee || 0)}
+                    {formatCurrency(item.livingFee || 0)}
                   </TableCell>
                   <TableCell className="w-32 text-right">
                     {formatCurrency(item.otherFee || 0)}
