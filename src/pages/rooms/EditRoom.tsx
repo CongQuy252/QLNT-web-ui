@@ -114,17 +114,25 @@ const EditRoom = () => {
   };
 
   const handleAddMember = (memberData: Member) => {
-    if (!editRoom) return;
-    if (editingMemberIndex !== undefined) {
-      const updatedMembers = [...editRoom.members];
-      updatedMembers[editingMemberIndex] = { ...memberData };
-      setEditRoom({ ...editRoom, members: updatedMembers });
-    } else {
-      setEditRoom({
-        ...editRoom,
-        members: [...editRoom.members, { ...memberData }],
-      });
+    if (!editRoom) {
+      return;
     }
+
+    let updatedMembers: Member[];
+
+    if (editingMemberIndex !== undefined) {
+      updatedMembers = [...editRoom.members];
+      updatedMembers[editingMemberIndex] = { ...memberData };
+    } else {
+      updatedMembers = [...editRoom.members, { ...memberData }];
+    }
+
+    setEditRoom({
+      ...editRoom,
+      members: updatedMembers,
+      status: updatedMembers.length > 0 ? ROOMSTATUS.OCCUPIED : ROOMSTATUS.AVAILABLE,
+    });
+
     setEditingMember(null);
     setEditingMemberIndex(undefined);
   };
@@ -448,7 +456,15 @@ const EditRoom = () => {
                             variant="ghost"
                             onClick={() => {
                               const updatedMembers = editRoom.members.filter((_, i) => i !== index);
-                              setEditRoom({ ...editRoom, members: updatedMembers });
+
+                              setEditRoom({
+                                ...editRoom,
+                                members: updatedMembers,
+                                status:
+                                  updatedMembers.length === 0
+                                    ? ROOMSTATUS.AVAILABLE
+                                    : ROOMSTATUS.OCCUPIED,
+                              });
                             }}
                             className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                           >
