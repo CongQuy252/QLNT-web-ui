@@ -1,6 +1,5 @@
 import { http } from '@/lib/axios';
 
-// Get buildings data
 export const getBuildings = async () => {
   try {
     const response = await http.get('/buildings');
@@ -36,7 +35,6 @@ export const getInvoicePreview = async (month: number, year: number) => {
   }
 };
 
-// Bulk create invoices
 export const bulkCreateInvoices = async (roomIds: string[], month: number, year: number) => {
   // eslint-disable-next-line no-useless-catch
   try {

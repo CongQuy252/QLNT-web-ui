@@ -115,8 +115,8 @@ export default function PaymentDetail() {
   }, [invoice]);
 
   const tenant = useMemo(() => {
-    return invoice?.tenantId;
-  }, [invoice?.tenantId]);
+    return invoice?.tenantInfo;
+  }, [invoice?.tenantInfo]);
 
   const room = useMemo(() => {
     return invoice?.roomId;
@@ -154,7 +154,7 @@ export default function PaymentDetail() {
       {/* Invoice Card */}
       <Card className="bg-white p-4">
         {/* Company Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8 pb-8 border-b border-slate-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-2 pb-2 border-b border-slate-200">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">QLNT</h1>
             <p className="text-slate-600 mt-2">Website quản lý nhà trọ</p>
@@ -164,51 +164,31 @@ export default function PaymentDetail() {
 
           {/* Invoice Info */}
           <div className="text-right">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4 text-center">HÓA ĐƠN</h2>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4 text-center">
+              {payment?.roomId?.number} - {payment?.roomId?.buildingId?.name}
+            </h2>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-600 text-left">Số hóa đơn:</span>
-                <span className="font-semibold text-slate-900">{invoiceNumber}</span>
+                <span className="font-bold text-slate-900">{invoiceNumber}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Ngày lập:</span>
                 <span className="font-semibold text-slate-900">{invoiceDate}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-600">Kỳ thanh toán:</span>
-                <span className="font-semibold text-slate-900">{payment?.month}</span>
+                <span className="text-slate-600">Người thuê:</span>
+                <span className="font-semibold text-slate-900">{tenant?.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Số điện thoại:</span>
+                <span className="font-semibold text-slate-900">{tenant?.phone}</span>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Tenant Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 pb-4 border-b border-slate-200">
-          <div>
-            <h3 className="text-sm font-semibold text-slate-600 uppercase mb-4">Người thuê</h3>
-            <div className="space-y-2">
-              <p className="text-sm text-slate-600">Tên: {tenant?.name}</p>
-              <p className="text-sm text-slate-600">Email: {tenant?.email}</p>
-              <p className="text-sm text-slate-600">Điện thoại: {tenant?.phone}</p>
-              <p className="text-sm text-slate-600">CCCD/CMND: {tenant?.cccd}</p>
-            </div>
-          </div>
-
-          {/* Room Info */}
-          <div>
-            <h3 className="text-sm font-semibold text-slate-600 uppercase mb-4">Thông tin phòng</h3>
-            <div className="space-y-2">
-              <p className="font-semibold text-slate-900">
-                Phòng {payment?.roomId?.number} - Tòa {payment?.roomId?.buildingId?.name}
-              </p>
-              <p className="text-sm text-slate-600">Diện tích: {room?.area}m²</p>
-              <p className="text-sm text-slate-600">Giá thuê: {formatCurrency(room?.price || 0)}</p>
-            </div>
-          </div>
-        </div>
-
         {/* Invoice Details */}
-        <div className="mb-8 hidden md:block">
+        <div className="mb-2 hidden md:block">
           <table className="w-full">
             <thead>
               <tr className="border-b-2 border-slate-900">
@@ -346,6 +326,29 @@ export default function PaymentDetail() {
                   <td className="text-right py-4 px-4">
                     <p className="font-semibold text-slate-900">
                       {formatCurrency(payment?.parkingFee || 0)}
+                    </p>
+                  </td>
+                </tr>
+              )}
+
+              {/* Phí sinh hoạt */}
+              {payment?.livingFee !== undefined && payment.livingFee > 0 && (
+                <tr className="border-b border-slate-200">
+                  <td className="py-4 px-4">
+                    <p className="font-medium text-slate-900">Phí sinh hoạt</p>
+                    <p className="text-sm text-slate-600">Phí sinh hoạt hàng tháng</p>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <p className="font-medium text-slate-900">
+                      {formatCurrency(payment?.livingFee || 0)}
+                    </p>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <p className="font-medium text-slate-900">1</p>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <p className="font-semibold text-slate-900">
+                      {formatCurrency(payment?.livingFee || 0)}
                     </p>
                   </td>
                 </tr>
@@ -491,6 +494,16 @@ export default function PaymentDetail() {
               <div className="flex justify-between font-semibold">
                 <span className="text-sm">Tiền gửi xe</span>
                 <span className="text-sm">{formatCurrency(payment?.parkingFee)} / tháng</span>
+              </div>
+            </div>
+          )}
+
+          {/* Phí sinh hoạt */}
+          {payment?.livingFee !== undefined && payment.livingFee > 0 && (
+            <div className="p-4 border rounded-lg">
+              <div className="flex justify-between font-semibold">
+                <span className="text-sm">Phí sinh hoạt</span>
+                <span className="text-sm">{formatCurrency(payment?.livingFee)} / tháng</span>
               </div>
             </div>
           )}

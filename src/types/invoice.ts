@@ -1,17 +1,22 @@
+import type { Member } from './room';
+
 export enum InvoiceStatus {
   UNPAID = 'UNPAID',
   PAID = 'PAID',
   OVERDUE = 'OVERDUE',
 }
 
+export interface TenantInfo {
+  _id: string;
+  name: string;
+  phone: string;
+  isRepresentative: boolean;
+}
+
 export interface Invoice {
   _id: string;
-  tenantId: {
-    _id: string;
-    fullName: string;
-    email: string;
-    phone: string;
-  };
+  tenantId: string | null; // member._id or null
+  tenantInfo?: TenantInfo; // populated by backend
   roomId: {
     _id: string;
     number: string;
@@ -19,6 +24,7 @@ export interface Invoice {
       _id: string;
       name: string;
     };
+    members?: Member[];
   };
   month: number;
   year: number;
@@ -29,6 +35,7 @@ export interface Invoice {
   waterCost?: number;
   internetFee?: number;
   parkingFee?: number;
+  livingFee?: number;
   serviceFee?: number;
   otherFee?: number;
   dueDate?: string;

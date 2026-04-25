@@ -7,6 +7,7 @@ export enum ROOMSTATUS {
 }
 
 export interface Member {
+  _id: string;
   userId?: string;
   name: string;
   phone: string;

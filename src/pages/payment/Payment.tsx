@@ -9,19 +9,29 @@ import { useNavigate } from 'react-router-dom';
 import { deleteInvoice, getInvoices } from '@/api/invoice';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
 import { useToast } from '@/hooks/useToast';
-import PaymentCard from '@/pages/payment/components/PaymentCard';
+import { http } from '@/lib/axios';
 import { maxItemPerPage } from '@/pages/payment/paymentConstants';
+import { formatCurrency } from '@/utils/utils';
 
 export default function Payment() {
   const navigator = useNavigate();
   const isMobile = useMobile();
   const { show, hide } = useLoading();
-  const { success } = useToast();
+  const { success, error } = useToast();
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
   const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
@@ -29,6 +39,7 @@ export default function Payment() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'unpaid' | 'overdue'>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
   // Direct API call instead of hook
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -134,6 +145,69 @@ export default function Payment() {
     }
   };
 
+  const handleSelectRow = (invoiceId: string) => {
+    setSelectedRows((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(invoiceId)) {
+        newSet.delete(invoiceId);
+      } else {
+        newSet.add(invoiceId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedRows.size === paginatedInvoices.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(paginatedInvoices.map((invoice: any) => invoice._id)));
+    }
+  };
+
+  const handleRowClick = (invoiceId: string) => {
+    navigator(`/payments/${invoiceId}`);
+  };
+
+  const handleExportPdf = async () => {
+    if (selectedRows.size === 0) {
+      error('Vui lòng chọn ít nhất một hóa đơn để xuất PDF');
+      return;
+    }
+
+    try {
+      show();
+
+      const response = await http.post(
+        '/payments/export-zip',
+        {
+          invoiceIds: Array.from(selectedRows),
+        },
+        {
+          responseType: 'blob',
+        },
+      );
+
+      // Create download link
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `payments_export_${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      success('Xuất PDF thành công!');
+    } catch (err: any) {
+      console.error('Export error:', err);
+      error(err.response?.data?.message || 'Lỗi khi xuất PDF');
+    } finally {
+      hide();
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between">
@@ -156,8 +230,8 @@ export default function Payment() {
       </div>
 
       {/* Filter */}
-      <div className={`${isMobile ? 'flex flex-col md:flex-row' : 'block'} gap-4 mt-3 w-full`}>
-        <div className={`${isMobile ? 'relative flex-1' : 'w-full block mb-3'}`}>
+      <div className="flex flex-col gap-4 mt-3 w-full mb-3">
+        <div className="relative w-full">
           <Input
             placeholder="Tìm kiếm ..."
             value={searchTerm}
@@ -166,43 +240,153 @@ export default function Payment() {
           />
           <div
             className="pointer-events-none absolute left-1/2 -top-10 -translate-x-1/2
-                  opacity-0 peer-focus:opacity-100
-                  transition-all duration-200
-                  bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap"
+            opacity-0 peer-focus:opacity-100
+            transition-all duration-200
+            bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap"
           >
             Nhập mã hoá đơn để tìm kiếm
             <div
               className="absolute left-1/2 top-full -translate-x-1/2
-                    border-6 border-transparent border-t-gray-900"
+        border-6 border-transparent border-t-gray-900"
             ></div>
           </div>
         </div>
-        <div className="flex gap-2 mb-5 w-full overflow-x-auto">
-          {(['all', 'paid', 'unpaid', 'overdue'] as const).map((status) => (
-            <Button
-              key={status}
-              variant={filterStatus === status ? 'default' : 'outline'}
-              onClick={() => setFilterStatus(status)}
-              className={
-                filterStatus === status
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-700 border-slate-300'
-              }
-            >
-              {status === 'all' && 'Tất cả'}
-              {status === 'paid' && 'Đã thanh toán'}
-              {status === 'unpaid' && 'Chưa thanh toán'}
-              {status === 'overdue' && 'Quá hạn'}
-            </Button>
-          ))}
+        <div className="flex items-center justify-between gap-4 w-full">
+          <div className="flex gap-2 overflow-x-auto">
+            {(['all', 'paid', 'unpaid', 'overdue'] as const).map((status) => (
+              <Button
+                key={status}
+                variant={filterStatus === status ? 'default' : 'outline'}
+                onClick={() => setFilterStatus(status)}
+                className={
+                  filterStatus === status
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-700 border-slate-300'
+                }
+              >
+                {status === 'all' && 'Tất cả'}
+                {status === 'paid' && 'Đã thanh toán'}
+                {status === 'unpaid' && 'Chưa thanh toán'}
+                {status === 'overdue' && 'Quá hạn'}
+              </Button>
+            ))}
+          </div>
+          <Button
+            onClick={handleExportPdf}
+            disabled={selectedRows.size === 0}
+            className="whitespace-nowrap bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            Xuất PDF ({selectedRows.size})
+          </Button>
         </div>
       </div>
 
       <div className="overflow-x-auto">
         {paginatedInvoices.length > 0 ? (
-          paginatedInvoices.map((invoice: any) => (
-            <PaymentCard key={invoice._id} payment={invoice} onDelete={handleDeleteInvoice} />
-          ))
+          <Table className="border border-slate-200">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12 border-r border-slate-200">
+                  <Checkbox
+                    checked={
+                      selectedRows.size === paginatedInvoices.length && paginatedInvoices.length > 0
+                    }
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
+                <TableHead className="border-r border-slate-200">Phòng - Tòa nhà</TableHead>
+                <TableHead className="border-r border-slate-200">Người thuê</TableHead>
+                <TableHead className="border-r border-slate-200">Kỳ thanh toán</TableHead>
+                <TableHead className="border-r border-slate-200">Số tiền</TableHead>
+                <TableHead className="border-r border-slate-200">Trạng thái</TableHead>
+                <TableHead className="border-r border-slate-200">Hạn thanh toán</TableHead>
+                {user.role === UserRole.admin && <TableHead>Thao tác</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedInvoices.map((invoice: any) => (
+                <TableRow
+                  key={invoice._id}
+                  className="cursor-pointer hover:bg-slate-50"
+                  onClick={() => handleRowClick(invoice._id)}
+                >
+                  <TableCell
+                    onClick={(e) => e.stopPropagation()}
+                    className="border-r border-slate-200"
+                  >
+                    <Checkbox
+                      checked={selectedRows.has(invoice._id)}
+                      onCheckedChange={() => handleSelectRow(invoice._id)}
+                    />
+                  </TableCell>
+                  <TableCell className="border-r border-slate-200">
+                    <div>
+                      <p className="font-medium">{invoice.roomId?.number}</p>
+                      <p className="text-sm text-slate-500">{invoice.roomId?.buildingId?.name}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="border-r border-slate-200">
+                    <div>
+                      <p className="font-medium">
+                        {invoice.tenantInfo?.name ||
+                          invoice.roomId?.members?.find((m: any) => m.isRepresentative)?.name ||
+                          invoice.roomId?.members?.[0]?.name ||
+                          '-'}
+                      </p>
+                      <p className="text-sm text-slate-500">
+                        {invoice.tenantInfo?.phone ||
+                          invoice.roomId?.members?.find((m: any) => m.isRepresentative)?.phone ||
+                          invoice.roomId?.members?.[0]?.phone ||
+                          '-'}
+                      </p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="border-r border-slate-200">
+                    Tháng {invoice.month}/{invoice.year}
+                  </TableCell>
+                  <TableCell className="font-semibold border-r border-slate-200">
+                    {formatCurrency(invoice.totalAmount)}
+                  </TableCell>
+                  <TableCell className="border-r border-slate-200">
+                    <span
+                      className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                        invoice.status === 'paid'
+                          ? 'bg-green-100 text-green-800'
+                          : invoice.status === 'unpaid'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : invoice.status === 'overdue'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {invoice.status === 'paid'
+                        ? 'Đã thanh toán'
+                        : invoice.status === 'unpaid'
+                          ? 'Chưa thanh toán'
+                          : invoice.status === 'overdue'
+                            ? 'Quá hạn'
+                            : invoice.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="border-r border-slate-200">
+                    {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('vi-VN') : '-'}
+                  </TableCell>
+                  {user.role === UserRole.admin && (
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteInvoice(invoice._id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        Xóa
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         ) : (
           <div className="text-center py-8 text-slate-500">
             {invoicesLoading
