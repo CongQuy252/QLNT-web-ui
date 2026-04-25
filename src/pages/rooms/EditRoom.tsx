@@ -1,6 +1,7 @@
 import { queryClient } from '@/lib/reactQuery';
 import { ArrowLeft, Edit, Plus, Trash2, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { IoIosWarning } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGetRoomByIdQuery, useUpdateRoomMutation } from '@/api/room';
@@ -16,7 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { getStatusLabel } from '@/pages/rooms/roomConstants';
+import { Path, QueriesKey } from '@/constants/appConstants';
+import { getStatusLabel } from '@/pages/rooms/RoomsConstants';
 import { type Member, ROOMSTATUS, type Room } from '@/types/room';
 import { formatNumber, parseNumber } from '@/utils/utils';
 
@@ -28,15 +30,17 @@ const EditRoom = () => {
 
   const { data: roomData, isLoading, error } = useGetRoomByIdQuery(roomId || '', !!roomId);
   const updateRoomMutation = useUpdateRoomMutation();
-
+  const [originalRoom, setOriginalRoom] = useState<Room | null>(null);
   const [editRoom, setEditRoom] = useState<Room | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [editingMemberIndex, setEditingMemberIndex] = useState<number | undefined>(undefined);
+  const [cachedMembers, setCachedMembers] = useState<Member[]>([]);
 
   useEffect(() => {
     if (roomData?.room) {
       const room = roomData.room;
+
       const convertedRoom: Room = {
         _id: room._id,
         number: room.number,
@@ -56,12 +60,18 @@ const EditRoom = () => {
         createdAt: room.createdAt,
         updatedAt: room.updatedAt,
       };
+
       setEditRoom(convertedRoom);
+      setOriginalRoom(convertedRoom);
     }
   }, [roomData]);
 
+  const isDirty = JSON.stringify(editRoom) !== JSON.stringify(originalRoom);
+
   const handleUpdateRoom = () => {
-    if (!editRoom || !roomId) return;
+    if (!editRoom || !roomId) {
+      return;
+    }
 
     const roomData = {
       number: editRoom.number,
@@ -89,9 +99,11 @@ const EditRoom = () => {
       { id: roomId, data: roomData },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['rooms'] });
-          queryClient.invalidateQueries({ queryKey: ['room', roomId] });
-          navigate('/rooms');
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.room, roomId] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.building, editRoom?.buildingId] });
+          navigate(`/${Path.rooms}`);
         },
       },
     );
@@ -179,19 +191,33 @@ const EditRoom = () => {
                   <Label className="text-sm font-medium text-slate-700">Trạng thái</Label>
                   <Select
                     value={editRoom.status ?? ROOMSTATUS.AVAILABLE}
-                    onValueChange={(value) =>
-                      setEditRoom({ ...editRoom, status: value as ROOMSTATUS })
-                    }
+                    onValueChange={(value) => {
+                      const newStatus = value as ROOMSTATUS;
+
+                      if (newStatus === ROOMSTATUS.AVAILABLE) {
+                        setCachedMembers(editRoom.members);
+
+                        setEditRoom({
+                          ...editRoom,
+                          status: newStatus,
+                          members: [],
+                        });
+                      } else {
+                        setEditRoom({
+                          ...editRoom,
+                          status: newStatus,
+                          members: editRoom.members.length === 0 ? cachedMembers : editRoom.members,
+                        });
+                      }
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn trạng thái phòng" />
                     </SelectTrigger>
                     <SelectContent>
-                      {editRoom.members.length === 0 && (
-                        <SelectItem value={ROOMSTATUS.AVAILABLE}>
-                          {getStatusLabel(ROOMSTATUS.AVAILABLE)}
-                        </SelectItem>
-                      )}
+                      <SelectItem value={ROOMSTATUS.AVAILABLE}>
+                        {getStatusLabel(ROOMSTATUS.AVAILABLE)}
+                      </SelectItem>
                       <SelectItem value={ROOMSTATUS.MAINTENANCE}>
                         {getStatusLabel(ROOMSTATUS.MAINTENANCE)}
                       </SelectItem>
@@ -285,7 +311,7 @@ const EditRoom = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">Giá water (VNÐ)</Label>
+                  <Label className="text-sm font-medium text-slate-700">Giá nước (VNÐ)</Label>
 
                   {/* Toggle buttons */}
                   <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
@@ -437,7 +463,13 @@ const EditRoom = () => {
                 </div>
               )}
             </Card>
-
+            {isDirty && (
+              <div className="mb-4 p-3 rounded-md bg-yellow-100 border border-yellow-300 text-yellow-800 text-sm">
+                <div className="wrap-normal flex">
+                  <IoIosWarning className="w-4 h-4 mr-2" /> Bạn có thay đổi chưa được lưu
+                </div>
+              </div>
+            )}
             {/* Action Buttons */}
             <Card className="p-6">
               <div className="space-y-3">

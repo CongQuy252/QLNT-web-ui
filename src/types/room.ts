@@ -10,7 +10,7 @@ export interface Member {
   userId?: string;
   name: string;
   phone: string;
-  licensePlate: string;
+  licensePlate?: string;
   cccdImages: {
     front: {
       url: string;
