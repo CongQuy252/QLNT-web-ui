@@ -67,6 +67,10 @@ const EditRoom = () => {
   }, [roomData]);
 
   const isDirty = JSON.stringify(editRoom) !== JSON.stringify(originalRoom);
+  const licensePlateCount = editRoom?.members?.reduce(
+    (count, member) => count + (!member.licensePlate ? 0 : 1),
+    0,
+  );
 
   const handleUpdateRoom = () => {
     if (!editRoom || !roomId) {
@@ -155,7 +159,7 @@ const EditRoom = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-row items-center gap-4 mb-8">
           <Button
@@ -400,7 +404,7 @@ const EditRoom = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  Thành viên ({editRoom.members.length})
+                  Thành viên ({editRoom.members.length}) - Xe: {licensePlateCount}
                 </h2>
                 <Button
                   size="sm"
