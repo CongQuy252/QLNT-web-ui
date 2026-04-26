@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/table';
 import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
-import { useMobile } from '@/hooks/useMobile';
 import { useToast } from '@/hooks/useToast';
 import { http } from '@/lib/axios';
 import { maxItemPerPage } from '@/pages/payment/paymentConstants';
@@ -29,7 +28,6 @@ import { formatCurrency } from '@/utils/utils';
 
 export default function Payment() {
   const navigator = useNavigate();
-  const isMobile = useMobile();
   const { show, hide } = useLoading();
   const { success, error } = useToast();
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;

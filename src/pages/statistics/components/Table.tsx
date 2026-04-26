@@ -52,7 +52,7 @@ const MeterReadingTable = ({
 
   return (
     <div className="relative border border-gray-300 rounded-lg overflow-hidden">
-      <div className="overflow-y-auto max-h-[calc(100vh-370px)] overflow-x-auto">
+      <div className="overflow-y-auto max-h-[calc(100vh-450px)] overflow-x-auto">
         <table className="w-full min-w-100">
           <thead className="sticky top-0 z-10 bg-blue-200">
             <tr>

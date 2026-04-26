@@ -261,8 +261,18 @@ const Statistics = () => {
                     </div>
                   </div>
 
-                  {/* Table: Cần bọc trong div cuộn ngang hoặc chuyển sang Card (nếu MeterReadingTable đã xử lý) */}
-                  <div className="mt-4 overflow-x-auto">
+                  <div className="text-red-400">
+                    ※ Danh sách đang hiển thị là chỉ số của tháng {selectedMonth} năm {selectedYear}
+                    . Để xem chỉ số của các tháng cũ hơn, vui lòng chọn tháng muốn hiển thị tại phía
+                    trên.
+                    <br />
+                    <div className="ml-5.75">
+                      Khi thực hiện cập nhật xong chỉ số của 1 tháng. Vui lòng lưu lại để tránh dữ
+                      liệu được lưu không đúng.
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
                     <MeterReadingTable
                       rooms={rooms}
                       isLoading={isLoading}

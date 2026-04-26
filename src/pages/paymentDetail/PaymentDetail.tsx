@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { queryClient } from '@/lib/reactQuery';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { getInvoiceById } from '@/api/invoice';
@@ -149,6 +149,20 @@ export default function PaymentDetail() {
     ? new Date(payment.createdAt).toLocaleDateString('vi-VN')
     : new Date().toLocaleDateString('vi-VN');
 
+  const vehicleCount =
+    room?.members?.filter((member: any) => member.licensePlate?.trim())?.length || 0;
+
+  const ammountTotal =
+    (room.waterPricePerPerson > 0
+      ? (payment?.waterCost ?? 0) * room.members.length
+      : (payment?.waterCost ?? 0)) +
+    (payment?.rentAmount ?? 0) +
+    (payment?.electricityCost ?? 0) +
+    (payment?.internetFee ?? 0) +
+    (payment?.parkingFee ?? 0) * vehicleCount +
+    (payment?.otherFee ?? 0) +
+    (payment?.livingFee ?? 0);
+
   return (
     <div className="space-y-6 md:p-8">
       {/* Invoice Card */}
@@ -274,12 +288,12 @@ export default function PaymentDetail() {
                     <p className="font-medium text-slate-900">
                       {room?.waterPricePerCubicMeter && room.waterPricePerCubicMeter > 0
                         ? `${payment?.waterUsage || 0} m³`
-                        : '1 người'}
+                        : `${room.members.length} người`}
                     </p>
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-semibold text-slate-900">
-                      {formatCurrency(payment?.waterCost || 0)}
+                      {formatCurrency(payment?.waterCost * room.members.length || 0)}
                     </p>
                   </td>
                 </tr>
@@ -321,11 +335,11 @@ export default function PaymentDetail() {
                     </p>
                   </td>
                   <td className="text-right py-4 px-4">
-                    <p className="font-medium text-slate-900">1</p>
+                    <p className="font-medium text-slate-900">{vehicleCount}</p>
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-semibold text-slate-900">
-                      {formatCurrency(payment?.parkingFee || 0)}
+                      {formatCurrency((payment?.parkingFee || 0) * vehicleCount)}
                     </p>
                   </td>
                 </tr>
@@ -403,13 +417,13 @@ export default function PaymentDetail() {
               {/* Total */}
               <tr className="border-b-2 border-slate-900">
                 <td className="py-4 px-4">
-                  <p className="font-bold text-slate-900">Tổng cộng</p>
+                  <p className="font-bold text-slate-900">Tổng cộng hoá đơn</p>
                 </td>
                 <td className="text-right py-4 px-4" colSpan={2}></td>
-                <td className="text-right py-4 px-4">
-                  <p className="font-bold text-slate-900">
-                    {formatCurrency(payment?.totalAmount || 0)}
-                  </p>
+                <td className="text-right py-4 pr-4">
+                  <span className="text-xl font-bold text-red-500">
+                    {formatCurrency(ammountTotal)}
+                  </span>
                 </td>
               </tr>
             </tbody>
@@ -458,7 +472,7 @@ export default function PaymentDetail() {
 
               <div className="text-xs text-slate-600 mt-1 space-y-1">
                 {room?.waterPricePerCubicMeter && room.waterPricePerCubicMeter > 0 ? (
-                  <>
+                  <React.Fragment>
                     <p>
                       {payment?.waterUsage || 0} m³ ×{' '}
                       {formatCurrency(room?.waterPricePerCubicMeter)}
@@ -467,12 +481,12 @@ export default function PaymentDetail() {
                       CSĐ cũ: {payment?.waterPrevious} → CSĐ mới: {payment?.waterCurrent}
                     </p>
                     <p className="text-blue-600 font-medium">💧 Tính theo m³</p>
-                  </>
+                  </React.Fragment>
                 ) : (
-                  <>
+                  <React.Fragment>
                     <p>{formatCurrency(room?.waterPricePerPerson || 0)} / người</p>
                     <p className="text-green-600 font-medium">👤 Tính theo người</p>
-                  </>
+                  </React.Fragment>
                 )}
               </div>
             </div>
@@ -527,24 +541,6 @@ export default function PaymentDetail() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Totals */}
-        <div className="flex justify-end pb-8 border-b border-slate-200">
-          <div className="w-full md:w-64">
-            <div className="flex justify-between mb-2 pb-2 border-b border-slate-200">
-              <span className="text-slate-600 text-sm">Tổng tiền:</span>
-              <span className="font-semibold text-slate-900 text-sm">
-                {formatCurrency(payment?.totalAmount ?? 0)}
-              </span>
-            </div>
-            <div className=" mt-2 flex justify-between">
-              <span className="text-lg font-bold text-slate-900">Cần thanh toán:</span>
-              <span className="text-xl font-bold text-red-500">
-                {formatCurrency(payment?.totalAmount ?? 0)}
-              </span>
-            </div>
-          </div>
         </div>
 
         {user.role === UserRole.admin && payment?.status !== PaymentStatus.PAID && (
