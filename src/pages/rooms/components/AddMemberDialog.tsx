@@ -83,7 +83,7 @@ const AddMemberDialog = ({
   const onSubmit = (data: FormValues) => {
     onAddMember({
       ...data,
-      userId: editingMember?.userId || '',
+      _id: editingMember?._id || '',
     });
     onOpenChange(false);
     reset();

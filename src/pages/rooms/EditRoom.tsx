@@ -89,7 +89,7 @@ const EditRoom = () => {
       parkingFee: editRoom.parkingFee,
       livingFee: editRoom.livingFee,
       members: editRoom.members.map((member) => ({
-        userId: member.userId || '',
+        _id: member._id,
         name: member.name,
         phone: member.phone,
         licensePlate: member.licensePlate,
@@ -97,7 +97,7 @@ const EditRoom = () => {
         isRepresentative: member.isRepresentative,
       })),
       description: editRoom.description,
-    };
+    } as Room;
 
     updateRoomMutation.mutate(
       { id: roomId, data: roomData },
