@@ -1,5 +1,5 @@
 import { BarChart3, CreditCard, DoorOpen } from 'lucide-react';
-import { FaUserCog } from 'react-icons/fa';
+// import { FaUserCog } from 'react-icons/fa';
 import type { IconType } from 'react-icons/lib';
 import { MdApartment } from 'react-icons/md';
 
@@ -47,14 +47,14 @@ export const ownerListFunctions: NavigationItem[] = [
     path: `/${Path.statistics}`,
     color: 'from-pink-500 to-pink-600',
   },
-  {
-    rowId: '6',
-    title: 'Quản lý',
-    description: 'Xem danh sách các toà nhà được gán cho người dùng quản lý',
-    icon: FaUserCog,
-    path: `/${Path.users}`,
-    color: 'bg-[#546B41]',
-  },
+  // {
+  //   rowId: '6',
+  //   title: 'Quản lý',
+  //   description: 'Xem danh sách các toà nhà được gán cho người dùng quản lý',
+  //   icon: FaUserCog,
+  //   path: `/${Path.users}`,
+  //   color: 'bg-[#546B41]',
+  // },
 ];
 
 export const tenantListFunctions: NavigationItem[] = [
