@@ -28,7 +28,7 @@ export interface Room {
   _id: string;
   number: string;
   buildingId: string;
-  buildingName?: string; // For display purposes
+  buildingName?: string;
   area: number;
   status: ROOMSTATUS;
   price: number;
