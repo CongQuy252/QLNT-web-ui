@@ -1,4 +1,4 @@
-import { Edit, Home, Trash2 } from 'lucide-react';
+import { Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ToastContainer } from '@/components/ui/toast/Toast';
 import { Path } from '@/constants/appConstants';
 import { useToast } from '@/hooks/useToast';
-import { getStatusBadge, getStatusLabel } from '@/pages/rooms/roomConstants';
+import { getStatusBadge, getStatusLabel } from '@/pages/rooms/RoomsConstants';
 import { useRooms } from '@/pages/rooms/useRooms';
 import { ROOMSTATUS, type Room } from '@/types/room';
 import { formatCurrency } from '@/utils/utils';
@@ -168,7 +168,7 @@ const Rooms = () => {
                           </p>
                           <p className="text-xs text-slate-600 mt-1 text-ellipsis">
                             {representativeMember.phone}
-                          </p>{' '}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -184,21 +184,23 @@ const Rooms = () => {
                         variant="outline"
                         size="sm"
                         className="flex-1 gap-2 text-slate-700 border-slate-300 bg-transparent"
-                        icon={<Edit className="w-4 h-4" />}
                         onClick={() => handleEditRoom(room)}
-                      />
+                      >
+                        Xem thông tin phòng
+                      </Button>
 
                       {room.status !== ROOMSTATUS.OCCUPIED && (
                         <Button
                           variant="outline"
                           size="sm"
                           className="flex-1 gap-2 text-red-600 border-red-300 hover:bg-red-50 bg-transparent"
-                          icon={<Trash2 className="h-4 w-4" />}
                           onClick={() => {
                             handleAskDeleteRoom(room);
                           }}
                           disabled={false}
-                        />
+                        >
+                          Xoá phòng
+                        </Button>
                       )}
                     </div>
                   </div>

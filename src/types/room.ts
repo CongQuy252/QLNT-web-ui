@@ -8,10 +8,9 @@ export enum ROOMSTATUS {
 
 export interface Member {
   _id: string;
-  userId?: string;
   name: string;
   phone: string;
-  licensePlate: string;
+  licensePlate?: string;
   cccdImages: {
     front: {
       url: string;
@@ -29,7 +28,7 @@ export interface Room {
   _id: string;
   number: string;
   buildingId: string;
-  buildingName?: string; // For display purposes
+  buildingName?: string;
   area: number;
   status: ROOMSTATUS;
   price: number;

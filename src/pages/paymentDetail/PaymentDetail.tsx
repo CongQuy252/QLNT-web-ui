@@ -547,24 +547,6 @@ export default function PaymentDetail() {
           </div>
         </div>
 
-        {payment?.status !== PaymentStatus.PAID && (
-          <div className="flex flex-col items-center gap-4">
-            <h3 className="text-lg font-semibold text-slate-900">Quét mã QR để thanh toán</h3>
-
-            <div className="p-4 border rounded-lg bg-white">
-              <img
-                src={`https://img.vietqr.io/image/970426-0358361511-JH8r4kY.jpg?amount=${payment?.totalAmount ?? 0}&addInfo=${payment?.roomId?.number || payment?.roomId}&accountName=Nguyen%20cong%20quy`}
-                alt="QR Thanh toán"
-                className="w-48 h-48 object-contain"
-              />
-            </div>
-
-            <p className="text-sm text-slate-600 text-center">
-              Nội dung chuyển khoản: <b>{payment?.roomId?.number || payment?.roomId}</b>
-            </p>
-          </div>
-        )}
-
         {user.role === UserRole.admin && payment?.status !== PaymentStatus.PAID && (
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button
