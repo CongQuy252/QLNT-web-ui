@@ -1,5 +1,9 @@
 import { Car, IdCard, Phone, User } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -7,6 +11,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { type Member } from '@/types/room';
 
+const memberSchema = z.object({
+  name: z.string().min(1, 'Vui lòng nhập tên thành viên'),
+  phone: z.string().regex(/^\d{10}$/, 'Số điện thoại phải gồm đúng 10 chữ số'),
+  licensePlate: z.string().optional(),
+  isRepresentative: z.boolean(),
+  cccdImages: z.object({
+    front: z.object({
+      url: z.string(),
+      publicId: z.string(),
+    }),
+    back: z.object({
+      url: z.string(),
+      publicId: z.string(),
+    }),
+  }),
+});
+type FormValues = z.infer<typeof memberSchema>;
 interface AddMemberDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -14,82 +35,81 @@ interface AddMemberDialogProps {
   editingMember?: Member | null;
 }
 
+const defaultRoomValues = {
+  name: '',
+  phone: '',
+  licensePlate: '',
+  isRepresentative: false,
+  cccdImages: {
+    front: { url: '', publicId: '' },
+    back: { url: '', publicId: '' },
+  },
+};
+
 const AddMemberDialog = ({
   open,
   onOpenChange,
   onAddMember,
   editingMember,
 }: AddMemberDialogProps) => {
-  const [formData, setFormData] = useState<Omit<Member, 'userId'>>({
-    name: editingMember?.name || '',
-    phone: editingMember?.phone || '',
-    licensePlate: editingMember?.licensePlate || '',
-    cccdImages: {
-      front: {
-        url: editingMember?.cccdImages.front.url || '',
-        publicId: editingMember?.cccdImages.front.publicId || '',
-      },
-      back: {
-        url: editingMember?.cccdImages.back.url || '',
-        publicId: editingMember?.cccdImages.back.publicId || '',
-      },
-    },
-    isRepresentative: editingMember?.isRepresentative || false,
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(memberSchema),
+    defaultValues: defaultRoomValues,
   });
 
   useEffect(() => {
     if (open) {
       if (editingMember) {
-        setFormData({
+        reset({
           name: editingMember.name,
           phone: editingMember.phone,
-          licensePlate: editingMember.licensePlate,
-          cccdImages: editingMember.cccdImages,
+          licensePlate: editingMember.licensePlate ?? '',
           isRepresentative: editingMember.isRepresentative,
+          cccdImages: editingMember.cccdImages,
         });
       } else {
-        setFormData({
-          name: '',
-          phone: '',
-          licensePlate: '',
-          cccdImages: {
-            front: { url: '', publicId: '' },
-            back: { url: '', publicId: '' },
-          },
-          isRepresentative: false,
-        });
+        reset(defaultRoomValues);
       }
     }
-  }, [editingMember, open]);
+  }, [editingMember, open, reset]);
 
-  const handleSubmit = () => {
-    if (!formData.name.trim()) {
-      alert('Vui lòng nhập tên thành viên');
-      return;
-    }
-
-    if (!formData.phone.trim()) {
-      alert('Vui lòng nhập số điện thoại');
-      return;
-    }
-
-    onAddMember({ ...formData, userId: editingMember?.userId || '' });
+  const onSubmit = (data: FormValues) => {
+    onAddMember({
+      ...data,
+      _id: editingMember?._id || '',
+    });
     onOpenChange(false);
-
-    // Reset form
-    const initialFormData: Omit<Member, 'userId'> = {
-      name: '',
-      phone: '',
-      licensePlate: '',
-      cccdImages: {
-        front: { url: '', publicId: '' },
-        back: { url: '', publicId: '' },
-      },
-      isRepresentative: false,
-    };
-    setFormData(initialFormData);
+    reset();
   };
 
+  const handleImageUpload = (file: File, type: 'front' | 'back') => {
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      setValue(`cccdImages.${type}.url`, reader.result as string);
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const formatPlate = (value: string) => {
+    const cleaned = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+    if (cleaned.length <= 4) {
+      return cleaned;
+    }
+
+    return cleaned.slice(0, 4) + '―' + cleaned.slice(4);
+  };
+
+  const cccdImages = watch('cccdImages');
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-2xl sm:rounded-lg flex flex-col max-h-screen">
@@ -102,57 +122,90 @@ const AddMemberDialog = ({
 
         <div className="flex-1 overflow-y-auto space-y-4 py-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <User className="w-4 h-4" />
-                Họ và tên *
-              </Label>
-              <Input
-                placeholder="Nhập họ và tên"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                Số điện thoại *
-              </Label>
-              <Input
-                placeholder="Nhập số điện thoại"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Car className="w-4 h-4" />
-                Biển số xe
-              </Label>
-              <Input
-                placeholder="Nhập biển số xe (nếu có)"
-                value={formData.licensePlate}
-                onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="isRepresentative"
-                  checked={formData.isRepresentative}
-                  onChange={(e) => setFormData({ ...formData, isRepresentative: e.target.checked })}
-                  className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
-                  aria-label="Là người đại diện"
-                />
-                <Label htmlFor="isRepresentative" className="text-sm font-medium text-slate-700">
-                  Là người đại diện
-                </Label>
-              </div>
-            </div>
+            <Controller
+              control={control}
+              name="name"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <Label
+                    className="text-sm font-medium text-slate-700 flex items-center gap-2"
+                    isRequired
+                  >
+                    <User className="w-4 h-4" />
+                    Họ và tên
+                  </Label>
+                  <Input placeholder="Nhập họ và tên" {...field} />
+                  {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+                </div>
+              )}
+            />
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <Label
+                    className="text-sm font-medium text-slate-700 flex items-center gap-2"
+                    isRequired
+                  >
+                    <Phone className="w-4 h-4" />
+                    Số điện thoại
+                  </Label>
+                  <Input
+                    placeholder="Nhập số điện thoại"
+                    {...field}
+                    maxLength={10}
+                    numericOnly={true}
+                  />
+                  {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
+                </div>
+              )}
+            />
+            <Controller
+              control={control}
+              name="licensePlate"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Car className="w-4 h-4" />
+                    Biển số xe
+                  </Label>
+                  <Input
+                    placeholder="Nhập biển số xe (nếu có)"
+                    {...field}
+                    onChange={(e) => {
+                      const formatted = formatPlate(e.target.value);
+                      field.onChange(formatted);
+                    }}
+                    maxLength={10}
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              control={control}
+              name="isRepresentative"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="isRepresentative"
+                      checked={field.value}
+                      onChange={field.onChange}
+                      className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                      aria-label="Là người đại diện"
+                    />
+                    <Label
+                      htmlFor="isRepresentative"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Là người đại diện
+                    </Label>
+                  </div>
+                </div>
+              )}
+            />
           </div>
           <div className="space-y-4">
             <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
@@ -164,25 +217,17 @@ const AddMemberDialog = ({
               <div className="space-y-2">
                 <Label className="text-xs font-medium text-slate-600">Mặt trước</Label>
                 <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center">
-                  {formData.cccdImages.front.url ? (
+                  {cccdImages.front.url ? (
                     <div className="space-y-2">
                       <img
-                        src={formData.cccdImages.front.url}
+                        src={cccdImages.front.url}
                         alt="CCCD mặt trước"
                         className="w-full h-32 object-cover rounded"
                       />
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() =>
-                          setFormData({
-                            ...formData,
-                            cccdImages: {
-                              ...formData.cccdImages,
-                              front: { url: '', publicId: '' },
-                            },
-                          })
-                        }
+                        onClick={() => setValue('cccdImages.front.url', '')}
                       >
                         Xóa ảnh
                       </Button>
@@ -195,17 +240,7 @@ const AddMemberDialog = ({
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setFormData({
-                                ...formData,
-                                cccdImages: {
-                                  ...formData.cccdImages,
-                                  front: { url: reader.result as string, publicId: '' },
-                                },
-                              });
-                            };
-                            reader.readAsDataURL(file);
+                            handleImageUpload(file, 'front');
                           }
                         }}
                         className="hidden"
@@ -229,25 +264,17 @@ const AddMemberDialog = ({
               <div className="space-y-2">
                 <Label className="text-xs font-medium text-slate-600">Mặt sau</Label>
                 <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center">
-                  {formData.cccdImages.back.url ? (
+                  {cccdImages.back.url ? (
                     <div className="space-y-2">
                       <img
-                        src={formData.cccdImages.back.url}
+                        src={cccdImages.back.url}
                         alt="CCCD mặt sau"
                         className="w-full h-32 object-cover rounded"
                       />
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() =>
-                          setFormData({
-                            ...formData,
-                            cccdImages: {
-                              ...formData.cccdImages,
-                              back: { url: '', publicId: '' },
-                            },
-                          })
-                        }
+                        onClick={() => setValue('cccdImages.back.url', '')}
                       >
                         Xóa ảnh
                       </Button>
@@ -260,17 +287,7 @@ const AddMemberDialog = ({
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setFormData({
-                                ...formData,
-                                cccdImages: {
-                                  ...formData.cccdImages,
-                                  back: { url: reader.result as string, publicId: '' },
-                                },
-                              });
-                            };
-                            reader.readAsDataURL(file);
+                            handleImageUpload(file, 'back');
                           }
                         }}
                         className="hidden"
@@ -304,7 +321,7 @@ const AddMemberDialog = ({
           </Button>
           <Button
             className="flex-1 bg-slate-900 hover:bg-slate-800 text-white"
-            onClick={handleSubmit}
+            onClick={handleSubmit(onSubmit)}
           >
             {editingMember ? 'Cập nhật' : 'Thêm thành viên'}
           </Button>

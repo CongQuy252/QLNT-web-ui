@@ -21,21 +21,18 @@ type InvoiceState = {
   dueDate: string;
   notes?: string;
 
-  // ĐIỆN
   electricityPrevious: number;
   electricityCurrent: number;
   electricityUsage: number;
   electricityUnitPrice: number;
   electricityCost: number;
 
-  // NƯỚC
   waterPrevious: number;
   waterCurrent: number;
   waterUsage: number;
   waterUnitPrice: number;
   waterCost: number;
 
-  // PHÍ
   rentAmount: number;
   parkingFee: number;
   livingFee: number;
@@ -50,21 +47,18 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
     year: new Date().getFullYear(),
     dueDate: new Date().toISOString().slice(0, 10),
 
-    // ĐIỆN
     electricityPrevious: 0,
     electricityCurrent: 0,
     electricityUsage: 0,
     electricityUnitPrice: 0,
     electricityCost: 0,
 
-    // NƯỚC
     waterPrevious: 0,
     waterCurrent: 0,
     waterUsage: 0,
     waterUnitPrice: 0,
     waterCost: 0,
 
-    // PHÍ
     rentAmount: 0,
     parkingFee: 0,
     livingFee: 0,
@@ -76,7 +70,9 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
 
   const totalAmount = useMemo(() => {
     const room = getRoomById(invoice.roomId);
-    if (!room) return 0;
+    if (!room) {
+      return 0;
+    }
 
     const electricityUsage = invoice.electricityCurrent - invoice.electricityPrevious;
 
@@ -106,13 +102,13 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
 
   const buildInvoicePayload = (): InvoiceForm => {
     const room = getRoomById(invoice.roomId);
-    if (!room) throw new Error('Room not found');
+    if (!room) {
+      throw new Error('Room not found');
+    }
 
-    // ĐIỆN
     const electricityUsage = invoice.electricityCurrent - invoice.electricityPrevious;
     const electricityAmount = Math.max(electricityUsage, 0) * (room.electricityUnitPrice || 0);
 
-    // NƯỚC
     const waterUsage = invoice.waterCurrent - invoice.waterPrevious;
     let waterAmount = 0;
     let waterUnitPrice = 0;
@@ -127,7 +123,6 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
 
     const waterCost = waterAmount;
 
-    // PHÍ
     const rentAmount = room.price || 0;
     const parkingFee = room.parkingFee || 0;
     const livingFee = room.livingFee || 0;
@@ -144,21 +139,18 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
       dueDate: invoice.dueDate,
       notes: invoice.notes,
 
-      // ĐIỆN
       electricityPrevious: invoice.electricityPrevious,
       electricityCurrent: invoice.electricityCurrent,
       electricityUsage,
       electricityUnitPrice: room.electricityUnitPrice || 0,
       electricityCost: electricityAmount,
 
-      // NƯỚC
       waterPrevious: invoice.waterPrevious,
       waterCurrent: invoice.waterCurrent,
       waterUsage,
       waterUnitPrice,
       waterCost,
 
-      // PHÍ
       rentAmount,
       parkingFee,
       livingFee,
@@ -170,9 +162,9 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
 
   const handleSelectRoom = (roomId: string) => {
     const room = occupiedRooms.find((r) => r._id === roomId);
-    if (!room) return;
-
-    // Là tenant dau tien tu members array (hoac representative)
+    if (!room) {
+      return;
+    }
     const firstMember = room.members[0];
     const representativeMember = room.members.find((m) => m.isRepresentative);
     const selectedMember = representativeMember || firstMember;
@@ -180,9 +172,7 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
     setInvoice((prev) => ({
       ...prev,
       roomId,
-      tenantId: selectedMember?.userId || '',
-
-      // reset lagi hanya index khi doi phòng
+      tenantId: selectedMember?._id || '',
       electricityPrevious: 0,
       electricityCurrent: 0,
       waterPrevious: 0,
@@ -202,7 +192,6 @@ export default function CreateInvoiceDialog({ occupiedRooms, getRoomById, onSubm
 
   return (
     <div className="space-y-6">
-      {/* Room Selection */}
       <div className="space-y-2">
         <Label htmlFor="room-select" className="text-sm font-semibold text-slate-700">
           Chọn phòng

@@ -38,7 +38,7 @@ import {
   buildingSchema,
 } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
 import type { Province, Ward } from '@/types/address';
-import { formatNumber, parseNumber } from '@/utils/utils';
+import { parseNumber } from '@/utils/utils';
 
 const CreateBuildingPage = () => {
   const navigate = useNavigate();
@@ -50,7 +50,6 @@ const CreateBuildingPage = () => {
   const [bulkRowCount, setBulkRowCount] = useState(1);
 
   const {
-    register,
     handleSubmit,
     formState: { errors },
     reset,
@@ -196,15 +195,42 @@ const CreateBuildingPage = () => {
             <Label htmlFor="name" className="text-sm font-medium text-slate-700" isRequired>
               Tên Tòa Nhà
             </Label>
-            <Input {...register('name')} maxLength={50} className="mt-1" />
+            <Controller
+              control={control}
+              name={'name'}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  type="text"
+                  value={(field.value as string | number | undefined) ?? ''}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  maxLength={50}
+                  className="mt-1"
+                  placeholder="Tên toà nhà"
+                />
+              )}
+            />
             {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
           </div>
 
           <div>
             <Label htmlFor="address" className="text-sm font-medium text-slate-700" isRequired>
-              Địa Chỉ
+              Địa Chỉ Chi Tiết
             </Label>
-            <Input {...register('address')} placeholder="Địa chỉ tòa nhà" className="mt-1" />
+            <Controller
+              control={control}
+              name={'address'}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  type="text"
+                  value={(field.value as string | number | undefined) ?? ''}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  className="mt-1"
+                  placeholder="Địa chỉ chi tiết tòa nhà"
+                />
+              )}
+            />
             {errors.address && (
               <p className="text-xs text-red-500 mt-1">{errors.address.message}</p>
             )}
@@ -297,7 +323,6 @@ const CreateBuildingPage = () => {
             </div>
           </div>
 
-          {/* Default Room Pricing Section */}
           <div className="border-t pt-6">
             <h3 className="text-lg font-medium text-slate-900 mb-4">Thông tin chung</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -311,12 +336,14 @@ const CreateBuildingPage = () => {
                   render={({ field }) => (
                     <Input
                       type="text"
-                      value={formatNumber((field.value as number | undefined) ?? 0)}
+                      value={(field.value as string | number | undefined) ?? ''}
                       onChange={(e) => {
-                        const value = parseNumber(e.target.value);
-                        field.onChange(value !== undefined ? value : 0);
+                        const parsed = parseNumber(e.target.value);
+                        field.onChange(parsed);
                       }}
                       className="mt-1"
+                      numericOnly
+                      formatComma
                     />
                   )}
                 />
@@ -336,13 +363,14 @@ const CreateBuildingPage = () => {
                   control={control}
                   render={({ field }) => (
                     <Input
-                      type="text"
-                      value={formatNumber((field.value as number | undefined) ?? 0)}
+                      value={(field.value as string | number | undefined) ?? ''}
                       onChange={(e) => {
-                        const value = parseNumber(e.target.value);
-                        field.onChange(value !== undefined ? value : 0);
+                        const parsed = parseNumber(e.target.value);
+                        field.onChange(parsed);
                       }}
                       className="mt-1"
+                      numericOnly
+                      formatComma
                     />
                   )}
                 />
@@ -361,13 +389,14 @@ const CreateBuildingPage = () => {
                   control={control}
                   render={({ field }) => (
                     <Input
-                      type="text"
-                      value={formatNumber((field.value as number | undefined) ?? 0)}
+                      value={(field.value as string | number | undefined) ?? ''}
                       onChange={(e) => {
-                        const value = parseNumber(e.target.value);
-                        field.onChange(value !== undefined ? value : 0);
+                        const parsed = parseNumber(e.target.value);
+                        field.onChange(parsed);
                       }}
                       className="mt-1"
+                      numericOnly
+                      formatComma
                     />
                   )}
                 />
@@ -379,18 +408,20 @@ const CreateBuildingPage = () => {
                 <Label htmlFor="defaultLivingFee" className="text-sm font-medium text-slate-700">
                   Phí Sinh Hoạt
                 </Label>
+
                 <Controller
                   name="defaultLivingFee"
                   control={control}
                   render={({ field }) => (
                     <Input
-                      type="text"
-                      value={formatNumber((field.value as number | undefined) ?? 0)}
+                      value={(field.value as string | number | undefined) ?? ''}
                       onChange={(e) => {
-                        const value = parseNumber(e.target.value);
-                        field.onChange(value !== undefined ? value : 0);
+                        const parsed = parseNumber(e.target.value);
+                        field.onChange(parsed);
                       }}
                       className="mt-1"
+                      numericOnly
+                      formatComma
                     />
                   )}
                 />
@@ -398,81 +429,110 @@ const CreateBuildingPage = () => {
                   <p className="text-xs text-red-500 mt-1">{errors.defaultLivingFee.message}</p>
                 )}
               </div>
-              <div>
-                <Label htmlFor="defaultArea" className="text-sm font-medium text-slate-700">
-                  Diện Tích Phòng (m²)
-                </Label>
-                <Input type="number" {...register('defaultArea')} className="mt-1" />
-                {errors.defaultArea && (
-                  <p className="text-xs text-red-500 mt-1">{errors.defaultArea.message}</p>
-                )}
-              </div>
-              <div>
-                {/* Water Calculation Type */}
-                <Label className="text-sm font-medium text-slate-700 mb-3 block">
-                  Cách tính giá nước
-                </Label>
-                <RadioGroup
-                  value={watch('waterCalculationType')}
-                  onValueChange={(value) =>
-                    setValue('waterCalculationType', value as 'm3' | 'person')
-                  }
-                  className="flex gap-6 mb-3"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="m3" id="water-m3" />
-                    <Label htmlFor="water-m3" className="text-sm font-normal cursor-pointer">
-                      m³
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="person" id="water-person" />
-                    <Label htmlFor="water-person" className="text-sm font-normal cursor-pointer">
-                      Người
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-700">
-                  {waterCalculationType === 'person' ? 'Giá Nước (VNĐ/người)' : 'Giá Nước (VNĐ/m³)'}
-                </Label>
-                <Controller
-                  control={control}
-                  name={
-                    waterCalculationType === 'person'
-                      ? 'defaultWaterPricePerPerson'
-                      : 'defaultWaterPricePerCubicMeter'
-                  }
-                  key={waterCalculationType} // Add key to force re-render on type change
-                  render={({ field }) => {
-                    const displayValue = (
-                      field.value !== undefined && field.value !== null ? field.value : 0
-                    ) as number;
-                    return (
-                      <Input
-                        type="text"
-                        value={formatNumber(displayValue)}
-                        onChange={(e) => {
-                          const value = parseNumber(e.target.value);
-                          field.onChange(value !== undefined ? value : 0);
-                        }}
-                        className="mt-1"
-                      />
-                    );
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="defaultArea" className="text-sm font-medium text-slate-700">
+              Diện Tích Phòng (m²)
+            </Label>
+            <Controller
+              name="defaultArea"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  value={(field.value as string | number | undefined) ?? ''}
+                  onChange={(e) => {
+                    const parsed = parseNumber(e.target.value);
+                    field.onChange(parsed);
                   }}
+                  className="mt-1"
+                  numericOnly
+                  formatComma
                 />
-                {waterCalculationType === 'person' && errors.defaultWaterPricePerPerson && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.defaultWaterPricePerPerson.message}
-                  </p>
-                )}
-                {waterCalculationType === 'm3' && errors.defaultWaterPricePerCubicMeter && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.defaultWaterPricePerCubicMeter.message}
-                  </p>
-                )}
-              </div>
+              )}
+            />
+            {errors.defaultArea && (
+              <p className="text-xs text-red-500 mt-1">{errors.defaultArea.message}</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-9">
+            <div className="col-span-1">
+              <Label className="text-sm font-medium text-slate-700 mb-3 block">
+                Cách tính giá nước
+              </Label>
+              <RadioGroup
+                value={watch('waterCalculationType')}
+                onValueChange={(value) =>
+                  setValue('waterCalculationType', value as 'm3' | 'person')
+                }
+                className="flex gap-6"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="m3" id="water-m3" />
+                  <Label htmlFor="water-m3" className="text-sm font-normal cursor-pointer">
+                    m³
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="person" id="water-person" />
+                  <Label htmlFor="water-person" className="text-sm font-normal cursor-pointer">
+                    Người
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+            <div className="col-span-8">
+              <Label
+                className="text-sm font-medium text-slate-700"
+                helpText={
+                  <div className="max-w-125">
+                    • Đối với cách tính giá nước theo người thì cần thực hiện nhập giá trị = ⟪giá
+                    nước (1 người)⟫ x ⟪số người⟫.
+                    <br />• Đối với cách tính giá nước theo m3 thì nhập trị = giá nước /1m³
+                  </div>
+                }
+              >
+                {waterCalculationType === 'person' ? 'Giá Nước (VNĐ/người)' : 'Giá Nước (VNĐ/m³)'}
+              </Label>
+
+              <Controller
+                control={control}
+                name={
+                  waterCalculationType === 'person'
+                    ? 'defaultWaterPricePerPerson'
+                    : 'defaultWaterPricePerCubicMeter'
+                }
+                key={waterCalculationType}
+                render={({ field }) => {
+                  const displayValue = (
+                    field.value !== undefined && field.value !== null ? field.value : 0
+                  ) as number;
+                  return (
+                    <Input
+                      value={displayValue}
+                      onChange={(e) => {
+                        const parsed = parseNumber(e.target.value);
+                        field.onChange(parsed !== undefined ? parsed : 0);
+                      }}
+                      className="mt-1"
+                      numericOnly
+                      formatComma
+                    />
+                  );
+                }}
+              />
+              {waterCalculationType === 'person' && errors.defaultWaterPricePerPerson && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.defaultWaterPricePerPerson.message}
+                </p>
+              )}
+              {waterCalculationType === 'm3' && errors.defaultWaterPricePerCubicMeter && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.defaultWaterPricePerCubicMeter.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -480,11 +540,17 @@ const CreateBuildingPage = () => {
             <Label htmlFor="description" className="text-sm font-medium text-slate-700">
               Mô Tả
             </Label>
-            <Textarea
-              {...register('description')}
-              placeholder="Mô tả chi tiết về tòa nhà..."
-              className="mt-1 min-h-24 resize-none"
-              maxLength={500}
+            <Controller
+              name="description"
+              control={control}
+              render={({ field }) => (
+                <Textarea
+                  value={(field.value as string | number | undefined) ?? ''}
+                  placeholder="Mô tả chi tiết về tòa nhà..."
+                  className="mt-1 min-h-24 resize-none"
+                  maxLength={500}
+                />
+              )}
             />
             {errors.description && (
               <p className="text-xs text-red-500 mt-1">{errors.description.message}</p>
@@ -500,7 +566,6 @@ const CreateBuildingPage = () => {
                   id="bulkRowCount"
                   type="number"
                   min="1"
-                  max="50"
                   value={bulkRowCount}
                   onChange={(e) => setBulkRowCount(parseInt(e.target.value) || 1)}
                   className="w-20 h-8"
@@ -512,7 +577,7 @@ const CreateBuildingPage = () => {
                 onClick={addRoomRow}
                 className="flex items-center gap-2"
               >
-                Add Room
+                Thêm phòng
               </Button>
             </div>
           </div>
@@ -558,64 +623,171 @@ const CreateBuildingPage = () => {
                   {fields.map((field: RoomInput & { id: string }, index: number) => (
                     <TableRow key={field.id} className="hover:bg-gray-50">
                       <TableCell className="border border-gray-200 p-2">
-                        <Input
-                          {...register(`rooms.${index}.number`)}
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                        <Controller
+                          control={control}
+                          name={`rooms.${index}.number`}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              value={(field.value as string | number | undefined) ?? ''}
+                              onChange={(e) => field.onChange(e.target.value)}
+                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                            />
+                          )}
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input
-                          {...register(`rooms.${index}.area`)}
-                          type="number"
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                        <Controller
+                          control={control}
+                          name={`rooms.${index}.area`}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              value={(field.value as string | number | undefined) ?? ''}
+                              onChange={(e) => {
+                                const parsed = parseNumber(e.target.value);
+                                field.onChange(parsed);
+                              }}
+                              numericOnly
+                              formatComma
+                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                            />
+                          )}
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input
-                          {...register(`rooms.${index}.price`)}
-                          type="number"
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
+                        <Controller
+                          control={control}
+                          name={`rooms.${index}.price`}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              value={(field.value as string | number | undefined) ?? ''}
+                              onChange={(e) => {
+                                const parsed = parseNumber(e.target.value);
+                                field.onChange(parsed);
+                              }}
+                              numericOnly
+                              formatComma
+                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                            />
+                          )}
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input
-                          {...register(`rooms.${index}.electricityUnitPrice`)}
-                          type="number"
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
+                        <Controller
+                          control={control}
+                          name={`rooms.${index}.electricityUnitPrice`}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              value={(field.value as string | number | undefined) ?? ''}
+                              onChange={(e) => {
+                                const parsed = parseNumber(e.target.value);
+                                field.onChange(parsed);
+                              }}
+                              numericOnly
+                              formatComma
+                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                            />
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell
+                        className={`border border-gray-200 p-2 ${watch(`rooms.${index}.waterPricePerCubicMeter`) ? 'bg-gray-300' : ''}`}
+                      >
+                        <Controller
+                          control={control}
+                          name={`rooms.${index}.waterPricePerPerson`}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              value={(field.value as string | number | undefined) ?? ''}
+                              onChange={(e) => {
+                                const parsed = parseNumber(e.target.value);
+                                field.onChange(parsed);
+                              }}
+                              numericOnly
+                              formatComma
+                              disabled={!!watch(`rooms.${index}.waterPricePerCubicMeter`)}
+                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                            />
+                          )}
+                        />
+                      </TableCell>
+
+                      <TableCell
+                        className={`border border-gray-200 p-2 ${watch(`rooms.${index}.waterPricePerPerson`) ? 'bg-gray-300' : ''}`}
+                      >
+                        <Controller
+                          control={control}
+                          name={`rooms.${index}.waterPricePerCubicMeter`}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              value={(field.value as string | number | undefined) ?? ''}
+                              onChange={(e) => {
+                                const parsed = parseNumber(e.target.value);
+                                field.onChange(parsed);
+                              }}
+                              numericOnly
+                              formatComma
+                              disabled={!!watch(`rooms.${index}.waterPricePerPerson`)}
+                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                            />
+                          )}
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input
-                          {...register(`rooms.${index}.waterPricePerPerson`)}
-                          type="number"
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
+                        <Controller
+                          control={control}
+                          name={`rooms.${index}.parkingFee`}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              value={(field.value as string | number | undefined) ?? ''}
+                              onChange={(e) => {
+                                const parsed = parseNumber(e.target.value);
+                                field.onChange(parsed);
+                              }}
+                              numericOnly
+                              formatComma
+                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                            />
+                          )}
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input
-                          {...register(`rooms.${index}.waterPricePerCubicMeter`)}
-                          type="number"
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
+                        <Controller
+                          control={control}
+                          name={`rooms.${index}.livingFee`}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              value={(field.value as string | number | undefined) ?? ''}
+                              onChange={(e) => {
+                                const parsed = parseNumber(e.target.value);
+                                field.onChange(parsed);
+                              }}
+                              numericOnly
+                              formatComma
+                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                            />
+                          )}
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
-                        <Input
-                          {...register(`rooms.${index}.parkingFee`)}
-                          type="number"
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
-                        />
-                      </TableCell>
-                      <TableCell className="border border-gray-200 p-2">
-                        <Input
-                          {...register(`rooms.${index}.livingFee`)}
-                          type="number"
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-right focus:ring-0 focus:outline-none"
-                        />
-                      </TableCell>
-                      <TableCell className="border border-gray-200 p-2">
-                        <Input
-                          {...register(`rooms.${index}.description`)}
-                          className="w-full border-0 rounded-none shadow-none p-0 h-8 text-left focus:ring-0 focus:outline-none"
+                        <Controller
+                          control={control}
+                          name={`rooms.${index}.description`}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              value={(field.value as string | number | undefined) ?? ''}
+                              onChange={(e) => field.onChange(e.target.value)}
+                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                            />
+                          )}
                         />
                       </TableCell>
                       <TableCell className="border border-gray-200 p-2">
@@ -641,7 +813,7 @@ const CreateBuildingPage = () => {
               type="button"
               variant="outline"
               className="flex-1"
-              onClick={() => navigate('/buildings')}
+              onClick={() => navigate(`/${Path.buildings}`)}
             >
               Hủy
             </Button>

@@ -1,6 +1,7 @@
 import { queryClient } from '@/lib/reactQuery';
 import { ArrowLeft, Edit, Plus, Trash2, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { IoIosWarning } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGetRoomByIdQuery, useUpdateRoomMutation } from '@/api/room';
@@ -16,7 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { getStatusLabel } from '@/pages/rooms/roomConstants';
+import { Path, QueriesKey } from '@/constants/appConstants';
+import { getStatusLabel } from '@/pages/rooms/RoomsConstants';
 import { type Member, ROOMSTATUS, type Room } from '@/types/room';
 import { formatNumber, parseNumber } from '@/utils/utils';
 
@@ -28,15 +30,17 @@ const EditRoom = () => {
 
   const { data: roomData, isLoading, error } = useGetRoomByIdQuery(roomId || '', !!roomId);
   const updateRoomMutation = useUpdateRoomMutation();
-
+  const [originalRoom, setOriginalRoom] = useState<Room | null>(null);
   const [editRoom, setEditRoom] = useState<Room | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [editingMemberIndex, setEditingMemberIndex] = useState<number | undefined>(undefined);
+  const [cachedMembers, setCachedMembers] = useState<Member[]>([]);
 
   useEffect(() => {
     if (roomData?.room) {
       const room = roomData.room;
+
       const convertedRoom: Room = {
         _id: room._id,
         number: room.number,
@@ -56,12 +60,22 @@ const EditRoom = () => {
         createdAt: room.createdAt,
         updatedAt: room.updatedAt,
       };
+
       setEditRoom(convertedRoom);
+      setOriginalRoom(convertedRoom);
     }
   }, [roomData]);
 
+  const isDirty = JSON.stringify(editRoom) !== JSON.stringify(originalRoom);
+  const licensePlateCount = editRoom?.members?.reduce(
+    (count, member) => count + (!member.licensePlate ? 0 : 1),
+    0,
+  );
+
   const handleUpdateRoom = () => {
-    if (!editRoom || !roomId) return;
+    if (!editRoom || !roomId) {
+      return;
+    }
 
     const roomData = {
       number: editRoom.number,
@@ -75,7 +89,7 @@ const EditRoom = () => {
       parkingFee: editRoom.parkingFee,
       livingFee: editRoom.livingFee,
       members: editRoom.members.map((member) => ({
-        userId: member.userId || '',
+        _id: member._id,
         name: member.name,
         phone: member.phone,
         licensePlate: member.licensePlate,
@@ -83,32 +97,42 @@ const EditRoom = () => {
         isRepresentative: member.isRepresentative,
       })),
       description: editRoom.description,
-    };
+    } as Room;
 
     updateRoomMutation.mutate(
       { id: roomId, data: roomData },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['rooms'] });
-          queryClient.invalidateQueries({ queryKey: ['room', roomId] });
-          navigate('/rooms');
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.room, roomId] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
+          queryClient.invalidateQueries({ queryKey: [QueriesKey.building, editRoom?.buildingId] });
+          navigate(`/${Path.rooms}`);
         },
       },
     );
   };
 
   const handleAddMember = (memberData: Member) => {
-    if (!editRoom) return;
-    if (editingMemberIndex !== undefined) {
-      const updatedMembers = [...editRoom.members];
-      updatedMembers[editingMemberIndex] = { ...memberData };
-      setEditRoom({ ...editRoom, members: updatedMembers });
-    } else {
-      setEditRoom({
-        ...editRoom,
-        members: [...editRoom.members, { ...memberData }],
-      });
+    if (!editRoom) {
+      return;
     }
+
+    let updatedMembers: Member[];
+
+    if (editingMemberIndex !== undefined) {
+      updatedMembers = [...editRoom.members];
+      updatedMembers[editingMemberIndex] = { ...memberData };
+    } else {
+      updatedMembers = [...editRoom.members, { ...memberData }];
+    }
+
+    setEditRoom({
+      ...editRoom,
+      members: updatedMembers,
+      status: updatedMembers.length > 0 ? ROOMSTATUS.OCCUPIED : ROOMSTATUS.AVAILABLE,
+    });
+
     setEditingMember(null);
     setEditingMemberIndex(undefined);
   };
@@ -143,7 +167,7 @@ const EditRoom = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-row items-center gap-4 mb-8">
           <Button
@@ -179,19 +203,33 @@ const EditRoom = () => {
                   <Label className="text-sm font-medium text-slate-700">Trạng thái</Label>
                   <Select
                     value={editRoom.status ?? ROOMSTATUS.AVAILABLE}
-                    onValueChange={(value) =>
-                      setEditRoom({ ...editRoom, status: value as ROOMSTATUS })
-                    }
+                    onValueChange={(value) => {
+                      const newStatus = value as ROOMSTATUS;
+
+                      if (newStatus === ROOMSTATUS.AVAILABLE) {
+                        setCachedMembers(editRoom.members);
+
+                        setEditRoom({
+                          ...editRoom,
+                          status: newStatus,
+                          members: [],
+                        });
+                      } else {
+                        setEditRoom({
+                          ...editRoom,
+                          status: newStatus,
+                          members: editRoom.members.length === 0 ? cachedMembers : editRoom.members,
+                        });
+                      }
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn trạng thái phòng" />
                     </SelectTrigger>
                     <SelectContent>
-                      {editRoom.members.length === 0 && (
-                        <SelectItem value={ROOMSTATUS.AVAILABLE}>
-                          {getStatusLabel(ROOMSTATUS.AVAILABLE)}
-                        </SelectItem>
-                      )}
+                      <SelectItem value={ROOMSTATUS.AVAILABLE}>
+                        {getStatusLabel(ROOMSTATUS.AVAILABLE)}
+                      </SelectItem>
                       <SelectItem value={ROOMSTATUS.MAINTENANCE}>
                         {getStatusLabel(ROOMSTATUS.MAINTENANCE)}
                       </SelectItem>
@@ -285,7 +323,18 @@ const EditRoom = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">Giá water (VNÐ)</Label>
+                  <Label
+                    className="text-sm font-medium text-slate-700"
+                    helpText={
+                      <div className="max-w-125">
+                        • Đối với cách tính giá nước theo người thì cần thực hiện nhập giá trị =
+                        ⟪giá nước (1 người)⟫ x ⟪số người⟫.
+                        <br />• Đối với cách tính giá nước theo m3 thì nhập trị = giá nước /1m³
+                      </div>
+                    }
+                  >
+                    Giá nước (VNÐ)
+                  </Label>
 
                   {/* Toggle buttons */}
                   <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
@@ -374,7 +423,7 @@ const EditRoom = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  Thành viên ({editRoom.members.length})
+                  Thành viên ({editRoom.members.length}) - Xe: {licensePlateCount}
                 </h2>
                 <Button
                   size="sm"
@@ -418,7 +467,15 @@ const EditRoom = () => {
                             variant="ghost"
                             onClick={() => {
                               const updatedMembers = editRoom.members.filter((_, i) => i !== index);
-                              setEditRoom({ ...editRoom, members: updatedMembers });
+
+                              setEditRoom({
+                                ...editRoom,
+                                members: updatedMembers,
+                                status:
+                                  updatedMembers.length === 0
+                                    ? ROOMSTATUS.AVAILABLE
+                                    : ROOMSTATUS.OCCUPIED,
+                              });
                             }}
                             className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                           >
@@ -437,7 +494,13 @@ const EditRoom = () => {
                 </div>
               )}
             </Card>
-
+            {isDirty && (
+              <div className="mb-4 p-3 rounded-md bg-yellow-100 border border-yellow-300 text-yellow-800 text-sm">
+                <div className="wrap-normal flex">
+                  <IoIosWarning className="w-4 h-4 mr-2" /> Bạn có thay đổi chưa được lưu
+                </div>
+              </div>
+            )}
             {/* Action Buttons */}
             <Card className="p-6">
               <div className="space-y-3">
