@@ -39,6 +39,8 @@ export enum QueriesKey {
   payments = 'payments',
   occupiedRooms = 'occupiedRooms',
   roomsWithMeterReadings = 'roomsWithMeterReadings',
+  invoices = 'invoices',
+  invoice = 'invoice',
 }
 
 export enum RoomStatus {

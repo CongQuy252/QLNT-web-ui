@@ -1,16 +1,23 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { queryClient } from '@/lib/reactQuery';
 import { CreditCard } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
-import { deleteInvoice, getInvoices } from '@/api/invoice';
+import { useGetBuildingQueries } from '@/api/building';
+import { useDeleteInvoice, useGetInvoiceById, useGetInvoices } from '@/api/invoice';
+import { useExportInvoices } from '@/api/payment';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -22,8 +29,8 @@ import {
 import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
-import { http } from '@/lib/axios';
 import { maxItemPerPage } from '@/pages/payment/paymentConstants';
+import type { Invoice, Pagination } from '@/types/invoice';
 import { formatCurrency } from '@/utils/utils';
 
 export default function Payment() {
@@ -31,82 +38,97 @@ export default function Payment() {
   const { show, hide } = useLoading();
   const { success, error } = useToast();
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
+  const { mutateAsync: exportInvoices } = useExportInvoices();
+  const { data: buildings } = useGetBuildingQueries();
 
-  const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
-
+  const { data: user, isLoading: isLoadingUserQuery, isError } = useUserQuery(userId, !!userId);
+  const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'unpaid' | 'overdue'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
-  // Direct API call instead of hook
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [pagination, setPagination] = useState<any>(null);
-  const [invoicesLoading, setInvoicesLoading] = useState(true);
-  const [_, setInvoicesError] = useState<string | null>(null);
+  const { data: searchedInvoice, isLoading: isSearching } = useGetInvoiceById(
+    debouncedSearch,
+    !!debouncedSearch,
+  );
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
 
-  // Fetch invoices data directly
-  const fetchInvoices = useCallback(async () => {
-    try {
-      setInvoicesLoading(true);
-      setInvoicesError(null);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-      const params = {
-        page: currentPage,
-        limit: maxItemPerPage,
-        status: filterStatus === 'all' ? undefined : filterStatus.toLowerCase(),
-      };
+  const defaultPaginate: Pagination = useMemo(
+    () => ({
+      currentPage: 1,
+      totalPages: 1,
+      totalItems: 0,
+      itemsPerPage: maxItemPerPage,
+      hasNextPage: false,
+      hasPrevPage: false,
+    }),
+    [],
+  );
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [pagination, setPagination] = useState<Pagination>(defaultPaginate);
 
-      const response = await getInvoices(params);
+  const { mutateAsync: deleteInvoiceMutate } = useDeleteInvoice();
 
-      // Handle backend response structure
-      if (response && response.invoices) {
-        setInvoices(response.invoices);
-        setPagination(
-          response.pagination || {
-            currentPage: 1,
-            totalPages: 1,
-            totalItems: response.invoices.length,
-            itemsPerPage: maxItemPerPage,
-            hasNextPage: false,
-            hasPrevPage: false,
-          },
-        );
-      } else {
-        setInvoices([]);
-        setPagination(null);
-      }
-    } catch (error) {
-      setInvoicesError('Failed to fetch invoices');
-      setInvoices([]);
-      setPagination(null);
-    } finally {
-      setInvoicesLoading(false);
+  const {
+    data,
+    error: invoiceError,
+    isLoading,
+  } = useGetInvoices({
+    page: currentPage,
+    limit: maxItemPerPage,
+    status: filterStatus === 'all' ? undefined : filterStatus.toLowerCase(),
+    buildingId: selectedBuilding === 'all' ? undefined : selectedBuilding,
+  });
+
+  const displayInvoices = useMemo(() => {
+    if (!debouncedSearch) {
+      return invoices;
     }
-  }, [currentPage, filterStatus]);
 
-  // Reset to page 1 when filter changes
+    return searchedInvoice ? [searchedInvoice] : [];
+  }, [debouncedSearch, invoices, searchedInvoice]);
+
+  useEffect(() => {
+    if (data && data.invoices) {
+      setInvoices(data.invoices);
+      setPagination(data.pagination ?? defaultPaginate);
+    } else {
+      setInvoices([]);
+      setPagination(defaultPaginate);
+    }
+  }, [data, defaultPaginate]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [filterStatus]);
 
-  // Initial fetch and when filters change
   useEffect(() => {
-    fetchInvoices();
-  }, [fetchInvoices]);
+    if (invoiceError) {
+      error(invoiceError?.message);
+      return;
+    }
+  }, [error, invoiceError]);
 
   const handleDeleteInvoice = useCallback(
     async (invoiceId: string) => {
       try {
-        await deleteInvoice(invoiceId);
-        success('Xóa hóa đơn thành công');
-        fetchInvoices(); // Refresh data
-      } catch (error) {
-        console.error('Error deleting invoice:', error);
+        await deleteInvoiceMutate(invoiceId).then(() => {
+          success('Xóa hóa đơn thành công');
+        });
+      } catch (err) {
+        console.error('Error deleting invoice:', err);
+        error('Xóa thất bại');
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [fetchInvoices],
+    [deleteInvoiceMutate, success, error],
   );
 
   const handleLogout = useCallback(() => {
@@ -116,25 +138,22 @@ export default function Payment() {
   }, [navigator]);
 
   useEffect(() => {
-    if (isLoading || invoicesLoading) {
+    if (isLoadingUserQuery || isLoading || isSearching) {
       show();
     } else {
       hide();
     }
-  }, [hide, isLoading, invoicesLoading, show]);
+  }, [hide, isLoading, isLoadingUserQuery, isSearching, show]);
 
   useEffect(() => {
-    if (!isLoading && (isError || !user)) {
+    if (!isLoadingUserQuery && (isError || !user)) {
       handleLogout();
     }
-  }, [isLoading, isError, user, handleLogout]);
+  }, [isLoadingUserQuery, isError, user, handleLogout]);
 
   if (!user) {
     return null;
   }
-
-  // Remove client-side filtering since API handles it
-  const paginatedInvoices = invoices;
 
   const handlePageChange = (page: number) => {
     if (pagination && page >= 1 && page <= pagination.totalPages) {
@@ -156,10 +175,10 @@ export default function Payment() {
   };
 
   const handleSelectAll = () => {
-    if (selectedRows.size === paginatedInvoices.length) {
+    if (selectedRows.size === displayInvoices.length) {
       setSelectedRows(new Set());
     } else {
-      setSelectedRows(new Set(paginatedInvoices.map((invoice: any) => invoice._id)));
+      setSelectedRows(new Set(displayInvoices.map((invoice: Invoice) => invoice._id)));
     }
   };
 
@@ -175,19 +194,8 @@ export default function Payment() {
 
     try {
       show();
-
-      const response = await http.post(
-        '/payments/export-zip',
-        {
-          invoiceIds: Array.from(selectedRows),
-        },
-        {
-          responseType: 'blob',
-        },
-      );
-
-      // Create download link
-      const blob = new Blob([response.data], { type: 'application/zip' });
+      const blobData = await exportInvoices(Array.from(selectedRows));
+      const blob = new Blob([blobData], { type: 'application/zip' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -198,9 +206,8 @@ export default function Payment() {
       window.URL.revokeObjectURL(url);
 
       success('Xuất PDF thành công!');
-    } catch (err: any) {
-      console.error('Export error:', err);
-      error(err.response?.data?.message || 'Lỗi khi xuất PDF');
+    } catch {
+      error('Lỗi khi xuất PDF');
     } finally {
       hide();
     }
@@ -243,12 +250,26 @@ export default function Payment() {
             bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap"
           >
             Nhập mã hoá đơn để tìm kiếm
-            <div
-              className="absolute left-1/2 top-full -translate-x-1/2
-        border-6 border-transparent border-t-gray-900"
-            ></div>
+            <div className="absolute left-1/2 top-full -translate-x-1/2 border-6 border-transparent border-t-gray-900"></div>
           </div>
         </div>
+
+        <Select value={selectedBuilding} onValueChange={(value) => setSelectedBuilding(value)}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Chọn tòa nhà" />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="all">Tất cả tòa nhà</SelectItem>
+
+            {buildings?.data?.map((building) => (
+              <SelectItem key={building._id} value={building._id}>
+                {building.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <div className="flex items-center justify-between gap-4 w-full">
           <div className="flex gap-2 overflow-x-auto">
             {(['all', 'paid', 'unpaid', 'overdue'] as const).map((status) => (
@@ -280,14 +301,14 @@ export default function Payment() {
       </div>
 
       <div className="overflow-x-auto">
-        {paginatedInvoices.length > 0 ? (
+        {displayInvoices && displayInvoices.length > 0 ? (
           <Table className="border border-slate-200">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12 border-r border-slate-200">
                   <Checkbox
                     checked={
-                      selectedRows.size === paginatedInvoices.length && paginatedInvoices.length > 0
+                      selectedRows.size === displayInvoices.length && displayInvoices.length > 0
                     }
                     onCheckedChange={handleSelectAll}
                   />
@@ -302,7 +323,7 @@ export default function Payment() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedInvoices.map((invoice: any) => (
+              {displayInvoices.map((invoice: Invoice) => (
                 <TableRow
                   key={invoice._id}
                   className="cursor-pointer hover:bg-slate-50"
@@ -320,20 +341,22 @@ export default function Payment() {
                   <TableCell className="border-r border-slate-200">
                     <div>
                       <p className="font-medium">{invoice.roomId?.number}</p>
-                      <p className="text-sm text-slate-500">{invoice.roomId?.buildingId?.name}</p>
+                      <p className="text-sm text-slate-500">
+                        {invoice.roomId?.buildingId?.name || '-'}
+                      </p>
                     </div>
                   </TableCell>
                   <TableCell className="border-r border-slate-200">
                     <div>
                       <p className="font-medium">
                         {invoice.tenantInfo?.name ||
-                          invoice.roomId?.members?.find((m: any) => m.isRepresentative)?.name ||
+                          invoice.roomId?.members?.find((m) => m.isRepresentative)?.name ||
                           invoice.roomId?.members?.[0]?.name ||
                           '-'}
                       </p>
                       <p className="text-sm text-slate-500">
                         {invoice.tenantInfo?.phone ||
-                          invoice.roomId?.members?.find((m: any) => m.isRepresentative)?.phone ||
+                          invoice.roomId?.members?.find((m) => m.isRepresentative)?.phone ||
                           invoice.roomId?.members?.[0]?.phone ||
                           '-'}
                       </p>
@@ -387,7 +410,7 @@ export default function Payment() {
           </Table>
         ) : (
           <div className="text-center py-8 text-slate-500">
-            {invoicesLoading
+            {isLoading
               ? 'Đang tải...'
               : `Không tìm thấy hóa đơn nào cho trạng thái: ${
                   filterStatus === 'all'
@@ -405,7 +428,7 @@ export default function Payment() {
       </div>
 
       {/* Pagination */}
-      {pagination && invoices.length > 0 && (
+      {pagination && displayInvoices.length > 0 && (
         <div className="flex items-center justify-between p-4">
           <div className="text-sm text-slate-600">
             {(pagination.currentPage - 1) * pagination.itemsPerPage + 1} -{' '}
@@ -439,13 +462,12 @@ export default function Payment() {
         </div>
       )}
 
-      {invoices.length === 0 && !invoicesLoading && (
+      {displayInvoices.length === 0 && !isLoading && (
         <div className="py-12 text-center">
           <CreditCard className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-600">Không tìm thấy khoản thanh toán nào phù hợp</p>
         </div>
       )}
-      {/* </Card> */}
     </div>
   );
 }

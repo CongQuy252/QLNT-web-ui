@@ -38,12 +38,6 @@ const Home = () => {
 
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
-  // const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
-  // const getBuildings = useGetBuildingQueries();
-  // const getRooms = useGetRoomsQueries();
-  // const roomTenant = useGetRoomByUserIDQuery(userId, !!userId);
-  // const getPayment = useGetPaymentByUserId(userId, !!userId);
-
   const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
 
   const isOwner = user?.role === UserRole.admin;
@@ -140,10 +134,8 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-linear-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">R</span>
-              </div>
-              <h1 className="text-2xl font-bold text-slate-900">RoomHub</h1>
+              <img src="/logo.jpg" alt="logo" className="h-12 w-auto object-contain" />
+              <h1 className="text-2xl font-bold text-slate-900">DEE HOME</h1>
             </div>
             <div className="flex gap-3">
               <Button

@@ -1,9 +1,9 @@
-import type { Member } from './room';
+import type { GetRoom } from './room';
 
 export enum InvoiceStatus {
-  UNPAID = 'UNPAID',
-  PAID = 'PAID',
-  OVERDUE = 'OVERDUE',
+  UNPAID = 'unpaid',
+  PAID = 'paid',
+  OVERDUE = 'overdue',
 }
 
 export interface TenantInfo {
@@ -15,17 +15,9 @@ export interface TenantInfo {
 
 export interface Invoice {
   _id: string;
-  tenantId: string | null; // member._id or null
-  tenantInfo?: TenantInfo; // populated by backend
-  roomId: {
-    _id: string;
-    number: string;
-    buildingId: {
-      _id: string;
-      name: string;
-    };
-    members?: Member[];
-  };
+  tenantId: string | null;
+  tenantInfo?: TenantInfo;
+  roomId: GetRoom;
   month: number;
   year: number;
   status: InvoiceStatus;
@@ -44,5 +36,26 @@ export interface Invoice {
   updatedAt: string;
 }
 
-// Union type for both Payment and Invoice
 export type PaymentOrInvoice = import('./payment').Payment | Invoice;
+
+export interface Pagination {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface GetInvoiceResponse {
+  success: boolean;
+  data: {
+    invoices: Invoice[];
+    pagination: Pagination;
+  };
+}
+
+export interface GetInvoiceByIdResponse {
+  success: boolean;
+  data: Invoice;
+}

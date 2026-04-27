@@ -8,7 +8,13 @@ import { confirmPayment } from '@/api/paymentTransaction';
 import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { LocalStorageKey, Path, PaymentStatus, UserRole } from '@/constants/appConstants';
+import {
+  LocalStorageKey,
+  Path,
+  PaymentStatus,
+  QueriesKey,
+  UserRole,
+} from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
 import { formatCurrency } from '@/utils/utils';
@@ -36,11 +42,9 @@ export default function PaymentDetail() {
         setInvoiceLoading(true);
         setInvoiceError(null);
         const response = await getInvoiceById(paymentId);
-        // Handle backend response structure: { success: true, data: {...} }
-        const data = response.success && response.data ? response.data : response;
-        setInvoice(data);
+        setInvoice(response);
       } catch {
-        setInvoiceError('Failed to fetch invoice');
+        setInvoiceError('Có lỗi khi tải hoá đơn');
       } finally {
         setInvoiceLoading(false);
       }
@@ -60,7 +64,6 @@ export default function PaymentDetail() {
     try {
       show();
 
-      // Calculate remaining amount to pay
       const remainingAmount = invoice.totalAmount - (invoice.totalPaid || 0);
 
       await confirmPayment({
@@ -71,7 +74,6 @@ export default function PaymentDetail() {
         note: 'Đánh dấu đã thanh toán đầy đủ',
       });
 
-      // Update local state
       setInvoice({
         ...invoice,
         status: PaymentStatus.PAID,
@@ -80,11 +82,10 @@ export default function PaymentDetail() {
 
       success('Đã cập nhật trạng thái thanh toán thành công');
 
-      // Refresh invoice data
-      queryClient.invalidateQueries({ queryKey: ['invoice', paymentId] });
-    } catch (err: any) {
-      console.error('Payment confirmation error:', err);
-      error(err.response?.data?.message || 'Lỗi khi cập nhật trạng thái thanh toán');
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.invoice, paymentId] });
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.invoices] });
+    } catch {
+      error('Lỗi khi cập nhật trạng thái thanh toán');
     } finally {
       hide();
     }
