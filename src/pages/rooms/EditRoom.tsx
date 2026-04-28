@@ -327,16 +327,15 @@ const EditRoom = () => {
                     className="text-sm font-medium text-slate-700"
                     helpText={
                       <div className="max-w-125">
-                        • Đối với cách tính giá nước theo người thì cần thực hiện nhập giá trị =
-                        ⟪giá nước (1 người)⟫ x ⟪số người⟫.
-                        <br />• Đối với cách tính giá nước theo m3 thì nhập trị = giá nước /1m³
+                        • Đối với cách tính giá nước theo người thì cần thực hiện nhập giá trị là
+                        giá nước / 1 người.
+                        <br />• Đối với cách tính giá nước theo m³ thì nhập giá trị là giá nước /1m³
                       </div>
                     }
                   >
                     Giá nước (VNÐ)
                   </Label>
 
-                  {/* Toggle buttons */}
                   <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
                     <button
                       type="button"

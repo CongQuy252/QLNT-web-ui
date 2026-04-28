@@ -11,6 +11,7 @@ type Props = {
   haveCheckBoxColumn?: boolean;
   selectedMonth: number;
   selectedYear: number;
+  errorRoomIds?: string[];
 };
 
 const MeterReadingTable = ({
@@ -23,6 +24,7 @@ const MeterReadingTable = ({
   haveCheckBoxColumn = false,
   selectedMonth,
   selectedYear,
+  errorRoomIds,
 }: Props) => {
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth() + 1;
@@ -52,7 +54,7 @@ const MeterReadingTable = ({
 
   return (
     <div className="relative border border-gray-300 rounded-lg overflow-hidden">
-      <div className="overflow-y-auto max-h-99 overflow-x-auto">
+      <div className="overflow-y-auto max-h-[calc(100vh-450px)] overflow-x-auto">
         <table className="w-full min-w-100">
           <thead className="sticky top-0 z-10 bg-blue-200">
             <tr>
@@ -62,11 +64,11 @@ const MeterReadingTable = ({
                 </th>
               )}
 
-              <th className="border px-2 py-2">Tòa nhà</th>
-              <th className="border px-2 py-2">Phòng</th>
-              <th className="border px-2 py-2">Điện</th>
-              <th className="border px-2 py-2">Nước</th>
-              <th className="border px-2 py-2">Ngày</th>
+              <th className="border-b border-r border-l p-2">Tòa nhà</th>
+              <th className="border-b border-r border-l p-2">Phòng</th>
+              <th className="border-b border-r border-l p-2">Điện</th>
+              <th className="border-b border-r border-l p-2">Nước</th>
+              <th className="border-b border-r border-l p-2">Ngày</th>
             </tr>
           </thead>
 
@@ -98,8 +100,18 @@ const MeterReadingTable = ({
                   selectedYear,
                 );
 
+                const isError = errorRoomIds?.includes(room._id);
+
                 return (
-                  <tr key={room._id} className={!canEdit ? 'bg-gray-100' : ''}>
+                  <tr
+                    key={room._id}
+                    className={[
+                      !canEdit && 'bg-gray-100',
+                      isError && 'bg-red-100 border border-red-400',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
                     {haveCheckBoxColumn && (
                       <td className="border px-2 py-2 text-center">
                         <Input type="checkbox" disabled={!canEdit} />
@@ -160,8 +172,8 @@ const MeterReadingTable = ({
                     </td>
 
                     <td className="border px-2 py-2">
-                      {room.meterReading?.createdAt
-                        ? new Date(room.meterReading.createdAt).toLocaleDateString('vi-VN')
+                      {room.meterReading?.updatedAt
+                        ? new Date(room.meterReading.updatedAt).toLocaleDateString('vi-VN')
                         : '-'}
                     </td>
                   </tr>
