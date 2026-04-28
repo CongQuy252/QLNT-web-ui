@@ -35,6 +35,7 @@ const Statistics = () => {
   const [selectedYear, setSelectedYear] = useState(currentYear.toString());
   const [activeTab, setActiveTab] = useState('table');
   const [isEditing, setIsEditing] = useState(false);
+  const [errorRoomIds, setErrorRoomIds] = useState<string[]>([]);
   const [editedValues, setEditedValues] = useState<
     Record<string, { electricity: number; water: number }>
   >({});
@@ -80,30 +81,39 @@ const Statistics = () => {
   };
 
   const handleSave = async () => {
-    try {
-      const bulkData: BulkMeterReadingDto = {
-        meterReadings: Object.entries(editedValues).map(([roomId, values]) => ({
-          roomId,
-          electricityReading: values.electricity,
-          waterReading: values.water,
-          month,
-          year,
-        })),
-      };
+    const bulkData: BulkMeterReadingDto = {
+      meterReadings: Object.entries(editedValues).map(([roomId, values]) => ({
+        roomId,
+        electricityReading: values.electricity,
+        waterReading: values.water,
+        month,
+        year,
+      })),
+    };
 
-      const result = await bulkUpsertMeterReadings(bulkData);
-
-      if (result.errors && result.errors.length > 0) {
-        toastError(result.errors.join(', '));
-      } else {
-        success('Lưu dữ liệu thành công.');
-        setEditedValues({});
-        setIsEditing(false);
-        refetch();
-      }
-    } catch {
-      toastError('Lưu thất bại. Vui lòng thử lại.');
-    }
+    await bulkUpsertMeterReadings(bulkData)
+      .then((res) => {
+        if (res.errors && res.errors.length > 0) {
+          toastError(res.errors.join(', '));
+          setErrorRoomIds(res.errorRoomIds || []);
+        } else {
+          success('Lưu dữ liệu thành công.');
+          setEditedValues({});
+          setErrorRoomIds([]);
+          setIsEditing(false);
+          refetch();
+        }
+      })
+      .catch((err) => {
+        const errors = err?.response?.data?.errors;
+        const errorRoomIds = err?.response?.data?.errorRoomIds;
+        if (errors && errors.length > 0) {
+          toastError(errors.join('\n'));
+          setErrorRoomIds(errorRoomIds || []);
+        } else {
+          toastError('Có lỗi xảy ra');
+        }
+      });
   };
 
   return (
@@ -146,11 +156,11 @@ const Statistics = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold uppercase text-gray-400">
-                          Số phòng
+                          Tên phòng
                         </Label>
                         <Input
                           type="text"
-                          placeholder="Ví dụ: 101..."
+                          placeholder="Tên phòng"
                           value={inputRoomNumber}
                           onChange={(e) => setInputRoomNumber(e.target.value)}
                           onBlur={() => setSelectedRoom(inputRoomNumber)}
@@ -163,7 +173,7 @@ const Statistics = () => {
                         </Label>
                         <Input
                           type="text"
-                          placeholder="Nhập tên tòa nhà..."
+                          placeholder="Tên tòa nhà..."
                           value={buildingInput}
                           onChange={(e) => setBuildingInput(e.target.value)}
                           onBlur={() => setSelectedBuilding(buildingInput)}
@@ -225,6 +235,7 @@ const Statistics = () => {
                             onClick={() => {
                               setEditedValues({});
                               setIsEditing(false);
+                              setErrorRoomIds([]);
                             }}
                           >
                             <div className="flex items-center gap-2">
@@ -265,11 +276,8 @@ const Statistics = () => {
                     ※ Danh sách đang hiển thị là chỉ số của tháng {selectedMonth} năm {selectedYear}
                     . Để xem chỉ số của các tháng cũ hơn, vui lòng chọn tháng muốn hiển thị tại phía
                     trên.
-                    <br />
-                    <div className="ml-5.75">
-                      Khi thực hiện cập nhật xong chỉ số của 1 tháng. Vui lòng lưu lại để tránh dữ
-                      liệu được lưu không đúng.
-                    </div>
+                    <br />※ Khi thực hiện cập nhật xong chỉ số của 1 tháng. Vui lòng lưu lại để
+                    tránh dữ liệu được lưu không đúng.
                   </div>
 
                   <div className="overflow-x-auto">
@@ -277,6 +285,7 @@ const Statistics = () => {
                       rooms={rooms}
                       isLoading={isLoading}
                       error={error}
+                      errorRoomIds={errorRoomIds}
                       isEditing={isEditing}
                       editedValues={editedValues}
                       onChange={handleInputChange}

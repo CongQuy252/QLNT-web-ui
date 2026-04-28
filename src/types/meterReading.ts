@@ -62,4 +62,5 @@ export interface BulkMeterReadingResponse {
     updatedAt: string;
   }[];
   errors: string[];
+  errorRoomIds?: string[];
 }
