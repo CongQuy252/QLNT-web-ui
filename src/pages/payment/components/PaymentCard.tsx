@@ -17,6 +17,7 @@ import { UserRole } from '@/constants/appConstants';
 import { getStatusBadge, getStatusLabel } from '@/pages/payment/paymentConstants';
 import type { Invoice } from '@/types/invoice';
 import type { Payment } from '@/types/payment';
+import type { Member } from '@/types/room';
 import { formatCurrency, formatDate } from '@/utils/utils';
 
 interface PaymentCardProps {
@@ -28,20 +29,43 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
   const [expanded, setExpanded] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const user = { role: 1 };
-  const isInvoice = 'tenantId' in payment && typeof payment.tenantId === 'object';
+  const navigate = useNavigate();
+  const isInvoice = payment ? 'tenantId' in payment && typeof payment.tenantId === 'string' : false;
 
-  const tenantIdForQuery = isInvoice
-    ? (payment as Invoice).tenantId._id
-    : (payment as Payment).tenantId;
+  let roomIdForQuery = '';
+  if (isInvoice && payment) {
+    roomIdForQuery = (payment as Invoice).roomId?._id || '';
+  } else if (payment) {
+    const roomId = (payment as Payment).roomId;
+    roomIdForQuery = typeof roomId === 'string' ? roomId : '';
+  }
 
-  const roomIdForQuery = isInvoice ? (payment as Invoice).roomId._id : (payment as Payment).roomId;
-  const { data: tenant } = useGetTenantByIdQuery(tenantIdForQuery, true);
-  const { data: roomData } = useGetRoomByIdQuery(roomIdForQuery);
+  const { data: roomData } = useGetRoomByIdQuery(roomIdForQuery, !!roomIdForQuery);
+  const tenantIdForQuery = !isInvoice && payment ? (payment as Payment).tenantId : '';
+  const { data: tenant } = useGetTenantByIdQuery(
+    tenantIdForQuery,
+    !!tenantIdForQuery && !isInvoice,
+  );
+
+  if (!payment) {
+    return <div>Không có dữ liệu thanh toán</div>;
+  }
 
   let tenantName = '-';
   if (isInvoice) {
     const invoice = payment as Invoice;
-    tenantName = invoice.tenantId.fullName;
+    if (invoice.tenantInfo) {
+      tenantName = invoice.tenantInfo.name;
+    } else if (invoice.roomId && invoice.roomId.members && invoice.roomId.members.length > 0) {
+      const representative = invoice.roomId.members.find((m: Member) => m.isRepresentative);
+      tenantName = representative?.name || invoice.roomId.members[0]?.name || '-';
+    } else {
+      const room = roomData?.room;
+      if (room && room.members && room.members.length > 0) {
+        const representative = room.members.find((m: Member) => m.isRepresentative);
+        tenantName = representative?.name || room.members[0]?.name || '-';
+      }
+    }
   } else {
     tenantName = tenant?.userId.name || '-';
   }
@@ -74,7 +98,6 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onDelete }) =
   const paidDate = isInvoice ? (payment as Invoice).paidDate : (payment as Payment).paidDate;
   const notes = isInvoice ? undefined : (payment as Payment).notes;
 
-  const navigate = useNavigate();
   const handleGoDetail = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigate(`/payments/${payment._id}`);

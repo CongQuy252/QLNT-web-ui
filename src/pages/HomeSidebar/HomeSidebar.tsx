@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
 import { LocalStorageKey, UserRole } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
-import { ownerIcon, ownerListFunctions, tenantListFunctions } from '@/pages/home/HomeContants';
+import { ownerListFunctions, tenantListFunctions } from '@/pages/home/HomeContants';
 
 const HomeSidebar = () => {
   const navigate = useNavigate();
@@ -53,8 +53,6 @@ const HomeSidebar = () => {
 
   if (!isReady) return null;
 
-  const isOwner = user.role === UserRole.admin;
-
   return (
     <div className="h-screen flex bg-slate-50 overflow-hidden">
       {/* SIDEBAR */}
@@ -67,11 +65,12 @@ const HomeSidebar = () => {
   `}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-slate-200">
-          <h1 className="text-xl font-bold text-slate-900">RoomHub</h1>
-          <p className="text-sm text-slate-600">
-            {isOwner ? ownerIcon.owner : ownerIcon.tenant} {isOwner ? 'Chủ nhà' : 'Người thuê'}
-          </p>
+        <div className="flex items-center gap-4 p-6 border-b border-slate-200">
+          <img src="/logo.jpg" alt="logo" className="h-12 w-auto object-contain" />
+
+          <div className="text-2xl md:text-3xl font-semibold text-slate-800 tracking-wide">
+            DEE HOME
+          </div>
         </div>
 
         {/* Menu */}

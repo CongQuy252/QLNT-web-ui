@@ -35,6 +35,7 @@ const Statistics = () => {
   const [selectedYear, setSelectedYear] = useState(currentYear.toString());
   const [activeTab, setActiveTab] = useState('table');
   const [isEditing, setIsEditing] = useState(false);
+  const [errorRoomIds, setErrorRoomIds] = useState<string[]>([]);
   const [editedValues, setEditedValues] = useState<
     Record<string, { electricity: number; water: number }>
   >({});
@@ -80,39 +81,46 @@ const Statistics = () => {
   };
 
   const handleSave = async () => {
-    try {
-      const bulkData: BulkMeterReadingDto = {
-        meterReadings: Object.entries(editedValues).map(([roomId, values]) => ({
-          roomId,
-          electricityReading: values.electricity,
-          waterReading: values.water,
-          month,
-          year,
-        })),
-      };
+    const bulkData: BulkMeterReadingDto = {
+      meterReadings: Object.entries(editedValues).map(([roomId, values]) => ({
+        roomId,
+        electricityReading: values.electricity,
+        waterReading: values.water,
+        month,
+        year,
+      })),
+    };
 
-      const result = await bulkUpsertMeterReadings(bulkData);
-
-      if (result.errors && result.errors.length > 0) {
-        toastError(result.errors.join(', '));
-      } else {
-        success('Lưu dữ liệu thành công.');
-        setEditedValues({});
-        setIsEditing(false);
-        refetch();
-      }
-    } catch {
-      toastError('Lưu thất bại. Vui lòng thử lại.');
-    }
+    await bulkUpsertMeterReadings(bulkData)
+      .then((res) => {
+        if (res.errors && res.errors.length > 0) {
+          toastError(res.errors.join(', '));
+          setErrorRoomIds(res.errorRoomIds || []);
+        } else {
+          success('Lưu dữ liệu thành công.');
+          setEditedValues({});
+          setErrorRoomIds([]);
+          setIsEditing(false);
+          refetch();
+        }
+      })
+      .catch((err) => {
+        const errors = err?.response?.data?.errors;
+        const errorRoomIds = err?.response?.data?.errorRoomIds;
+        if (errors && errors.length > 0) {
+          toastError(errors.join('\n'));
+          setErrorRoomIds(errorRoomIds || []);
+        } else {
+          toastError('Có lỗi xảy ra');
+        }
+      });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
-      <div className="max-w-7xl mx-auto p-4 md:p-6">
+    <div className="max-h-screen bg-gray-50">
+      <div className="w-full">
         {/* Tiêu đề linh hoạt */}
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-4">
-          Thống kê chỉ số điện nước
-        </h1>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-4">Thống kê</h1>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="w-full">
@@ -127,7 +135,7 @@ const Statistics = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 min-w-[100px] py-4 px-1 text-center text-sm font-medium border-b-2 transition-all ${
+                    className={`flex-1 min-w-25 py-4 px-1 text-center text-sm font-medium border-b-2 transition-all ${
                       activeTab === tab.id
                         ? 'text-blue-600 border-blue-500'
                         : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -148,11 +156,11 @@ const Statistics = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold uppercase text-gray-400">
-                          Số phòng
+                          Tên phòng
                         </Label>
                         <Input
                           type="text"
-                          placeholder="Ví dụ: 101..."
+                          placeholder="Tên phòng"
                           value={inputRoomNumber}
                           onChange={(e) => setInputRoomNumber(e.target.value)}
                           onBlur={() => setSelectedRoom(inputRoomNumber)}
@@ -165,7 +173,7 @@ const Statistics = () => {
                         </Label>
                         <Input
                           type="text"
-                          placeholder="Nhập tên tòa nhà..."
+                          placeholder="Tên tòa nhà..."
                           value={buildingInput}
                           onChange={(e) => setBuildingInput(e.target.value)}
                           onBlur={() => setSelectedBuilding(buildingInput)}
@@ -175,94 +183,109 @@ const Statistics = () => {
                     </div>
 
                     {/* Chọn Thời gian & Nút Action */}
-                    <div className="flex flex-wrap items-end gap-2">
-                      <div className="flex-1 min-w-[120px]">
-                        <Label className="text-xs font-semibold uppercase text-gray-400 mb-2 block">
-                          Tháng
-                        </Label>
-                        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                          <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Tháng" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 12 }, (_, i) => (
-                              <SelectItem key={i + 1} value={(i + 1).toString()}>
-                                Tháng {String(i + 1).padStart(2, '0')}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="flex-1 min-w-[100px]">
-                        <Label className="text-xs font-semibold uppercase text-gray-400 mb-2 block">
-                          Năm
-                        </Label>
-                        <Select value={selectedYear} onValueChange={setSelectedYear}>
-                          <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Năm" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 5 }, (_, i) => {
-                              const year = currentYear - 2 + i;
-                              return (
-                                <SelectItem key={year} value={year.toString()}>
-                                  {year}
+                    <div className="flex flex-wrap sm:flex-nowrap items-end gap-2 sm:justify-between">
+                      {/* BÊN TRÁI */}
+                      <div className="flex flex-wrap sm:flex-nowrap gap-2">
+                        <div className="flex-1 sm:flex-none sm:w-[140px] min-w-[120px]">
+                          <Label className="text-xs font-semibold uppercase text-gray-400 mb-2 block">
+                            Tháng
+                          </Label>
+                          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                            <SelectTrigger className="h-9">
+                              <SelectValue placeholder="Tháng" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 12 }, (_, i) => (
+                                <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                  Tháng {String(i + 1).padStart(2, '0')}
                                 </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex-1 sm:flex-none sm:w-[100px] min-w-[100px]">
+                          <Label className="text-xs font-semibold uppercase text-gray-400 mb-2 block">
+                            Năm
+                          </Label>
+                          <Select value={selectedYear} onValueChange={setSelectedYear}>
+                            <SelectTrigger className="h-9">
+                              <SelectValue placeholder="Năm" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 5 }, (_, i) => {
+                                const year = currentYear - 2 + i;
+                                return (
+                                  <SelectItem key={year} value={year.toString()}>
+                                    {year}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
-                      {/* Nút Edit/Save - To hơn trên Mobile */}
-                      <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                      {/* BÊN PHẢI */}
+                      <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 sm:ml-auto">
                         {isEditing && (
                           <Button
                             variant="outline"
-                            className="flex-1 sm:w-12 h-9 border-red-200 text-red-500"
+                            className="flex-1 sm:w-24 h-9 border-red-200 text-red-500"
                             onClick={() => {
                               setEditedValues({});
                               setIsEditing(false);
+                              setErrorRoomIds([]);
                             }}
                           >
-                            <MdCancel className="h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                              <MdCancel className="h-4 w-4" />
+                              <span>Huỷ</span>
+                            </div>
                           </Button>
                         )}
 
                         <Button
-                          className={`flex-[2] sm:w-auto h-9 ${
+                          className={`flex-1 sm:flex-none sm:w-auto h-9 ${
                             isEditing
                               ? 'bg-green-600 hover:bg-green-700'
                               : 'bg-black hover:bg-gray-800'
-                          } text-white transition-all`}
+                          } text-white`}
                           onClick={() => {
-                            if (isEditing) handleSave();
-                            else setIsEditing(true);
+                            if (isEditing) {
+                              handleSave();
+                            } else {
+                              setIsEditing(true);
+                            }
                           }}
                         >
-                          {isEditing ? (
-                            <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            {isEditing ? (
                               <LiaSave className="h-4 w-4" />
-                              <span className="sm:hidden">Lưu lại</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <FaRegEdit className="h-4 w-4" />
-                              <span className="sm:hidden">Chỉnh sửa</span>
-                            </div>
-                          )}
+                            ) : (
+                              <FaRegEdit className="h-4 w-4 sm:mb-1" />
+                            )}
+                            <span>{isEditing ? 'Lưu' : 'Chỉnh sửa'}</span>
+                          </div>
                         </Button>
                       </div>
                     </div>
                   </div>
 
-                  {/* Table: Cần bọc trong div cuộn ngang hoặc chuyển sang Card (nếu MeterReadingTable đã xử lý) */}
-                  <div className="mt-4 overflow-x-auto">
+                  <div className="text-red-400">
+                    ※ Danh sách đang hiển thị là chỉ số của tháng {selectedMonth} năm {selectedYear}
+                    . Để xem chỉ số của các tháng cũ hơn, vui lòng chọn tháng muốn hiển thị tại phía
+                    trên.
+                    <br />※ Khi thực hiện cập nhật xong chỉ số của 1 tháng. Vui lòng lưu lại để
+                    tránh dữ liệu được lưu không đúng.
+                  </div>
+
+                  <div className="overflow-x-auto">
                     <MeterReadingTable
                       rooms={rooms}
                       isLoading={isLoading}
                       error={error}
+                      errorRoomIds={errorRoomIds}
                       isEditing={isEditing}
                       editedValues={editedValues}
                       onChange={handleInputChange}

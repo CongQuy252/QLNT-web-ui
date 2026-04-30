@@ -13,6 +13,7 @@ export enum Path {
   roomId = ':roomId',
   userId = ':userId',
   paymentId = ':paymentId',
+  users = 'users',
 }
 
 export enum Breadcrumb {
@@ -37,6 +38,9 @@ export enum QueriesKey {
   room = 'room',
   payments = 'payments',
   occupiedRooms = 'occupiedRooms',
+  roomsWithMeterReadings = 'roomsWithMeterReadings',
+  invoices = 'invoices',
+  invoice = 'invoice',
 }
 
 export enum RoomStatus {

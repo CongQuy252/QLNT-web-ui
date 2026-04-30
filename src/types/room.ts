@@ -134,7 +134,7 @@ export interface RoomWithMeterReading {
     year: number;
     electricityReading: number;
     waterReading: number;
-    createdAt: string;
+    updatedAt: string;
   };
 }
 

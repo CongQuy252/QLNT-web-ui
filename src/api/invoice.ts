@@ -1,6 +1,11 @@
-import { http } from '@/lib/axios';
+import { queryClient } from '@/lib/reactQuery';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-// Get buildings data
+import { QueriesKey } from '@/constants/appConstants';
+import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
+import { http } from '@/lib/axios';
+import type { GetInvoiceByIdResponse, GetInvoiceResponse } from '@/types/invoice';
+
 export const getBuildings = async () => {
   try {
     const response = await http.get('/buildings');
@@ -36,7 +41,6 @@ export const getInvoicePreview = async (month: number, year: number) => {
   }
 };
 
-// Bulk create invoices
 export const bulkCreateInvoices = async (roomIds: string[], month: number, year: number) => {
   // eslint-disable-next-line no-useless-catch
   try {
@@ -51,60 +55,96 @@ export const bulkCreateInvoices = async (roomIds: string[], month: number, year:
   }
 };
 
-export const getInvoices = async (options: {
-  month?: number;
-  year?: number;
-  buildingId?: string;
-  roomId?: string;
-  status?: string;
-  page: number;
-  limit: number;
-}) => {
-  // eslint-disable-next-line no-useless-catch
-  try {
-    const params = new URLSearchParams({
-      page: options.page.toString(),
-      limit: options.limit.toString(),
-    });
+export const useGetInvoices = (
+  options: {
+    month?: number;
+    year?: number;
+    buildingId?: string;
+    roomId?: string;
+    status?: string;
+    page: number;
+    limit: number;
+  },
+  isEnabled?: boolean,
+) => {
+  const handleHttpError = useHandleHttpError();
+  const params = new URLSearchParams({
+    page: options.page.toString(),
+    limit: options.limit.toString(),
+  });
 
-    if (options.month) params.append('month', options.month.toString());
-    if (options.year) params.append('year', options.year.toString());
-    if (options.buildingId) params.append('buildingId', options.buildingId);
-    if (options.roomId) params.append('roomId', options.roomId);
-    if (options.status) params.append('status', options.status);
-
-    const response = await http.get(`/invoices?${params.toString()}`);
-    const data = response.data;
-
-    if (data && data.data) {
-      return data.data;
-    } else if (data) {
-      return data;
-    } else {
-      return { invoices: [], pagination: {} };
-    }
-  } catch (error) {
-    throw error;
+  if (options.month) {
+    params.append('month', options.month.toString());
   }
+  if (options.year) {
+    params.append('year', options.year.toString());
+  }
+  if (options.buildingId) {
+    params.append('buildingId', options.buildingId);
+  }
+  if (options.roomId) {
+    params.append('roomId', options.roomId);
+  }
+  if (options.status) {
+    params.append('status', options.status);
+  }
+
+  return useQuery({
+    queryKey: [
+      QueriesKey.invoices,
+      options.page,
+      options.limit,
+      options.month,
+      options.year,
+      options.buildingId,
+      options.roomId,
+      options.status,
+    ],
+    queryFn: async () => {
+      const response = await http.get<GetInvoiceResponse>(`/invoices?${params.toString()}`);
+      return response.data.data;
+    },
+    enabled: isEnabled ?? true,
+    meta: {
+      handleError: handleHttpError,
+    },
+  });
 };
 
 export const getInvoiceById = async (invoiceId: string) => {
   // eslint-disable-next-line no-useless-catch
   try {
-    const response = await http.get(`/invoices/${invoiceId}`);
-    return response.data;
+    const response = await http.get<GetInvoiceByIdResponse>(`/invoices/${invoiceId}`);
+    return response.data.data;
   } catch (error) {
     throw error;
   }
 };
 
+export const useGetInvoiceById = (invoiceId: string, enabled?: boolean) => {
+  const handleHttpError = useHandleHttpError();
+  return useQuery({
+    queryKey: [QueriesKey.invoice, invoiceId],
+    queryFn: async () => getInvoiceById(invoiceId),
+    meta: {
+      handleError: handleHttpError,
+    },
+    enabled: enabled ?? true,
+  });
+};
+
 // Delete invoice by ID
 export const deleteInvoice = async (invoiceId: string) => {
-  // eslint-disable-next-line no-useless-catch
-  try {
-    const response = await http.delete(`/invoices/${invoiceId}`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await http.delete(`/invoices/${invoiceId}`);
+  return response.data;
+};
+
+export const useDeleteInvoice = () => {
+  return useMutation({
+    mutationFn: (invoiceId: string) => deleteInvoice(invoiceId),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.invoices] });
+    },
+  });
 };

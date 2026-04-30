@@ -18,6 +18,9 @@ export default function DashboardSummary() {
     try {
       setIsLoading(true);
       const data = await getDashboardSummary(selectedMonth, selectedYear);
+      console.log('Dashboard Summary API Response:', data);
+      console.log('Revenue by building:', data?.revenueByBuilding);
+      console.log('Expense by building:', data?.expenseByBuilding);
       setSummary(data);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -196,10 +199,19 @@ export default function DashboardSummary() {
                   <>
                     {/* Combine revenue and expense data by building */}
                     {(() => {
+                      console.log('Processing building data...');
+                      console.log('Revenue data:', summary.revenueByBuilding);
+                      console.log('Expense data:', summary.expenseByBuilding);
+
                       const buildingMap = new Map();
 
                       // Add revenue data
                       summary.revenueByBuilding.forEach((rev) => {
+                        console.log(
+                          'Adding revenue for building:',
+                          rev.buildingName,
+                          rev.totalAmount,
+                        );
                         buildingMap.set(rev.buildingId, {
                           id: rev.buildingId,
                           name: rev.buildingName,
@@ -210,6 +222,11 @@ export default function DashboardSummary() {
 
                       // Add expense data
                       summary.expenseByBuilding.forEach((exp) => {
+                        console.log(
+                          'Adding expense for building:',
+                          exp.buildingName,
+                          exp.totalAmount,
+                        );
                         if (buildingMap.has(exp.buildingId)) {
                           const existing = buildingMap.get(exp.buildingId);
                           existing.expense = exp.totalAmount;
@@ -223,10 +240,13 @@ export default function DashboardSummary() {
                         }
                       });
 
-                      return Array.from(buildingMap.values()).map((building) => ({
+                      const result = Array.from(buildingMap.values()).map((building) => ({
                         ...building,
                         profit: building.revenue - building.expense,
                       }));
+
+                      console.log('Final building data:', result);
+                      return result;
                     })().map((building) => (
                       <tr key={building.id} className="hover:bg-gray-50 transition">
                         <td className="p-3 sm:p-4 font-medium text-gray-800 text-sm sm:text-base truncate max-w-[120px] sm:max-w-none">

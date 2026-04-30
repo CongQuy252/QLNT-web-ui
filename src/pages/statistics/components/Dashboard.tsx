@@ -22,6 +22,7 @@ import {
 import { useToast } from '@/hooks/useToast';
 import type { Building } from '@/types/building';
 import type { CreateExpenseInput, Expense } from '@/types/expense';
+import { formatCurrency } from '@/utils/utils';
 
 export default function Dashboard() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -40,7 +41,6 @@ export default function Dashboard() {
     expenseDate: new Date().toISOString().split('T')[0],
   });
 
-  // Fetch buildings on mount
   useEffect(() => {
     const fetchBuildings = async () => {
       try {
@@ -54,7 +54,6 @@ export default function Dashboard() {
     fetchBuildings();
   }, [error]);
 
-  // Fetch expenses on mount
   useEffect(() => {
     const fetchExpenses = async () => {
       try {
@@ -131,16 +130,9 @@ export default function Dashboard() {
 
   const totals = calculateTotals();
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(value);
-  };
-
   return (
-    <div className="min-h-screen ">
-      <div className="max-w-7xl space-y-4">
+    <div className="max-h-screen ">
+      <div className="w-full space-y-4">
         {/* Total Summary */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -153,7 +145,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Header with Add Button */}
         <div className="flex justify-end">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>

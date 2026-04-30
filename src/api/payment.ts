@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { QueriesKey } from '@/constants/appConstants';
+import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 
 // Get payments by user ID
@@ -25,4 +26,20 @@ export const getPaymentById = async (paymentId: string) => {
   } catch (error) {
     throw error;
   }
+};
+
+export const useExportInvoices = () => {
+  const handleHttpError = useHandleHttpError();
+  return useMutation({
+    mutationFn: async (invoiceIds: string[]) => {
+      const response = await http.post(
+        '/payments/export-zip',
+        { invoiceIds },
+        { responseType: 'blob' },
+      );
+
+      return response.data;
+    },
+    onError: handleHttpError,
+  });
 };
