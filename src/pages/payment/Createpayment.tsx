@@ -99,7 +99,7 @@ export default function InvoicePage() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedRows(Array.isArray(invoiceData) ? invoiceData.map((item) => item.roomId) : []);
+      setSelectedRows(Array.isArray(filteredData) ? filteredData.map((item) => item.roomId) : []);
     } else {
       setSelectedRows([]);
     }
@@ -339,7 +339,6 @@ export default function InvoicePage() {
           </TableBody>
         </Table>
       </div>
-      <p className="mt-4 text-sm text-gray-600">Đã chọn {selectedRows.length} phòng</p>
       {toasts && toasts.length > 0 && <ToastContainer toasts={toasts} />}
     </div>
   );
