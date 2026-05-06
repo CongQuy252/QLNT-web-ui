@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { AlertCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { FaRegEdit } from 'react-icons/fa';
 import { LiaSave } from 'react-icons/lia';
 import { MdCancel } from 'react-icons/md';
 
-import { bulkUpsertMeterReadings } from '@/api/meterReading';
+import { useBulkUpsertMeterReadings } from '@/api/meterReading';
 import { useRoomsWithMeterReadings } from '@/api/room';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,10 +37,13 @@ const Statistics = () => {
   const [activeTab, setActiveTab] = useState('table');
   const [isEditing, setIsEditing] = useState(false);
   const [errorRoomIds, setErrorRoomIds] = useState<string[]>([]);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [showErrors, setShowErrors] = useState(false);
   const [editedValues, setEditedValues] = useState<
     Record<string, { electricity: number; water: number }>
   >({});
   const { error: toastError, toasts, success } = useToast();
+  const { mutateAsync } = useBulkUpsertMeterReadings();
 
   const getMonthYearFromSelection = () => {
     const month = parseInt(selectedMonth) || currentMonth;
@@ -91,30 +95,41 @@ const Statistics = () => {
       })),
     };
 
-    await bulkUpsertMeterReadings(bulkData)
-      .then((res) => {
-        if (res.errors && res.errors.length > 0) {
-          toastError(res.errors.join(', '));
-          setErrorRoomIds(res.errorRoomIds || []);
-        } else {
-          success('Lưu dữ liệu thành công.');
-          setEditedValues({});
-          setErrorRoomIds([]);
-          setIsEditing(false);
-          refetch();
-        }
-      })
-      .catch((err) => {
-        const errors = err?.response?.data?.errors;
-        const errorRoomIds = err?.response?.data?.errorRoomIds;
-        if (errors && errors.length > 0) {
-          toastError(errors.join('\n'));
-          setErrorRoomIds(errorRoomIds || []);
-        } else {
-          toastError('Có lỗi xảy ra');
-        }
-      });
+    try {
+      const res = await mutateAsync(bulkData);
+
+      if (res.errors && res.errors.length > 0) {
+        setErrorRoomIds(res.errorRoomIds || []);
+        setErrorMessages(res.errors);
+      } else {
+        success('Lưu dữ liệu thành công.');
+        setEditedValues({});
+        setErrorRoomIds([]);
+        setErrorMessages([]);
+        setIsEditing(false);
+        refetch();
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      const errors = err?.response?.data?.errors;
+      const errorRoomIds = err?.response?.data?.errorRoomIds;
+
+      if (errors && errors.length > 0) {
+        setErrorRoomIds(errorRoomIds || []);
+        setErrorMessages(errors);
+      } else {
+        toastError('Có lỗi xảy ra');
+      }
+    }
   };
+
+  useEffect(() => {
+    const handleClickOutside = () => setShowErrors(false);
+    if (showErrors) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showErrors]);
 
   return (
     <div className="max-h-screen bg-gray-50">
@@ -236,6 +251,7 @@ const Statistics = () => {
                               setEditedValues({});
                               setIsEditing(false);
                               setErrorRoomIds([]);
+                              setErrorMessages([]);
                             }}
                           >
                             <div className="flex items-center gap-2">
@@ -272,6 +288,51 @@ const Statistics = () => {
                     </div>
                   </div>
 
+                  <div className={`${errorMessages.length > 0 ? 'relative group' : 'hidden'}`}>
+                    {/* ICON */}
+                    <div
+                      className="cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowErrors((prev) => !prev);
+                      }}
+                    >
+                      <AlertCircle className="text-red-500 w-5 h-5" />
+                    </div>
+
+                    <div className="hidden sm:block">
+                      <div className="absolute left-0 top-6 z-50 hidden group-hover:block bg-white border border-gray-200 shadow-lg rounded-md p-3 w-190 text-sm">
+                        <div className="font-semibold text-red-500 mb-2">Lỗi:</div>
+                        <ul className="list-disc pl-4 space-y-1 text-gray-700 max-h-60 overflow-y-auto">
+                          {errorMessages.map((err, idx) => (
+                            <li key={idx}>{err}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {showErrors && (
+                      <div className="sm:hidden fixed inset-0 z-50">
+                        <div
+                          className="absolute inset-0 bg-black/30"
+                          onClick={() => setShowErrors(false)}
+                        />
+
+                        <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-xl max-h-60 flex flex-col">
+                          <div className="p-4 border-b">
+                            <div className="font-semibold text-red-500">Lỗi</div>
+                          </div>
+                          <div className="p-4 overflow-y-auto flex-1">
+                            <ul className="list-disc pl-4 space-y-1 text-gray-700">
+                              {errorMessages.map((err, idx) => (
+                                <li key={idx}>{err}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <div className="text-red-400">
                     ※ Danh sách đang hiển thị là chỉ số của tháng {selectedMonth} năm {selectedYear}
                     . Để xem chỉ số của các tháng cũ hơn, vui lòng chọn tháng muốn hiển thị tại phía
@@ -279,7 +340,6 @@ const Statistics = () => {
                     <br />※ Khi thực hiện cập nhật xong chỉ số của 1 tháng. Vui lòng lưu lại để
                     tránh dữ liệu được lưu không đúng.
                   </div>
-
                   <div className="overflow-x-auto">
                     <MeterReadingTable
                       rooms={rooms}
