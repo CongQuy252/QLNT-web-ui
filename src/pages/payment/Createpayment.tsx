@@ -5,6 +5,7 @@
 import { queryClient } from '@/lib/reactQuery';
 import { useCallback, useEffect, useState } from 'react';
 import { IoIosCreate } from 'react-icons/io';
+import { useNavigate } from 'react-router-dom';
 
 import { bulkCreateInvoices, getBuildings, getInvoicePreview } from '@/api/invoice';
 import { Button } from '@/components/ui/button';
@@ -25,11 +26,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ToastContainer } from '@/components/ui/toast/Toast';
-import { QueriesKey } from '@/constants/appConstants';
+import { Path, QueriesKey } from '@/constants/appConstants';
 import { useToast } from '@/hooks/useToast';
 import { formatCurrency } from '@/utils/utils';
 
 export default function InvoicePage() {
+  const navigate = useNavigate();
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const [invoiceData, setInvoiceData] = useState<any[]>([]);
@@ -99,7 +101,7 @@ export default function InvoicePage() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedRows(Array.isArray(filteredData) ? filteredData.map((item) => item.roomId) : []);
+      setSelectedRows(Array.isArray(sortedData) ? sortedData.map((item) => item.roomId) : []);
     } else {
       setSelectedRows([]);
     }
@@ -141,6 +143,7 @@ export default function InvoicePage() {
         setSelectedRows([]);
 
         refetchInvoice();
+        navigate(`/${Path.payments}`);
       } else {
         const errorMessage = result.failed.map(
           (err: { roomName: string; error: string }) => `[${err.roomName}]: ${err.error}\n`,
@@ -171,13 +174,16 @@ export default function InvoicePage() {
           return item.buildingName === selectedBuildingName;
         });
 
+  const sortedData = [...filteredData].sort((a, b) => {
+    return Number(b.canCreateInvoice) - Number(a.canCreateInvoice);
+  });
+
   return (
     <div className="h-full flex flex-col">
       <div className="mb-8 flex items-end justify-between">
         <h1 className="text-balance text-3xl font-bold tracking-tight">Tạo hóa đơn</h1>
       </div>
-
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="w-full sm:w-32">
             <Select
@@ -244,15 +250,17 @@ export default function InvoicePage() {
           <IoIosCreate className="h-10 w-10" />
         </Button>
       </div>
-
-      <div>Đã chọn {eligibleSelectedCount > 0 ? `${eligibleSelectedCount}` : ''}</div>
+      <div className="text-red-400">
+        ※ Các dòng màu xám là các phòng không đủ điều kiện tạo hóa đơn và sẽ không được xử lý.
+      </div>
+      Đã chọn {eligibleSelectedCount > 0 ? `${eligibleSelectedCount}` : ''}
       <div className="overflow-x-auto border border-black">
         <Table>
           <TableHeader className="bg-blue-100">
             <TableRow className="border-b border-black">
               <TableHead className="w-12 border-r border-black text-center px-2">
                 <Checkbox
-                  checked={selectedRows.length === filteredData.length && filteredData.length > 0}
+                  checked={selectedRows.length === sortedData.length && sortedData.length > 0}
                   onCheckedChange={handleSelectAll}
                   aria-label="Chọn tất cả"
                   className="border-black"
@@ -289,15 +297,22 @@ export default function InvoicePage() {
                   Đang tải dữ liệu...
                 </TableCell>
               </TableRow>
-            ) : filteredData.length === 0 ? (
+            ) : sortedData.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={10} className="text-center py-4">
                   Không có dữ liệu
                 </TableCell>
               </TableRow>
             ) : (
-              filteredData.map((item: any) => (
-                <TableRow key={item.roomId} className="border-b border-black">
+              sortedData.map((item: any) => (
+                <TableRow
+                  key={item.roomId}
+                  className={`border-b border-black ${
+                    !item.canCreateInvoice
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-70'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
                   <TableCell className="w-12 border-r border-black text-center px-2">
                     <Checkbox
                       checked={selectedRows.includes(item.roomId)}

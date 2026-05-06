@@ -153,17 +153,7 @@ export default function PaymentDetail() {
   const vehicleCount =
     room?.members?.filter((member: any) => member.licensePlate?.trim())?.length || 0;
 
-  const ammountTotal =
-    (room.waterPricePerPerson > 0
-      ? (payment?.waterCost ?? 0) * room.members.length
-      : (payment?.waterCost ?? 0)) +
-    (payment?.rentAmount ?? 0) +
-    (payment?.electricityCost ?? 0) +
-    (payment?.internetFee ?? 0) +
-    (payment?.parkingFee ?? 0) * vehicleCount +
-    (payment?.otherFee ?? 0) +
-    (payment?.livingFee ?? 0);
-
+  const ammountTotal = payment.totalAmount;
   return (
     <div className="space-y-6 md:p-8">
       {/* Invoice Card */}
@@ -171,10 +161,10 @@ export default function PaymentDetail() {
         {/* Company Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-2 pb-2 border-b border-slate-200">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">QLNT</h1>
-            <p className="text-slate-600 mt-2">Website quản lý nhà trọ</p>
-            <p className="text-slate-600 text-sm">Điện thoại: 0901234567</p>
-            <p className="text-slate-600 text-sm">Email: info@gmail.com</p>
+            <img src="/logo.jpg" className="h-12 object-contain" />
+            <p className="text-slate-600 mt-2">DEE HOME</p>
+            <p className="text-slate-600 text-sm">Điện thoại: ---</p>
+            <p className="text-slate-600 text-sm">Email: ---</p>
           </div>
 
           {/* Invoice Info */}
@@ -294,7 +284,11 @@ export default function PaymentDetail() {
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-semibold text-slate-900">
-                      {formatCurrency(payment?.waterCost * room.members.length || 0)}
+                      {formatCurrency(
+                        room?.waterPricePerCubicMeter && room.waterPricePerCubicMeter > 0
+                          ? payment?.waterCost
+                          : payment?.waterCost * room.members.length || 0,
+                      )}
                     </p>
                   </td>
                 </tr>
@@ -332,7 +326,7 @@ export default function PaymentDetail() {
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-medium text-slate-900">
-                      {formatCurrency(payment?.parkingFee || 0)}
+                      {formatCurrency((payment?.parkingFee || 0) / (vehicleCount ?? 1))}
                     </p>
                   </td>
                   <td className="text-right py-4 px-4">
@@ -340,7 +334,7 @@ export default function PaymentDetail() {
                   </td>
                   <td className="text-right py-4 px-4">
                     <p className="font-semibold text-slate-900">
-                      {formatCurrency((payment?.parkingFee || 0) * vehicleCount)}
+                      {formatCurrency(payment?.parkingFee || 0)}
                     </p>
                   </td>
                 </tr>
