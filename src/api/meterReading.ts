@@ -97,9 +97,16 @@ export const useDeleteMeterReading = () => {
   });
 };
 
-export const bulkUpsertMeterReadings = async (
-  data: BulkMeterReadingDto,
-): Promise<BulkMeterReadingResponse> => {
-  const response = await http.post('/meter-readings/bulk', data);
-  return response.data;
+export const useBulkUpsertMeterReadings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: BulkMeterReadingDto) => {
+      const response = await http.post<BulkMeterReadingResponse>('/meter-readings/bulk', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meter-readings'] });
+    },
+  });
 };

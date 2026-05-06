@@ -46,6 +46,9 @@ export default function Payment() {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'unpaid' | 'overdue'>('all');
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState<number>(currentDate.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number>(currentDate.getFullYear());
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
@@ -86,6 +89,8 @@ export default function Payment() {
     limit: maxItemPerPage,
     status: filterStatus === 'all' ? undefined : filterStatus.toLowerCase(),
     buildingId: selectedBuilding === 'all' ? undefined : selectedBuilding,
+    month: selectedMonth,
+    year: selectedYear,
   });
 
   const displayInvoices = useMemo(() => {
@@ -269,6 +274,42 @@ export default function Payment() {
             ))}
           </SelectContent>
         </Select>
+
+        <div className="flex gap-2 w-full">
+          <Select
+            value={String(selectedMonth)}
+            onValueChange={(value) => setSelectedMonth(Number(value))}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Chọn tháng" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                <SelectItem key={month} value={String(month)}>
+                  Tháng {month}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={String(selectedYear)}
+            onValueChange={(value) => setSelectedYear(Number(value))}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Chọn năm" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - 2 + i).map(
+                (year) => (
+                  <SelectItem key={year} value={String(year)}>
+                    {year}
+                  </SelectItem>
+                ),
+              )}
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="flex items-center justify-between gap-4 w-full">
           <div className="flex gap-2 overflow-x-auto">
