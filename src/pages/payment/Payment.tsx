@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGetBuildingQueries } from '@/api/building';
 import { useDeleteInvoice, useGetInvoiceById, useGetInvoices } from '@/api/invoice';
 import { useExportInvoices } from '@/api/payment';
-import { useUserQuery } from '@/api/user';
+import { useUserByIdQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -41,7 +41,7 @@ export default function Payment() {
   const { mutateAsync: exportInvoices } = useExportInvoices();
   const { data: buildings } = useGetBuildingQueries();
 
-  const { data: user, isLoading: isLoadingUserQuery, isError } = useUserQuery(userId, !!userId);
+  const { data: user, isLoading: isLoadingUserQuery, isError } = useUserByIdQuery(userId, !!userId);
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);

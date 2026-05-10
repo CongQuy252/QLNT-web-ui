@@ -125,3 +125,13 @@ export interface GetTenantListResponse {
   data: UserResponse[];
   pagination: Pagination;
 }
+
+export interface GetAllUserRequest {
+  page: number;
+  limit: number;
+  searchCondition: {
+    email?: string;
+    name?: string;
+    phone?: string;
+  };
+}

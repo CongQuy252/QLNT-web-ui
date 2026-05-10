@@ -25,13 +25,16 @@ const Rooms = () => {
     setSearchTerm,
     filterStatus,
     setFilterStatus,
-    setCurrentPage,
     deleteRoomMutation,
     setConfirmOpen,
     handleConfirmDelete,
-    handleAskDeleteRoom,
     confirmMessage,
     confirmOpen,
+    handleAskDeleteRoom,
+    currentPage,
+    setCurrentPage,
+    pagination,
+    pageSize,
   } = useRooms();
 
   const handleEditRoom = (room: Room) => {
@@ -207,6 +210,39 @@ const Rooms = () => {
                 </Card>
               );
             })}
+        </div>
+      )}
+
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between mt-3">
+          <div className="text-sm text-slate-600">
+            {(currentPage - 1) * pageSize + 1} -{' '}
+            {Math.min(currentPage * pageSize, pagination.total)} / {pagination.total}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+              disabled={!pagination.hasPrev || isLoading}
+            >
+              Trước
+            </Button>
+
+            <span className="text-sm text-slate-600">
+              {currentPage} / {pagination.totalPages}
+            </span>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              disabled={!pagination.hasNext || isLoading}
+            >
+              Tiếp
+            </Button>
+          </div>
         </div>
       )}
 

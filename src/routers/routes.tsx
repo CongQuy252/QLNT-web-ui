@@ -65,7 +65,7 @@ export const routes: RouteObject[] = [
 
           // ================= ADMIN + TENANT =================
           {
-            element: <PrivateRoute allowedRoles={[UserRole.admin, UserRole.tenant]} />,
+            element: <PrivateRoute allowedRoles={[UserRole.admin, UserRole.noRole]} />,
             children: [
               {
                 path: `/${Path.payments}`,

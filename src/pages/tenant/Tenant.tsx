@@ -295,7 +295,7 @@ const Tenant = () => {
                           name: tenant.name || '',
                           phone: tenant.phone || '',
                           email: tenant.email || '',
-                          role: tenant.role || UserRole.tenant,
+                          role: tenant.role || UserRole.noRole,
                           cccd: tenant.cccd ?? '',
                           cccdImagesFront: tenant.cccdImages?.front?.url || '',
                           cccdImagesBack: tenant.cccdImages?.back?.url || '',

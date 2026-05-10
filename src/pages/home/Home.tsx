@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGetBuildingQueries } from '@/api/building';
 import { useGetPaymentByUserId } from '@/api/payment';
 import { useGetRoomByUserIDQuery, useGetRoomsQueries } from '@/api/room';
-import { useUserQuery } from '@/api/user';
+import { useUserByIdQuery } from '@/api/user';
 import LockCircleIcon from '@/assets/Icon/LockCircleIcon';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -38,7 +38,7 @@ const Home = () => {
 
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
-  const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
+  const { data: user, isLoading, isError } = useUserByIdQuery(userId, !!userId);
 
   const isOwner = user?.role === UserRole.admin;
 

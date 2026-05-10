@@ -1,17 +1,20 @@
+import { queryClient } from '@/lib/reactQuery';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { LocalStorageKey, QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type {
+  GetAllUserRequest,
   GetNonTenantUsersRequest,
   GetNonTenantUsersResponse,
+  GetTenantListResponse,
   GetUserByIdResponse,
   LoginRequest,
   LoginResponse,
 } from '@/types/user';
 
-export const useUserQuery = (userId?: string, enable?: boolean) => {
+export const useUserByIdQuery = (userId?: string, enable?: boolean) => {
   return useQuery({
     queryKey: [QueriesKey.user, userId],
     queryFn: async () => {
@@ -19,6 +22,39 @@ export const useUserQuery = (userId?: string, enable?: boolean) => {
       return response.data.data;
     },
     enabled: enable || !!userId,
+  });
+};
+
+export const useUsersQuery = (condition: GetAllUserRequest, enable?: boolean) => {
+  const handleHttpError = useHandleHttpError();
+  const { page, limit, searchCondition } = condition;
+
+  return useQuery({
+    queryKey: [
+      QueriesKey.users,
+      page,
+      limit,
+      searchCondition.email,
+      searchCondition.name,
+      searchCondition.phone,
+    ],
+    queryFn: async () => {
+      const response = await http.get<GetTenantListResponse>('/users', {
+        params: {
+          page,
+          limit,
+          email: searchCondition.email,
+          name: searchCondition.name,
+          phone: searchCondition.phone,
+        },
+      });
+
+      return response.data;
+    },
+    meta: {
+      handleError: handleHttpError,
+    },
+    enabled: enable,
   });
 };
 
@@ -90,6 +126,9 @@ export const useUpdateUserMutation = () => {
         },
       });
       return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
     },
     onError: handleHttpError,
   });

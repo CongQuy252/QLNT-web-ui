@@ -4,7 +4,7 @@ import { FaHome } from 'react-icons/fa';
 import { RiExpandRightFill } from 'react-icons/ri';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { useUserQuery } from '@/api/user';
+import { useUserByIdQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
 import { LocalStorageKey, UserRole } from '@/constants/appConstants';
@@ -21,7 +21,7 @@ const HomeSidebar = () => {
 
   const userId = localStorage.getItem(LocalStorageKey.userId);
 
-  const { data: user, isLoading } = useUserQuery(userId!, !!userId);
+  const { data: user, isLoading } = useUserByIdQuery(userId!, !!userId);
 
   const isReady = !!userId && !!user && !isLoading;
 

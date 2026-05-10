@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
-import { usePagination } from '@/hooks/usePagination';
 import { http } from '@/lib/axios';
 import type {
   GetRoomByIdResponse,
@@ -19,21 +18,18 @@ export const useGetRoomsQueries = ({
   status = '',
   buildingId = '',
   isEnabled = true,
-  initialPage = 1,
-  initialLimit = 10,
+  page = 1,
+  limit = 10,
 }) => {
   const handleHttpError = useHandleHttpError();
-  const pagination = usePagination({
-    initialPage,
-    initialLimit,
-  });
 
   return useQuery({
-    queryKey: [QueriesKey.rooms, pagination.page, pagination.limit, search, status, buildingId],
+    queryKey: [QueriesKey.rooms, page, limit, search, status, buildingId],
+
     queryFn: async () => {
       const params = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
+        page: page.toString(),
+        limit: limit.toString(),
       });
 
       if (search) {

@@ -124,7 +124,7 @@ const UpdateTenantDialog: React.FC<UpdateTenantDialogProps> = ({
                   <FormLabel>Vai trò</FormLabel>
                   <FormControl>
                     <select {...field} className="border rounded px-3 py-2 w-full">
-                      <option value={UserRole.tenant}>Tenant</option>
+                      <option value={UserRole.noRole}>Tenant</option>
                       <option value={UserRole.admin}>Admin</option>
                     </select>
                   </FormControl>

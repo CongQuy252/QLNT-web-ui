@@ -1,5 +1,3 @@
-
-
 export const maxItemPerPage = 10;
 
 export type PaymentStatus = 'paid' | 'pending' | 'overdue';

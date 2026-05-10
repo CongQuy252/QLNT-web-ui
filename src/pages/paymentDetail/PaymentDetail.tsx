@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { getInvoiceById } from '@/api/invoice';
 import { confirmPayment } from '@/api/paymentTransaction';
-import { useUserQuery } from '@/api/user';
+import { useUserByIdQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -26,7 +26,7 @@ export default function PaymentDetail() {
 
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
 
-  const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
+  const { data: user, isLoading, isError } = useUserByIdQuery(userId, !!userId);
 
   // Direct API call instead of hook
   const [invoice, setInvoice] = useState<any>(null);

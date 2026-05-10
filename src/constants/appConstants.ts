@@ -50,14 +50,10 @@ export enum RoomStatus {
   maintenance = 'maintenance',
 }
 
-export enum Mode {
-  owner = 'owner',
-  tenant = 'tenant',
-}
-
 export enum UserRole {
   admin = 1,
-  tenant = 0,
+  noRole = 0,
+  manager = 2,
 }
 
 export enum LocalStorageKey {
