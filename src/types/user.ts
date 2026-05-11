@@ -1,4 +1,5 @@
 import type { TenantStatus, UserRole } from '@/constants/appConstants';
+import type { Building } from '@/types/building';
 
 export interface User {
   _id: string;
@@ -118,7 +119,7 @@ export interface UserResponse {
   phone: string;
   cccd?: string;
   status: TenantStatus;
-  assignBuilding: string[];
+  assignBuilding: Building[];
 }
 
 export interface GetTenantListResponse {

@@ -39,7 +39,11 @@ export default function Payment() {
   const { success, error } = useToast();
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
   const { mutateAsync: exportInvoices } = useExportInvoices();
-  const { data: buildings } = useGetBuildingQueries();
+  const { data: buildings } = useGetBuildingQueries({
+    limit: 100,
+    page: 0,
+    searchCondition: {},
+  });
 
   const { data: user, isLoading: isLoadingUserQuery, isError } = useUserByIdQuery(userId, !!userId);
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');

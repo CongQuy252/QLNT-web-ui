@@ -51,7 +51,6 @@ const useUserData = () => {
   const buildingsQuery = useGetBuildingQueries({
     limit: maxItemPerPage,
     page: currentBuildingPage,
-    searchCondition: debouncedSearch,
   });
   const buildings = useMemo(() => buildingsQuery.data?.data ?? [], [buildingsQuery.data]);
 

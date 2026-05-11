@@ -20,7 +20,7 @@ export const getBuildings = async (): Promise<Building[]> => {
 export interface GetAllBuildingRequest {
   page: number;
   limit: number;
-  searchCondition: {
+  searchCondition?: {
     name?: string;
     address?: string;
   };
@@ -29,18 +29,16 @@ export interface GetAllBuildingRequest {
 export const useGetBuildingQueries = (condition: GetAllBuildingRequest, enable?: boolean) => {
   const handleHttpError = useHandleHttpError();
 
-  const { page, limit, searchCondition } = condition;
+  const { page, limit } = condition;
 
   return useQuery({
-    queryKey: [QueriesKey.buildings, page, limit, searchCondition.name, searchCondition.address],
+    queryKey: [QueriesKey.buildings, page, limit],
 
     queryFn: async () => {
       const response = await http.get<BuildingListResponse>('/buildings', {
         params: {
           page,
           limit,
-          name: searchCondition.name,
-          address: searchCondition.address,
         },
       });
 

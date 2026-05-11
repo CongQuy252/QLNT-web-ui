@@ -1,5 +1,5 @@
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { Building2, Check, Users, X } from 'lucide-react';
+import { Building2, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
 import { MdKeyboardArrowDown, MdKeyboardArrowUp } from 'react-icons/md';
@@ -31,37 +31,6 @@ const UsersPage = () => {
 
   const userPagination = data.userPaginate;
 
-  // const [buildings] = useState([
-  //   {
-  //     id: 'b1',
-  //     name: 'Sunrise Building',
-  //     address: '123 Nguyễn Huệ, Q1',
-  //     totalRooms: 20,
-  //     totalFloors: 5,
-  //   },
-  //   {
-  //     id: 'b2',
-  //     name: 'Green Tower',
-  //     address: '456 Lê Lợi, Q1',
-  //     totalRooms: 30,
-  //     totalFloors: 8,
-  //   },
-  //   {
-  //     id: 'b3',
-  //     name: 'Blue Sky Residence',
-  //     address: '789 Trần Hưng Đạo, Q5',
-  //     totalRooms: 15,
-  //     totalFloors: 4,
-  //   },
-  //   {
-  //     id: 'b4',
-  //     name: 'Golden Plaza',
-  //     address: '101 Nguyễn Trãi, Q5',
-  //     totalRooms: 40,
-  //     totalFloors: 10,
-  //   },
-  // ]);
-
   const buildings = data.buildings;
 
   const buildingPagination = data.buildingPaginate;
@@ -83,19 +52,53 @@ const UsersPage = () => {
     }
   }, [users, selectedUserId]);
 
-  // const handleAssignBuilding = (buildingId: string) => {
-  //   if (selectedUserId) {
-  //     assignBuildingToUser(selectedUserId, buildingId);
-  //     setSelectedUserId(selectedUserId);
-  //   }
-  // };
+  const handleAssignBuilding = (buildingId: string) => {
+    if (!selectedUserId || !selectedUser) {
+      return;
+    }
 
-  // const handleRemoveBuilding = (buildingId: string) => {
-  //   if (selectedUserId) {
-  //     removeBuildingFromUser(selectedUserId, buildingId);
-  //     setSelectedUserId(selectedUserId);
-  //   }
-  // };
+    const currentBuildings = (selectedUser.assignBuilding || [])?.map((building) => building._id);
+
+    const updatedBuildings = currentBuildings.includes(buildingId)
+      ? currentBuildings.filter((id) => id !== buildingId)
+      : [...currentBuildings, buildingId];
+
+    const formData = new FormData();
+
+    updatedBuildings.forEach((id) => {
+      formData.append('assignBuilding', id);
+    });
+
+    updateUserMutation.mutate({
+      userId: selectedUserId,
+      data: formData,
+    });
+  };
+
+  const handleRemoveBuilding = (buildingId: string) => {
+    if (!selectedUserId || !selectedUser) {
+      return;
+    }
+
+    const updatedBuildings = (selectedUser.assignBuilding || [])
+      ?.map((building) => building._id)
+      .filter((id) => id !== buildingId);
+
+    const formData = new FormData();
+
+    if (updatedBuildings.length === 0) {
+      formData.append('assignBuilding', '');
+    } else {
+      updatedBuildings.forEach((id) => {
+        formData.append('assignBuilding', id);
+      });
+    }
+
+    updateUserMutation.mutate({
+      userId: selectedUserId,
+      data: formData,
+    });
+  };
 
   const handlePromoteRole = (user: UserResponse) => {
     let nextRole = user.role;
@@ -341,7 +344,7 @@ const UsersPage = () => {
           {selectedUser ? (
             <div className="flex flex-col flex-1 min-h-0">
               {/* User Info */}
-              <div className="border-b border-slate-200 pb-4 shrink-0 p-4 md:p-6">
+              <div className="mb-2 border-b border-slate-200 pb-4 shrink-0 p-4 md:p-6">
                 <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-4">
                   Thông tin người dùng
                 </h2>
@@ -377,38 +380,23 @@ const UsersPage = () => {
                   <p className="text-sm font-semibold text-blue-900 mb-3">
                     Tòa nhà đang quản lý ({selectedUser.assignBuilding.length}):
                   </p>
-                  <div className="grid grid-cols-1 gap-3">
-                    {selectedUser.assignBuilding.map((buildingId: string) => {
-                      const building = buildings.find((b) => b._id === buildingId);
-                      return building ? (
+
+                  <div className="max-h-20 overflow-y-auto pr-1">
+                    <div className="flex flex-wrap gap-2">
+                      {selectedUser.assignBuilding.map((building) => (
                         <div
-                          key={buildingId}
-                          className="flex flex-col md:flex-row md:items-center md:justify-between p-3 bg-white rounded-lg border border-blue-200 gap-2 md:gap-0"
+                          key={building._id}
+                          className="px-3 py-1.5 bg-white border border-blue-200 rounded-full text-sm font-medium text-slate-800"
                         >
-                          <div className="flex-1">
-                            <p className="font-semibold text-slate-900 text-sm md:text-base">
-                              {building.name}
-                            </p>
-                            <p className="text-xs md:text-sm text-slate-600">
-                              {building.totalRooms} phòng • {building.totalFloors} tầng
-                            </p>
-                          </div>
-                          <Button
-                            size="sm"
-                            className="w-full md:w-auto bg-red-100 hover:bg-red-200 text-red-700 border border-red-300"
-                            // onClick={() => handleRemoveBuilding(building.id)}
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            Hủy gán
-                          </Button>
+                          {building.name}
                         </div>
-                      ) : null;
-                    })}
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
 
-              <div className="flex flex-col flex-1 min-h-0 overflow-hidden p-4 md:p-6">
+              <div className="flex flex-col flex-1 min-h-0 overflow-hidden p-4 md:px-6 md:pt-4 md:pb-0">
                 <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2 shrink-0">
                   <Building2 className="w-5 h-5" />
                   Gán tòa nhà
@@ -416,7 +404,9 @@ const UsersPage = () => {
 
                 <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-2 space-y-3">
                   {buildings.map((building) => {
-                    const isAssigned = selectedUser.assignBuilding?.includes(building._id);
+                    const isAssigned = selectedUser.assignBuilding
+                      ?.map((building) => building._id)
+                      .includes(building._id);
 
                     return (
                       <div
@@ -437,7 +427,7 @@ const UsersPage = () => {
                             variant="outline"
                             className="w-full md:w-auto border-red-300 text-red-600 hover:bg-red-50"
                             disabled={selectedUser.role !== UserRole.manager}
-                            // onClick={() => handleRemoveBuilding(building._id)}
+                            onClick={() => handleRemoveBuilding(building._id)}
                           >
                             Hủy gán
                           </Button>
@@ -446,9 +436,8 @@ const UsersPage = () => {
                             size="sm"
                             className="w-full md:w-auto bg-green-100 hover:bg-green-200 text-green-700 border border-green-300"
                             disabled={selectedUser.role !== UserRole.manager}
-                            // onClick={() => handleAssignBuilding(building._id)}
+                            onClick={() => handleAssignBuilding(building._id)}
                           >
-                            <Check className="w-4 h-4 mr-1" />
                             Gán
                           </Button>
                         )}

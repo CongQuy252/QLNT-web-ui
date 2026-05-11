@@ -71,10 +71,9 @@ export const useBuildings = () => {
           data,
         });
       } else {
-        // Map defaultArea to area for backend room validation
         const payload = {
           ...data,
-          area: data.defaultArea, // Backend expects 'area' for room validation
+          area: data.defaultArea,
         };
 
         await createBuildingMutation.mutateAsync(payload);
