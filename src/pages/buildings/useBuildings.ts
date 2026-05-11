@@ -15,7 +15,11 @@ import type { Building } from '@/types/building';
 export const useBuildings = () => {
   const navigator = useNavigate();
   const queryClient = useQueryClient();
-  const getBuildingQueries = useGetBuildingQueries();
+  const getBuildingQueries = useGetBuildingQueries({
+    limit: 100,
+    page: 0,
+    searchCondition: { name: undefined, address: undefined },
+  });
   const createBuildingMutation = useCreateBuildingMutation();
   const updateBuildingMutation = useUpdateBuildingMutation();
   const deleteBuildingMutation = useDeleteBuildingMutation();

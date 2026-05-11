@@ -17,14 +17,41 @@ export const getBuildings = async (): Promise<Building[]> => {
   }
 };
 
-export const useGetBuildingQueries = (isEnabled = true) => {
+export interface GetAllBuildingRequest {
+  page: number;
+  limit: number;
+  searchCondition: {
+    name?: string;
+    address?: string;
+  };
+}
+
+export const useGetBuildingQueries = (condition: GetAllBuildingRequest, enable?: boolean) => {
+  const handleHttpError = useHandleHttpError();
+
+  const { page, limit, searchCondition } = condition;
+
   return useQuery({
-    queryKey: [QueriesKey.buildings],
+    queryKey: [QueriesKey.buildings, page, limit, searchCondition.name, searchCondition.address],
+
     queryFn: async () => {
-      const response = await http.get<BuildingListResponse>(`/buildings`);
+      const response = await http.get<BuildingListResponse>('/buildings', {
+        params: {
+          page,
+          limit,
+          name: searchCondition.name,
+          address: searchCondition.address,
+        },
+      });
+
       return response.data;
     },
-    enabled: isEnabled,
+
+    meta: {
+      handleError: handleHttpError,
+    },
+
+    enabled: enable,
   });
 };
 

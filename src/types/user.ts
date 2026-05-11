@@ -118,6 +118,7 @@ export interface UserResponse {
   phone: string;
   cccd?: string;
   status: TenantStatus;
+  assignBuilding: string[];
 }
 
 export interface GetTenantListResponse {

@@ -1,5 +1,5 @@
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { Building2, Check, Users } from 'lucide-react';
+import { Building2, Check, Users, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
 import { MdKeyboardArrowDown, MdKeyboardArrowUp } from 'react-icons/md';
@@ -29,38 +29,42 @@ const UsersPage = () => {
 
   const users = data.users;
 
-  const pagination = data.userPaginate;
+  const userPagination = data.userPaginate;
 
-  const [buildings] = useState([
-    {
-      id: 'b1',
-      name: 'Sunrise Building',
-      address: '123 Nguyễn Huệ, Q1',
-      totalRooms: 20,
-      totalFloors: 5,
-    },
-    {
-      id: 'b2',
-      name: 'Green Tower',
-      address: '456 Lê Lợi, Q1',
-      totalRooms: 30,
-      totalFloors: 8,
-    },
-    {
-      id: 'b3',
-      name: 'Blue Sky Residence',
-      address: '789 Trần Hưng Đạo, Q5',
-      totalRooms: 15,
-      totalFloors: 4,
-    },
-    {
-      id: 'b4',
-      name: 'Golden Plaza',
-      address: '101 Nguyễn Trãi, Q5',
-      totalRooms: 40,
-      totalFloors: 10,
-    },
-  ]);
+  // const [buildings] = useState([
+  //   {
+  //     id: 'b1',
+  //     name: 'Sunrise Building',
+  //     address: '123 Nguyễn Huệ, Q1',
+  //     totalRooms: 20,
+  //     totalFloors: 5,
+  //   },
+  //   {
+  //     id: 'b2',
+  //     name: 'Green Tower',
+  //     address: '456 Lê Lợi, Q1',
+  //     totalRooms: 30,
+  //     totalFloors: 8,
+  //   },
+  //   {
+  //     id: 'b3',
+  //     name: 'Blue Sky Residence',
+  //     address: '789 Trần Hưng Đạo, Q5',
+  //     totalRooms: 15,
+  //     totalFloors: 4,
+  //   },
+  //   {
+  //     id: 'b4',
+  //     name: 'Golden Plaza',
+  //     address: '101 Nguyễn Trãi, Q5',
+  //     totalRooms: 40,
+  //     totalFloors: 10,
+  //   },
+  // ]);
+
+  const buildings = data.buildings;
+
+  const buildingPagination = data.buildingPaginate;
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
@@ -152,11 +156,6 @@ const UsersPage = () => {
     return colors[role] || 'bg-slate-100 text-slate-900';
   };
 
-  const getAvailableBuildings = () => {
-    if (!selectedUser) return buildings;
-    return buildings;
-    // .filter((b) => !selectedUser.assignedBuildings?.includes(b.id));
-  };
   return (
     <div className="space-y-6">
       <div>
@@ -301,33 +300,33 @@ const UsersPage = () => {
               ))}
             </div>
 
-            {pagination && pagination.totalPages > 1 && (
+            {userPagination && userPagination.totalPages > 1 && (
               <div className="flex items-center justify-between pt-2">
                 <div className="text-sm text-slate-600">
-                  {(data.currentPage - 1) * maxItemPerPage + 1} -{' '}
-                  {Math.min(data.currentPage * maxItemPerPage, pagination.total)} /{' '}
-                  {pagination.total}
+                  {(data.currentUserPage - 1) * maxItemPerPage + 1} -{' '}
+                  {Math.min(data.currentUserPage * maxItemPerPage, userPagination.total)} /{' '}
+                  {userPagination.total}
                 </div>
 
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => data.setCurrentPage((prev) => prev - 1)}
-                    disabled={!pagination.hasPrev}
+                    onClick={() => data.setCurrentUserPage((prev) => prev - 1)}
+                    disabled={!userPagination.hasPrev}
                   >
                     Trước
                   </Button>
 
                   <span className="text-sm text-slate-600">
-                    {data.currentPage} / {pagination.totalPages}
+                    {data.currentUserPage} / {userPagination.totalPages}
                   </span>
 
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => data.setCurrentPage((prev) => prev + 1)}
-                    disabled={!pagination.hasNext}
+                    onClick={() => data.setCurrentUserPage((prev) => prev + 1)}
+                    disabled={!userPagination.hasNext}
                   >
                     Sau
                   </Button>
@@ -338,11 +337,11 @@ const UsersPage = () => {
         </Card>
 
         {/* User Details and Building Assignment */}
-        <Card className="lg:col-span-2 p-4 md:p-6 bg-white h-[calc(100vh-140px)] overflow-y-auto">
+        <Card className="lg:col-span-2 bg-white h-[calc(100vh-140px)] flex flex-col overflow-hidden">
           {selectedUser ? (
-            <div className="space-y-6">
+            <div className="flex flex-col flex-1 min-h-0">
               {/* User Info */}
-              <div className="border-b border-slate-200 pb-4">
+              <div className="border-b border-slate-200 pb-4 shrink-0 p-4 md:p-6">
                 <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-4">
                   Thông tin người dùng
                 </h2>
@@ -373,14 +372,14 @@ const UsersPage = () => {
               </div>
 
               {/* Assigned Buildings Summary */}
-              {/* {selectedUser.assignedBuildings && selectedUser.assignedBuildings.length > 0 && (
-                <div className="p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
+              {selectedUser.assignBuilding && selectedUser.assignBuilding.length > 0 && (
+                <div className="p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200 shrink-0 mx-4 md:mx-6">
                   <p className="text-sm font-semibold text-blue-900 mb-3">
-                    Tòa nhà đang quản lý ({selectedUser.assignedBuildings.length}):
+                    Tòa nhà đang quản lý ({selectedUser.assignBuilding.length}):
                   </p>
                   <div className="grid grid-cols-1 gap-3">
-                    {selectedUser.assignedBuildings.map((buildingId) => {
-                      const building = buildings.find((b) => b.id === buildingId);
+                    {selectedUser.assignBuilding.map((buildingId: string) => {
+                      const building = buildings.find((b) => b._id === buildingId);
                       return building ? (
                         <div
                           key={buildingId}
@@ -407,61 +406,94 @@ const UsersPage = () => {
                     })}
                   </div>
                 </div>
-              )} */}
-
-              {/* Building Assignment - Only show available buildings */}
-              {getAvailableBuildings().length > 0 && (
-                <div>
-                  <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                    <Building2 className="w-5 h-5" />
-                    Gán tòa nhà
-                  </h2>
-
-                  <div className="space-y-3">
-                    {getAvailableBuildings().map((building) => (
-                      <div
-                        key={building.id}
-                        className="flex flex-col md:flex-row md:items-center md:justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 gap-2 md:gap-0"
-                      >
-                        <div className="flex-1">
-                          <p className="font-semibold text-slate-900 text-sm md:text-base">
-                            {building.name}
-                          </p>
-                          <p className="text-xs md:text-sm text-slate-600">{building.address}</p>
-                          <p className="text-xs text-slate-500 mt-1">
-                            {building.totalRooms} phòng • {building.totalFloors} tầng
-                          </p>
-                        </div>
-
-                        <Button
-                          size="sm"
-                          className="w-full md:w-auto bg-green-100 hover:bg-green-200 text-green-700 border border-green-300"
-                          // onClick={() => handleAssignBuilding(building.id)}
-                        >
-                          <Check className="w-4 h-4 mr-1" />
-                          Gán
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               )}
 
-              {/* {getAvailableBuildings().length === 0 &&
-                (!selectedUser.assignedBuildings ||
-                  selectedUser.assignedBuildings.length === 0) && (
-                  <div className="text-center py-6">
-                    <p className="text-slate-600">Không có tòa nhà khả dụng để gán</p>
+              <div className="flex flex-col flex-1 min-h-0 overflow-hidden p-4 md:p-6">
+                <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2 shrink-0">
+                  <Building2 className="w-5 h-5" />
+                  Gán tòa nhà
+                </h2>
+
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-2 space-y-3">
+                  {buildings.map((building) => {
+                    const isAssigned = selectedUser.assignBuilding?.includes(building._id);
+
+                    return (
+                      <div
+                        key={building._id}
+                        className="flex flex-col md:flex-row md:items-center md:justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 gap-3"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-slate-900 truncate">{building.name}</p>
+
+                          <p className="text-sm text-slate-600 truncate">{building.address}</p>
+
+                          <p className="text-xs text-slate-500 mt-1">{building.totalRooms} phòng</p>
+                        </div>
+
+                        {isAssigned ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full md:w-auto border-red-300 text-red-600 hover:bg-red-50"
+                            disabled={selectedUser.role !== UserRole.manager}
+                            // onClick={() => handleRemoveBuilding(building._id)}
+                          >
+                            Hủy gán
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="w-full md:w-auto bg-green-100 hover:bg-green-200 text-green-700 border border-green-300"
+                            disabled={selectedUser.role !== UserRole.manager}
+                            // onClick={() => handleAssignBuilding(building._id)}
+                          >
+                            <Check className="w-4 h-4 mr-1" />
+                            Gán
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {buildingPagination && buildingPagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="text-sm text-slate-600">
+                      {(data.currentBuildingPage - 1) * maxItemPerPage + 1} -{' '}
+                      {Math.min(
+                        data.currentBuildingPage * maxItemPerPage,
+                        buildingPagination.total,
+                      )}{' '}
+                      / {buildingPagination.total}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => data.setCurrentBuildingPage((prev) => prev - 1)}
+                        disabled={!buildingPagination.hasPrev}
+                      >
+                        Trước
+                      </Button>
+
+                      <span className="text-sm text-slate-600">
+                        {data.currentBuildingPage} / {buildingPagination.totalPages}
+                      </span>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => data.setCurrentBuildingPage((prev) => prev + 1)}
+                        disabled={!buildingPagination.hasNext}
+                      >
+                        Sau
+                      </Button>
+                    </div>
                   </div>
                 )}
-
-              {getAvailableBuildings().length === 0 &&
-                selectedUser.assignedBuildings &&
-                selectedUser.assignedBuildings.length > 0 && (
-                  <div className="text-center py-4 text-slate-600 text-sm">
-                    <p>Tất cả tòa nhà đã được gán cho người dùng này</p>
-                  </div>
-                )} */}
+              </div>
             </div>
           ) : (
             <div className="h-full flex items-center justify-center">

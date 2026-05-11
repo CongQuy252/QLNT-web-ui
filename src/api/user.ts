@@ -38,6 +38,7 @@ export const useUsersQuery = (condition: GetAllUserRequest, enable?: boolean) =>
       searchCondition.name,
       searchCondition.phone,
     ],
+
     queryFn: async () => {
       const response = await http.get<GetTenantListResponse>('/users', {
         params: {
