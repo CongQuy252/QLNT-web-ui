@@ -16,12 +16,7 @@ const PrivateRoute = ({ allowedRoles }: PrivateRouteProps) => {
   const token = localStorage.getItem(LocalStorageKey.token);
   const isAuthenticated = !!token;
 
-  let role = 0;
-
-  if (token) {
-    const decoded: any = jwtDecode(token);
-    role = decoded.role;
-  }
+  const role = token ? jwtDecode<{ role?: number }>(token).role : undefined;
 
   useGlobalQueryLoading();
 
@@ -31,8 +26,8 @@ const PrivateRoute = ({ allowedRoles }: PrivateRouteProps) => {
   }
 
   // ❌ Không đủ quyền
-  if (allowedRoles && !allowedRoles.includes(role)) {
-    return <Navigate to={'/'} replace />;
+  if (allowedRoles && (role == null || !allowedRoles.includes(role))) {
+    return <Navigate to="/" replace />;
   }
 
   return (

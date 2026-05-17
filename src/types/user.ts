@@ -58,6 +58,7 @@ export interface GetUserResponse {
   role: number;
   phone: string;
   cccd?: string;
+  assignBuilding: string[];
 }
 
 export interface GetUserByIdResponse {

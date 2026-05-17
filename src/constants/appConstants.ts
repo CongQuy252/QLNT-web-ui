@@ -8,7 +8,7 @@ export enum Path {
   tenants = 'tenants',
   payments = 'payments',
   statistics = 'statistics',
-  createpayment = 'payments/createpayment',
+  createpayment = 'createpayment',
   buildingId = ':buildingId',
   roomId = ':roomId',
   userId = ':userId',
@@ -41,6 +41,7 @@ export enum QueriesKey {
   roomsWithMeterReadings = 'roomsWithMeterReadings',
   invoices = 'invoices',
   invoice = 'invoice',
+  searchBuilding = 'searchBuilding',
 }
 
 export enum RoomStatus {
@@ -76,4 +77,20 @@ export enum PaymentStatus {
 export enum WaterType {
   person = 'person',
   m3 = 'm3',
+}
+
+export enum SortOrder {
+  asc = 'asc',
+  desc = 'desc',
+}
+
+export enum Operator {
+  equal = 'eq', // =
+  notEqual = 'ne', // !=
+  greaterThan = 'gt', // >
+  greaterThanOrEqual = 'gte', // >=
+  lessThan = 'lt', // <
+  lessThanOrEqual = 'lte', // <=
+  in = 'in', // in array
+  regex = 'regex', // like / contains
 }

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
 import { LocalStorageKey, UserRole } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
-import { ownerListFunctions, tenantListFunctions } from '@/pages/home/HomeContants';
+import { managerListFunctions, ownerListFunctions } from '@/pages/home/HomeContants';
 
 const HomeSidebar = () => {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ const HomeSidebar = () => {
   const navigationItems = useMemo(() => {
     if (!isReady) return [];
 
-    return user.role === UserRole.admin ? ownerListFunctions : tenantListFunctions;
+    return user.role === UserRole.admin ? ownerListFunctions : managerListFunctions;
   }, [isReady, user]);
 
   const updatedNavigationItems = useMemo(() => {

@@ -6,15 +6,6 @@ import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type { GetInvoiceByIdResponse, GetInvoiceResponse } from '@/types/invoice';
 
-export const getBuildings = async () => {
-  try {
-    const response = await http.get('/buildings');
-    return Array.isArray(response.data?.data) ? response.data.data : [];
-  } catch {
-    return [];
-  }
-};
-
 export const getInvoicePreview = async (month: number, year: number) => {
   try {
     const params = new URLSearchParams({
@@ -68,6 +59,7 @@ export const useGetInvoices = (
   isEnabled?: boolean,
 ) => {
   const handleHttpError = useHandleHttpError();
+
   const params = new URLSearchParams({
     page: options.page.toString(),
     limit: options.limit.toString(),

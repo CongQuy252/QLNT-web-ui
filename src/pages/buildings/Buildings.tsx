@@ -26,13 +26,13 @@ const Buildings = () => {
     isOpen,
     editingBuilding,
     setIsOpen,
-    isEditMode,
     setSelectedBuilding,
     selectedBuilding,
     building,
     buildings,
     isSaving,
     handleClickRoomStatusCount,
+    isAdmin,
   } = useBuildings();
 
   const renderRoomStatusCount = () => {
@@ -92,22 +92,23 @@ const Buildings = () => {
           <h1 className="text-3xl font-bold text-slate-900">Quản lý Tòa Nhà</h1>
           <p className="text-slate-600">Quản lý thông tin và thống kê tòa nhà</p>
         </div>
-        <Button
-          onClick={handleNewBuilding}
-          className="gap-2"
-          icon={<BsBuildingAdd className="h-4 w-4" />}
-        />
+        {isAdmin && (
+          <Button
+            onClick={handleNewBuilding}
+            className="gap-2"
+            icon={<BsBuildingAdd className="h-4 w-4" />}
+          />
+        )}
       </div>
-
-      <CreateOrUpdateBuildingDialog
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        isEditMode={isEditMode}
-        handleSave={handleSave}
-        building={editingBuilding}
-        isSaving={isSaving}
-      />
-
+      {isOpen && (
+        <CreateOrUpdateBuildingDialog
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          handleSave={handleSave}
+          building={editingBuilding}
+          isSaving={isSaving}
+        />
+      )}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
         <div className="lg:col-span-1 h-full min-h-0">
           <Card className="flex flex-col h-full">
@@ -153,27 +154,29 @@ const Buildings = () => {
                         </CardDescription>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditBuilding(building)}
-                        className="gap-1"
-                        icon={<Pencil className="h-4 w-4" />}
-                      />
+                    {isAdmin && (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditBuilding(building)}
+                          className="gap-1"
+                          icon={<Pencil className="h-4 w-4" />}
+                        />
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-1 text-red-600 hover:text-red-700 bg-transparent"
-                        icon={<Trash2 className="h-4 w-4" />}
-                        onClick={() => {
-                          setSelectedBuilding(building.id);
-                          handleAskDeleteBuilding();
-                        }}
-                        disabled={isDeleting}
-                      />
-                    </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1 text-red-600 hover:text-red-700 bg-transparent"
+                          icon={<Trash2 className="h-4 w-4" />}
+                          onClick={() => {
+                            setSelectedBuilding(building.id);
+                            handleAskDeleteBuilding();
+                          }}
+                          disabled={isDeleting}
+                        />
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
               </Card>

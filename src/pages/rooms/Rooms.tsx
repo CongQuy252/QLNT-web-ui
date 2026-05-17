@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { ToastContainer } from '@/components/ui/toast/Toast';
 import { Path } from '@/constants/appConstants';
+import { useAuthUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/RoomsConstants';
 import { useRooms } from '@/pages/rooms/useRooms';
@@ -36,6 +37,8 @@ const Rooms = () => {
     pagination,
     pageSize,
   } = useRooms();
+
+  const { isAdmin } = useAuthUser();
 
   const handleEditRoom = (room: Room) => {
     navigate(`/rooms/${room._id}/edit`);
@@ -192,7 +195,7 @@ const Rooms = () => {
                         Xem thông tin phòng
                       </Button>
 
-                      {room.status !== ROOMSTATUS.OCCUPIED && (
+                      {isAdmin && room.status !== ROOMSTATUS.OCCUPIED && (
                         <Button
                           variant="outline"
                           size="sm"

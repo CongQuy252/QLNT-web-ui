@@ -3,11 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { queryClient } from '@/lib/reactQuery';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { IoIosCreate } from 'react-icons/io';
 import { useNavigate } from 'react-router-dom';
 
-import { bulkCreateInvoices, getBuildings, getInvoicePreview } from '@/api/invoice';
+import { useGetBuildingQueries, useSearchBuildingQuery } from '@/api/building';
+import { bulkCreateInvoices, getInvoicePreview } from '@/api/invoice';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -26,16 +27,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ToastContainer } from '@/components/ui/toast/Toast';
-import { Path, QueriesKey } from '@/constants/appConstants';
+import { Operator, Path, QueriesKey } from '@/constants/appConstants';
+import { useAuthUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 import { formatCurrency } from '@/utils/utils';
 
 export default function InvoicePage() {
+  const { user, isAdmin, isManager } = useAuthUser();
   const navigate = useNavigate();
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const [invoiceData, setInvoiceData] = useState<any[]>([]);
-  const [buildings, setBuildings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     month: new Date().getMonth() + 1,
@@ -52,14 +54,40 @@ export default function InvoicePage() {
       timeoutId = setTimeout(() => func.apply(null, args), delay);
     };
   }, []);
-  const fetchBuildings = useCallback(async () => {
-    try {
-      const data = await getBuildings();
-      setBuildings(data);
-    } catch {
-      setBuildings([]);
+
+  const getBuildingForAdmin = useGetBuildingQueries(
+    {
+      limit: 100,
+      page: 0,
+      searchCondition: {
+        name: undefined,
+        address: undefined,
+      },
+    },
+    isAdmin,
+  );
+
+  const getBuildingForManager = useSearchBuildingQuery(
+    {
+      conditions: [
+        {
+          fieldName: '_id',
+          searchValue: user?.assignBuilding ?? [],
+          operator: Operator.in,
+        },
+      ],
+    },
+    isManager,
+  );
+
+  const buildings = useMemo(() => {
+    if (isAdmin) {
+      return getBuildingForAdmin.data?.data ?? [];
     }
-  }, []);
+
+    return getBuildingForManager.data?.data ?? getBuildingForManager.data ?? [];
+  }, [isAdmin, getBuildingForAdmin.data, getBuildingForManager.data]);
+
   const fetchInvoicePreview = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -73,10 +101,6 @@ export default function InvoicePage() {
   }, [filters.month, filters.year]);
 
   const debouncedUpdateFilters = useCallback(debounce(setFilters, 500), [debounce]);
-
-  useEffect(() => {
-    fetchBuildings();
-  }, [fetchBuildings]);
 
   useEffect(() => {
     fetchInvoicePreview();
@@ -164,13 +188,16 @@ export default function InvoicePage() {
     .filter((item) => selectedRows.includes(item.roomId))
     .filter((item) => item.canCreateInvoice).length;
 
+  const buildingList = Array.isArray(buildings) ? buildings : (buildings?.data ?? []);
+
   const filteredData =
     filters.buildingId === 'all' || !filters.buildingId
       ? data
       : data.filter((item) => {
-          const selectedBuildingName = buildings.find(
+          const selectedBuildingName = buildingList.find(
             (b: any) => b._id === filters.buildingId,
           )?.name;
+
           return item.buildingName === selectedBuildingName;
         });
 
@@ -231,7 +258,7 @@ export default function InvoicePage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả tòa nhà</SelectItem>
-                {buildings.map((building: any) => (
+                {buildingList.map((building: any) => (
                   <SelectItem key={building._id} value={building._id}>
                     {building.name}
                   </SelectItem>

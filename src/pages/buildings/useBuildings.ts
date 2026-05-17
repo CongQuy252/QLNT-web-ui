@@ -6,24 +6,53 @@ import {
   useCreateBuildingMutation,
   useDeleteBuildingMutation,
   useGetBuildingQueries,
+  useSearchBuildingQuery,
   useUpdateBuildingMutation,
 } from '@/api/building';
-import { QueriesKey, RoomStatus } from '@/constants/appConstants';
+import { Operator, QueriesKey, RoomStatus } from '@/constants/appConstants';
+import { useAuthUser } from '@/hooks/useCurrentUser';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
 import type { Building } from '@/types/building';
 
 export const useBuildings = () => {
   const navigator = useNavigate();
   const queryClient = useQueryClient();
-  const getBuildingQueries = useGetBuildingQueries({
-    limit: 100,
-    page: 0,
-    searchCondition: { name: undefined, address: undefined },
-  });
+  const { isAdmin, user, isManager } = useAuthUser();
+
+  const getBuildingForAdmin = useGetBuildingQueries(
+    {
+      limit: 100,
+      page: 0,
+      searchCondition: { name: undefined, address: undefined },
+    },
+    isAdmin,
+  );
+
+  const getBuildingForManager = useSearchBuildingQuery(
+    {
+      page: 1,
+      limit: 100,
+      conditions: [
+        {
+          fieldName: '_id',
+          searchValue: user?.assignBuilding ?? [],
+          operator: Operator.in,
+        },
+      ],
+    },
+    isManager,
+  );
+
+  const getBuildingQueries = useMemo(
+    () => (isAdmin ? getBuildingForAdmin : getBuildingForManager),
+    [isAdmin, getBuildingForAdmin, getBuildingForManager],
+  );
+
   const createBuildingMutation = useCreateBuildingMutation();
   const updateBuildingMutation = useUpdateBuildingMutation();
   const deleteBuildingMutation = useDeleteBuildingMutation();
-  const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
+
+  const [selectedBuilding, setSelectedBuilding] = useState<string>();
   const [editingBuilding, setEditingBuilding] = useState<Building>();
   const [confirmMessage, setConfirmMessage] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
@@ -55,7 +84,6 @@ export const useBuildings = () => {
   const handleSave = async (data: BuildingFormInput) => {
     try {
       if (isEditMode && editingBuilding) {
-        // Check if building has any occupied rooms before updating
         const occupiedRooms = editingBuilding.roomStatus?.occupied ?? 0;
 
         if (occupiedRooms > 0) {
@@ -123,7 +151,7 @@ export const useBuildings = () => {
     try {
       await deleteBuildingMutation.mutateAsync(building._id);
       queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
-      setSelectedBuilding(null);
+      setSelectedBuilding(undefined);
       setConfirmOpen(false);
     } catch (error) {
       console.error(error);
@@ -159,5 +187,6 @@ export const useBuildings = () => {
     isSaving: createBuildingMutation.isPending || updateBuildingMutation.isPending,
     isDeleting: deleteBuildingMutation.isPending,
     handleClickRoomStatusCount,
+    isAdmin,
   };
 };

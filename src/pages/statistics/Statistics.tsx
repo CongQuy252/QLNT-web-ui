@@ -17,7 +17,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ToastContainer } from '@/components/ui/toast/Toast';
+import { useAuthUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
+import { useStatisticsConstants } from '@/pages/statistics/statisticsConstants';
 import type { BulkMeterReadingDto } from '@/types/meterReading';
 
 import Dashboard from './components/Dashboard';
@@ -44,6 +46,9 @@ const Statistics = () => {
   >({});
   const { error: toastError, toasts, success } = useToast();
   const { mutateAsync } = useBulkUpsertMeterReadings();
+  const { isAdmin } = useAuthUser();
+
+  const { tab } = useStatisticsConstants(isAdmin);
 
   const getMonthYearFromSelection = () => {
     const month = parseInt(selectedMonth) || currentMonth;
@@ -142,15 +147,11 @@ const Statistics = () => {
             {/* Tabs: Hỗ trợ cuộn ngang trên mobile */}
             <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
               <nav className="flex overflow-x-auto no-scrollbar" aria-label="Tabs">
-                {[
-                  { id: 'table', label: 'Danh sách' },
-                  { id: 'dashboard', label: 'Chi Phí' },
-                  { id: 'summary', label: 'Tổng Quan' },
-                ].map((tab) => (
+                {tab.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 min-w-25 py-4 px-1 text-center text-sm font-medium border-b-2 transition-all ${
+                    className={`cursor-pointer flex-1 min-w-25 py-4 px-1 text-center text-sm font-medium border-b-2 transition-all ${
                       activeTab === tab.id
                         ? 'text-blue-600 border-blue-500'
                         : 'text-gray-500 border-transparent hover:text-gray-700'

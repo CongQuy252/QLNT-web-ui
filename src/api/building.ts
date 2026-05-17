@@ -5,6 +5,7 @@ import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
 import type { Building, BuildingListResponse, GetBuildingByIdResponse } from '@/types/building';
+import type { SearchQuery } from '@/types/searchQuery';
 
 // Simple API function for direct usage
 export const getBuildings = async (): Promise<Building[]> => {
@@ -91,6 +92,23 @@ export const useDeleteBuildingMutation = () => {
     mutationFn: async (id: string) => {
       const response = await http.delete(`/buildings/${id}`);
       return response.data;
+    },
+  });
+};
+
+export const useSearchBuildingQuery = (condition: SearchQuery, enable?: boolean) => {
+  const handleHttpError = useHandleHttpError();
+
+  const { conditions, limit, page, sort } = condition;
+  return useQuery({
+    queryKey: [QueriesKey.searchBuilding, conditions, limit, page, sort, condition],
+    queryFn: async () => {
+      const response = await http.post<BuildingListResponse>('/buildings/search', condition);
+      return response.data;
+    },
+    enabled: enable,
+    meta: {
+      handleError: handleHttpError,
     },
   });
 };

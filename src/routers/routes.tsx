@@ -28,17 +28,13 @@ export const routes: RouteObject[] = [
       {
         element: <HomeSidebar />,
         children: [
-          // ================= ADMIN ONLY =================
+          // ================= ADMIN + MANAGER =================
           {
-            element: <PrivateRoute allowedRoles={[UserRole.admin]} />,
+            element: <PrivateRoute allowedRoles={[UserRole.admin, UserRole.manager]} />,
             children: [
               {
                 path: `/${Path.buildings}`,
                 element: <Buildings />,
-              },
-              {
-                path: `/${Path.buildings}/create`,
-                element: <CreateBuildingPage />,
               },
               {
                 path: `/${Path.rooms}`,
@@ -53,31 +49,34 @@ export const routes: RouteObject[] = [
                 element: <EditRoomPage />,
               },
               {
-                path: `/${Path.statistics}`,
-                element: <Statistics />,
-              },
-              {
-                path: `/${Path.users}`,
-                element: <UsersPage />,
-              },
-            ],
-          },
-
-          // ================= ADMIN + TENANT =================
-          {
-            element: <PrivateRoute allowedRoles={[UserRole.admin, UserRole.noRole]} />,
-            children: [
-              {
                 path: `/${Path.payments}`,
                 element: <Payment />,
               },
               {
-                path: `/${Path.createpayment}`,
+                path: `/${Path.payments}/${Path.createpayment}`,
                 element: <CreatePaymentPage />,
               },
               {
                 path: `/${Path.payments}/${Path.paymentId}`,
                 element: <PaymentDetail />,
+              },
+              {
+                path: `/${Path.statistics}`,
+                element: <Statistics />,
+              },
+            ],
+          },
+          // ================= ADMIN ONLY =================
+          {
+            element: <PrivateRoute allowedRoles={[UserRole.admin]} />,
+            children: [
+              {
+                path: `/${Path.buildings}/create`,
+                element: <CreateBuildingPage />,
+              },
+              {
+                path: `/${Path.users}`,
+                element: <UsersPage />,
               },
             ],
           },
