@@ -12,17 +12,19 @@ import {
 import { Operator, QueriesKey, RoomStatus } from '@/constants/appConstants';
 import { useAuthUser } from '@/hooks/useCurrentUser';
 import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
+import { maxItemPerPage } from '@/pages/payment/paymentConstants';
 import type { Building } from '@/types/building';
 
 export const useBuildings = () => {
   const navigator = useNavigate();
   const queryClient = useQueryClient();
   const { isAdmin, user, isManager } = useAuthUser();
+  const [currentBuildingPage, setCurrentBuildingPage] = useState(1);
 
   const getBuildingForAdmin = useGetBuildingQueries(
     {
-      limit: 100,
-      page: 0,
+      limit: maxItemPerPage,
+      page: currentBuildingPage,
       searchCondition: { name: undefined, address: undefined },
     },
     isAdmin,
@@ -30,8 +32,8 @@ export const useBuildings = () => {
 
   const getBuildingForManager = useSearchBuildingQuery(
     {
-      page: 1,
-      limit: 100,
+      page: currentBuildingPage,
+      limit: maxItemPerPage,
       conditions: [
         {
           fieldName: '_id',
@@ -60,6 +62,19 @@ export const useBuildings = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+
+  const buildingPagination = useMemo(() => {
+    return (
+      getBuildingQueries.data?.pagination ?? {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      }
+    );
+  }, [getBuildingQueries.data?.pagination]);
 
   const buildings = useMemo(() => {
     return (
@@ -188,5 +203,8 @@ export const useBuildings = () => {
     isDeleting: deleteBuildingMutation.isPending,
     handleClickRoomStatusCount,
     isAdmin,
+    buildingPagination,
+    setCurrentBuildingPage,
+    currentBuildingPage,
   };
 };

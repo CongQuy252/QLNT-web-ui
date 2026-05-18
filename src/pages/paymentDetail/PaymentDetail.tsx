@@ -538,16 +538,17 @@ export default function PaymentDetail() {
           )}
         </div>
 
-        {user.role === UserRole.admin && payment?.status !== PaymentStatus.PAID && (
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              className="bg-slate-900 hover:bg-slate-800 text-white px-8 gap-2"
-              onClick={handleMarkAsPaid}
-            >
-              Đánh dấu đã thanh toán
-            </Button>
-          </div>
-        )}
+        {[UserRole.admin, UserRole.manager].includes(user.role) &&
+          payment?.status !== PaymentStatus.PAID && (
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                className="bg-slate-900 hover:bg-slate-800 text-white px-8 gap-2"
+                onClick={handleMarkAsPaid}
+              >
+                Đánh dấu đã thanh toán
+              </Button>
+            </div>
+          )}
 
         {payment?.status === PaymentStatus.PAID && (
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

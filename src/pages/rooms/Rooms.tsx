@@ -70,7 +70,7 @@ const Rooms = () => {
                   transition-all duration-200
                   bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap"
           >
-            Nhập số phòng hoặc tên tòa nhà để tìm kiếm
+            Nhập tên phòng để tìm kiếm
             <div
               className="absolute left-1/2 top-full -translate-x-1/2
                     border-6 border-transparent border-t-gray-900"

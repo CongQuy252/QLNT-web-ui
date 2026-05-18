@@ -8,6 +8,7 @@ import { InfoDialog } from '@/components/ui/infoDialog/InfoDialog';
 import { Path, RoomStatus } from '@/constants/appConstants';
 import { useBuildings } from '@/pages/buildings/useBuildings';
 import CreateOrUpdateBuildingDialog from '@/pages/dialogs/createOrUpdateBuildingDialog/CreateOrUpdateBuildingDialog';
+import { maxItemPerPage } from '@/pages/payment/paymentConstants';
 
 const Buildings = () => {
   const {
@@ -33,6 +34,9 @@ const Buildings = () => {
     isSaving,
     handleClickRoomStatusCount,
     isAdmin,
+    buildingPagination,
+    setCurrentBuildingPage,
+    currentBuildingPage,
   } = useBuildings();
 
   const renderRoomStatusCount = () => {
@@ -134,6 +138,40 @@ const Buildings = () => {
                 </button>
               ))}
             </CardContent>
+
+            {buildingPagination && buildingPagination.totalPages > 1 && (
+              <div className="flex items-center justify-between pt-2 px-4">
+                <div className="text-sm text-slate-600">
+                  {(currentBuildingPage - 1) * maxItemPerPage + 1} -{' '}
+                  {Math.min(currentBuildingPage * maxItemPerPage, buildingPagination.total)} /{' '}
+                  {buildingPagination.total}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentBuildingPage((prev) => prev - 1)}
+                    disabled={!buildingPagination.hasPrev}
+                  >
+                    Trước
+                  </Button>
+
+                  <span className="text-sm text-slate-600">
+                    {currentBuildingPage} / {buildingPagination.totalPages}
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentBuildingPage((prev) => prev + 1)}
+                    disabled={!buildingPagination.hasNext}
+                  >
+                    Sau
+                  </Button>
+                </div>
+              </div>
+            )}
           </Card>
         </div>
 

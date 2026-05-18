@@ -1,15 +1,14 @@
 import { ArrowRight, LogOut } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useGetBuildingQueries } from '@/api/building';
-import { useGetRoomsQueries } from '@/api/room';
+import { useGetBuildingQueries, useSearchBuildingQuery } from '@/api/building';
 import LockCircleIcon from '@/assets/Icon/LockCircleIcon';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
+import { Operator } from '@/constants/appConstants';
 import { useAuthUser } from '@/hooks/useCurrentUser';
-import { useLoading } from '@/hooks/useLoading';
 import { useMobile } from '@/hooks/useMobile';
 import {
   managerListFunctions,
@@ -17,6 +16,7 @@ import {
   ownerListFunctions,
   welcomeMessages,
 } from '@/pages/home/HomeContants';
+import { maxItemPerPage } from '@/pages/payment/paymentConstants';
 
 import styles from './Home.module.css';
 
@@ -28,38 +28,69 @@ export interface Infomation {
 const Home = () => {
   const navigator = useNavigate();
   const isMobile = useMobile();
-  const { show, hide } = useLoading();
-  const { user, isAdmin, isManager, isLoading, logout } = useAuthUser();
+  const { user, isAdmin, isManager, logout } = useAuthUser();
 
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
-  const getBuildings = useGetBuildingQueries(
+  const getBuildingForAdmin = useGetBuildingQueries(
     { page: 0, limit: 100, searchCondition: { name: undefined, address: undefined } },
     !!user && isAdmin,
   );
 
-  const getRooms = useGetRoomsQueries({
-    isEnabled: !!user && isAdmin,
-  });
+  const getBuildingForManager = useSearchBuildingQuery(
+    {
+      page: 1,
+      limit: maxItemPerPage,
+      conditions: [
+        {
+          fieldName: '_id',
+          searchValue: user?.assignBuilding ?? [],
+          operator: Operator.in,
+        },
+      ],
+    },
+    isManager,
+  );
 
-  useEffect(() => {
-    if (isLoading || getBuildings.isLoading || getRooms.isLoading) {
-      show();
-    } else {
-      hide();
-    }
-  }, [isLoading, getBuildings.isLoading, getRooms.isLoading, show, hide]);
+  const getBuildingQueries = useMemo(
+    () => (isAdmin ? getBuildingForAdmin : getBuildingForManager),
+    [isAdmin, getBuildingForAdmin, getBuildingForManager],
+  );
 
-  if (!user) {
-    return null;
-  }
+  const buildingPagination = useMemo(() => {
+    return (
+      getBuildingQueries.data?.pagination ?? {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      }
+    );
+  }, [getBuildingQueries.data?.pagination]);
+
+  const buildings = useMemo(() => {
+    return (
+      getBuildingQueries.data?.data.map((b) => ({
+        ...b,
+        id: b._id,
+      })) ?? []
+    );
+  }, [getBuildingQueries.data?.data]);
 
   const navigationItems = isAdmin ? ownerListFunctions : managerListFunctions;
 
+  const roomCount = useMemo(() => {
+    return buildings.reduce((total, building) => {
+      return total + building.totalRooms;
+    }, 0);
+  }, [buildings]);
+
   const infomations: Infomation[] = [
-    { label: 'Email', value: user.email },
-    { label: 'Số tòa nhà', value: user.assignBuilding.length.toString() ?? '0' },
-    { label: 'Tổng số phòng', value: getRooms.data?.pagination.total.toString() ?? '0' },
+    { label: 'Email', value: user?.email ?? '' },
+    { label: 'Số tòa nhà', value: buildingPagination.total.toString() ?? '0' },
+    { label: 'Tổng số phòng', value: roomCount.toString() ?? '0' },
   ];
 
   const renderInfomationCards = () => {
@@ -79,6 +110,10 @@ const Home = () => {
       );
     });
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className={styles.container}>

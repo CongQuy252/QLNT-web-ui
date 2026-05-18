@@ -1,7 +1,7 @@
 import { Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { getBuildings } from '@/api/building';
+import { useGetBuildingQueries, useSearchBuildingQuery } from '@/api/building';
 import { createExpense, deleteExpense, getExpenses } from '@/api/expense';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,17 +19,56 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Operator } from '@/constants/appConstants';
+import { useAuthUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
-import type { Building } from '@/types/building';
 import type { CreateExpenseInput, Expense } from '@/types/expense';
 import { formatCurrency } from '@/utils/utils';
 
 export default function Dashboard() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [buildings, setBuildings] = useState<Building[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { error, success } = useToast();
+  const { isAdmin, user, isManager } = useAuthUser();
+
+  const getBuildingForAdmin = useGetBuildingQueries(
+    {
+      limit: 100,
+      page: 0,
+      searchCondition: { name: undefined, address: undefined },
+    },
+    isAdmin,
+  );
+
+  const getBuildingForManager = useSearchBuildingQuery(
+    {
+      page: 1,
+      limit: 100,
+      conditions: [
+        {
+          fieldName: '_id',
+          searchValue: user?.assignBuilding ?? [],
+          operator: Operator.in,
+        },
+      ],
+    },
+    isManager,
+  );
+
+  const getBuildingQueries = useMemo(
+    () => (isAdmin ? getBuildingForAdmin : getBuildingForManager),
+    [isAdmin, getBuildingForAdmin, getBuildingForManager],
+  );
+
+  const buildings = useMemo(() => {
+    return (
+      getBuildingQueries.data?.data.map((b) => ({
+        ...b,
+        id: b._id,
+      })) ?? []
+    );
+  }, [getBuildingQueries.data?.data]);
 
   const [newExpense, setNewExpense] = useState<CreateExpenseInput>({
     buildingId: '',
@@ -40,19 +79,6 @@ export default function Dashboard() {
     otherFee: 0,
     expenseDate: new Date().toISOString().split('T')[0],
   });
-
-  useEffect(() => {
-    const fetchBuildings = async () => {
-      try {
-        const buildingsData = await getBuildings();
-        setBuildings(buildingsData);
-      } catch {
-        error('Lỗi khi tải danh sách tòa nhà');
-      }
-    };
-
-    fetchBuildings();
-  }, [error]);
 
   useEffect(() => {
     const fetchExpenses = async () => {

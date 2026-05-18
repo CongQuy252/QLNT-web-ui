@@ -69,6 +69,7 @@ export default function InvoicePage() {
 
   const getBuildingForManager = useSearchBuildingQuery(
     {
+      limit: user?.assignBuilding.length,
       conditions: [
         {
           fieldName: '_id',

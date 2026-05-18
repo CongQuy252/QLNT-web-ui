@@ -14,7 +14,8 @@ import type { RoomsWithMeterReadingsResponse } from '@/types/room';
 export type { RoomWithMeterReading, RoomsWithMeterReadingsResponse } from '@/types/room';
 
 export const useGetRoomsQueries = ({
-  search = '',
+  roomNumber = '',
+  buildingName = '',
   status = '',
   buildingId = '',
   isEnabled = true,
@@ -24,7 +25,7 @@ export const useGetRoomsQueries = ({
   const handleHttpError = useHandleHttpError();
 
   return useQuery({
-    queryKey: [QueriesKey.rooms, page, limit, search, status, buildingId],
+    queryKey: [QueriesKey.rooms, page, limit, roomNumber, buildingName, status, buildingId],
 
     queryFn: async () => {
       const params = new URLSearchParams({
@@ -32,8 +33,11 @@ export const useGetRoomsQueries = ({
         limit: limit.toString(),
       });
 
-      if (search) {
-        params.append('search', search);
+      if (roomNumber) {
+        params.append('roomNumber', roomNumber);
+      }
+      if (buildingName) {
+        params.append('buildingName', buildingName);
       }
       if (buildingId) {
         params.append('buildingId', buildingId);

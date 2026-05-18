@@ -31,7 +31,7 @@ export const useRooms = () => {
   const { data, isLoading, error } = useGetRoomsQueries({
     page: currentPage,
     limit: pageSize,
-    search: debouncedSearchTerm,
+    roomNumber: debouncedSearchTerm,
     status: filterStatus,
     buildingId: params.buildingId || '',
   });
