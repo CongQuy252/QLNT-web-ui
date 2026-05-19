@@ -1,6 +1,9 @@
 import { queryClient } from '@/lib/reactQuery';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
+import { AxiosError, HttpStatusCode } from 'axios';
+import { useSnackbar } from 'notistack';
+
 import { LocalStorageKey, QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
@@ -104,6 +107,7 @@ export const useCreateUserMutation = () => {
 };
 
 export const useChangePasswordMutation = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const handleHttpError = useHandleHttpError();
 
   return useMutation({
@@ -111,7 +115,18 @@ export const useChangePasswordMutation = () => {
       const response = await http.put('/auth/change-password', data);
       return response.data;
     },
-    onError: handleHttpError,
+    // onError: handleHttpError,
+    onError: (error: unknown) => {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === HttpStatusCode.BadRequest) {
+          enqueueSnackbar('Mật khẩu cũ không chính xác', { variant: 'error' });
+        } else {
+          enqueueSnackbar('Có lỗi xảy ra khi đổi mật khẩu', { variant: 'error' });
+        }
+      } else {
+        handleHttpError(error);
+      }
+    },
   });
 };
 
@@ -128,6 +143,7 @@ export const useUpdateUserMutation = () => {
       });
       return response.data;
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueriesKey.users] });
     },

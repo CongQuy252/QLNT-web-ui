@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { MdVisibility, MdVisibilityOff } from 'react-icons/md';
@@ -18,11 +17,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/useToast';
+import type { useToast } from '@/hooks/useToast';
 
 interface ChangePasswordDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  toast: ReturnType<typeof useToast>;
 }
 
 const schema = z
@@ -38,15 +38,13 @@ const schema = z
 
 type ChangePasswordForm = z.infer<typeof schema>;
 
-const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ isOpen, onClose }) => {
+const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ isOpen, onClose, toast }) => {
   const [isLoading, setIsLoading] = useState(false);
-
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const changePasswordMutation = useChangePasswordMutation();
-  const { success, error: showError } = useToast();
 
   const form = useForm<ChangePasswordForm>({
     resolver: zodResolver(schema),
@@ -66,11 +64,9 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ isOpen, onC
         newPassword: data.newPassword,
       });
 
-      success('Đổi mật khẩu thành công');
+      toast.success('Đổi mật khẩu thành công');
       form.reset();
       onClose();
-    } catch (err: any) {
-      showError(err?.message || 'Có lỗi xảy ra khi đổi mật khẩu');
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +77,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ isOpen, onC
     onClose();
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const PasswordInput = ({ field, show, toggle, placeholder }: any) => (
     <div className="relative">
       <Input

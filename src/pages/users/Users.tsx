@@ -264,10 +264,10 @@ const UsersPage = () => {
                           </Tooltip.Trigger>
                           <Tooltip.Portal>
                             <Tooltip.Content
-                              className="w-full whitespace-normal wrap-break-word rounded-md border-4 border-blue-700 bg-white/85 text-blue-900 px-3 py-2 text-xs shadow-md z-10"
+                              className="w-full whitespace-normal wrap-break-word rounded-md border-2 border-blue-700 bg-white/85 px-3 py-2 text-xs shadow-md z-10"
                               side="top"
                             >
-                              <p className="text-sm text-slate-600">Nâng role</p>
+                              <p className="text-sm font-bold">Nâng role</p>
                               <Tooltip.Arrow className="fill-blue-700" />
                             </Tooltip.Content>
                           </Tooltip.Portal>
@@ -288,10 +288,10 @@ const UsersPage = () => {
                           </Tooltip.Trigger>
                           <Tooltip.Portal>
                             <Tooltip.Content
-                              className="w-full whitespace-normal wrap-break-word rounded-md border-4 border-blue-700 bg-white/85 text-blue-900 px-3 py-2 text-xs shadow-md z-10"
+                              className="w-full whitespace-normal wrap-break-word rounded-md border-2 border-blue-700 bg-white/85 px-3 py-2 text-xs shadow-md z-10"
                               side="bottom"
                             >
-                              <p className="text-sm text-slate-600">Hạ role</p>
+                              <p className="text-sm font-bold">Hạ role</p>
                               <Tooltip.Arrow className="fill-blue-700" />
                             </Tooltip.Content>
                           </Tooltip.Portal>

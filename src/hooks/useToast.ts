@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
+
 import type { ToastProps } from '@/components/ui/toast/Toast';
 
 interface ToastItem extends ToastProps {
@@ -27,21 +28,33 @@ export const useToast = () => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
-  const success = useCallback((message: string, duration?: number) => {
-    showToast({ message, type: 'success', duration });
-  }, [showToast]);
+  const success = useCallback(
+    (message: string, duration?: number) => {
+      showToast({ message, type: 'success', duration });
+    },
+    [showToast],
+  );
 
-  const error = useCallback((message: string, duration?: number) => {
-    showToast({ message, type: 'error', duration });
-  }, [showToast]);
+  const error = useCallback(
+    (message: string, duration?: number) => {
+      showToast({ message, type: 'error', duration });
+    },
+    [showToast],
+  );
 
-  const warning = useCallback((message: string, duration?: number) => {
-    showToast({ message, type: 'warning', duration });
-  }, [showToast]);
+  const warning = useCallback(
+    (message: string, duration?: number) => {
+      showToast({ message, type: 'warning', duration });
+    },
+    [showToast],
+  );
 
-  const info = useCallback((message: string, duration?: number) => {
-    showToast({ message, type: 'info', duration });
-  }, [showToast]);
+  const info = useCallback(
+    (message: string, duration?: number) => {
+      showToast({ message, type: 'info', duration });
+    },
+    [showToast],
+  );
 
   return {
     toasts,

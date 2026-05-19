@@ -7,9 +7,11 @@ import LockCircleIcon from '@/assets/Icon/LockCircleIcon';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
+import { ToastContainer } from '@/components/ui/toast/Toast';
 import { Operator } from '@/constants/appConstants';
 import { useAuthUser } from '@/hooks/useCurrentUser';
 import { useMobile } from '@/hooks/useMobile';
+import { useToast } from '@/hooks/useToast';
 import {
   managerListFunctions,
   ownerIcon,
@@ -29,6 +31,7 @@ const Home = () => {
   const navigator = useNavigate();
   const isMobile = useMobile();
   const { user, isAdmin, isManager, logout } = useAuthUser();
+  const toast = useToast();
 
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
@@ -221,7 +224,9 @@ const Home = () => {
       <ChangePasswordDialog
         isOpen={isChangePasswordOpen}
         onClose={() => setIsChangePasswordOpen(false)}
+        toast={toast}
       />
+      {toast.toasts.length > 0 && <ToastContainer toasts={toast.toasts} />}
     </div>
   );
 };
