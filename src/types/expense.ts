@@ -1,11 +1,3 @@
-export enum ExpenseCategory {
-  MAINTENANCE = 'maintenance',
-  FURNITURE = 'furniture',
-  UTILITY_BILL = 'utility',
-  TAX = 'tax',
-  OTHER = 'other',
-}
-
 export interface Expense {
   _id: string;
   buildingId: {

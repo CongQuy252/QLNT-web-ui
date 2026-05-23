@@ -1,13 +1,11 @@
-import { queryClient } from '@/lib/reactQuery';
 import { CreditCard } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FaFileInvoiceDollar } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
-import { useGetBuildingQueries } from '@/api/building';
+import { useGetBuildingQueries, useSearchBuildingQuery } from '@/api/building';
 import { useDeleteInvoice, useGetInvoiceById, useGetInvoices } from '@/api/invoice';
 import { useExportInvoices } from '@/api/payment';
-import { useUserQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -26,7 +24,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
+import { Operator, Path, UserRole } from '@/constants/appConstants';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
 import { maxItemPerPage } from '@/pages/payment/paymentConstants';
@@ -37,11 +36,39 @@ export default function Payment() {
   const navigator = useNavigate();
   const { show, hide } = useLoading();
   const { success, error } = useToast();
-  const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
   const { mutateAsync: exportInvoices } = useExportInvoices();
-  const { data: buildings } = useGetBuildingQueries();
+  const { user, isAdmin, isManager } = useAuthUser();
+  const getBuildingForAdmin = useGetBuildingQueries(
+    {
+      limit: 100,
+      page: 0,
+      searchCondition: {
+        name: undefined,
+        address: undefined,
+      },
+    },
+    isAdmin,
+  );
 
-  const { data: user, isLoading: isLoadingUserQuery, isError } = useUserQuery(userId, !!userId);
+  const getBuildingForManager = useSearchBuildingQuery(
+    {
+      page: 1,
+      limit: user?.assignBuilding.length,
+      conditions: [
+        {
+          fieldName: '_id',
+          searchValue: user?.assignBuilding ?? [],
+          operator: Operator.in,
+        },
+      ],
+    },
+    isManager,
+  );
+
+  const buildings = useMemo(
+    () => (isAdmin ? getBuildingForAdmin.data : getBuildingForManager.data),
+    [isAdmin, getBuildingForAdmin.data, getBuildingForManager.data],
+  );
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
@@ -136,25 +163,13 @@ export default function Payment() {
     [deleteInvoiceMutate, success, error],
   );
 
-  const handleLogout = useCallback(() => {
-    queryClient.clear();
-    localStorage.clear();
-    navigator(Path.login, { replace: true });
-  }, [navigator]);
-
   useEffect(() => {
-    if (isLoadingUserQuery || isLoading || isSearching) {
+    if (isLoading || isSearching) {
       show();
     } else {
       hide();
     }
-  }, [hide, isLoading, isLoadingUserQuery, isSearching, show]);
-
-  useEffect(() => {
-    if (!isLoadingUserQuery && (isError || !user)) {
-      handleLogout();
-    }
-  }, [isLoadingUserQuery, isError, user, handleLogout]);
+  }, [hide, isLoading, isSearching, show]);
 
   if (!user) {
     return null;
@@ -229,14 +244,13 @@ export default function Payment() {
               : 'Thông tin thanh toán của bạn'}
           </p>
         </div>
-        {user.role === UserRole.admin && (
-          <Button
-            onClick={() => navigator(`/${Path.createpayment}`)}
-            className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
-          >
-            <FaFileInvoiceDollar className="w-4 h-4" />
-          </Button>
-        )}
+
+        <Button
+          onClick={() => navigator(`/${Path.payments}/${Path.createpayment}`)}
+          className="bg-slate-900 hover:bg-slate-800 text-white gap-2"
+        >
+          <FaFileInvoiceDollar className="w-4 h-4" />
+        </Button>
       </div>
 
       {/* Filter */}

@@ -17,9 +17,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Path, QueriesKey } from '@/constants/appConstants';
+import { Path, QueriesKey, ROOMSTATUS } from '@/constants/appConstants';
 import { getStatusLabel } from '@/pages/rooms/RoomsConstants';
-import { type Member, ROOMSTATUS, type Room } from '@/types/room';
+import { type Member, type Room } from '@/types/room';
 import { formatNumber, parseNumber } from '@/utils/utils';
 
 import AddMemberDialog from './components/AddMemberDialog';

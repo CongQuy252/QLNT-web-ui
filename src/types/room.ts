@@ -1,10 +1,5 @@
+import type { ROOMSTATUS } from '@/constants/appConstants';
 import type { Pagination } from '@/types/building';
-
-export enum ROOMSTATUS {
-  AVAILABLE = 'available',
-  OCCUPIED = 'occupied',
-  MAINTENANCE = 'maintenance',
-}
 
 export interface Member {
   _id: string;

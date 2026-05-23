@@ -75,54 +75,6 @@ export const confirmPayment = async (
   }
 };
 
-export const getRevenueByBuilding = async (
-  month?: number,
-  year?: number,
-): Promise<RevenueByBuilding[]> => {
-  // eslint-disable-next-line no-useless-catch
-  try {
-    const params = new URLSearchParams();
-    if (month !== undefined) params.append('month', month.toString());
-    if (year !== undefined) params.append('year', year.toString());
-
-    const response = await http.get(`/payments/revenue/building?${params.toString()}`);
-
-    if (response.data && response.data.success && response.data.data) {
-      return response.data.data;
-    } else if (response.data && Array.isArray(response.data)) {
-      return response.data;
-    } else {
-      return [];
-    }
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const getExpensesByBuilding = async (
-  month?: number,
-  year?: number,
-): Promise<ExpenseByBuilding[]> => {
-  // eslint-disable-next-line no-useless-catch
-  try {
-    const params = new URLSearchParams();
-    if (month !== undefined) params.append('month', month.toString());
-    if (year !== undefined) params.append('year', year.toString());
-
-    const response = await http.get(`/expenses/building?${params.toString()}`);
-
-    if (response.data && response.data.success && response.data.data) {
-      return response.data.data;
-    } else if (response.data && Array.isArray(response.data)) {
-      return response.data;
-    } else {
-      return [];
-    }
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const getDashboardSummary = async (
   month?: number,
   year?: number,

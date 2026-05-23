@@ -1,4 +1,4 @@
-import { ROOMSTATUS } from '@/types/room';
+import { ROOMSTATUS } from '@/constants/appConstants';
 
 export const getStatusBadge = (status: string) => {
   switch (status) {

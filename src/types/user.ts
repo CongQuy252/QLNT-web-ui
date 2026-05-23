@@ -1,4 +1,5 @@
 import type { TenantStatus, UserRole } from '@/constants/appConstants';
+import type { Building } from '@/types/building';
 
 export interface User {
   _id: string;
@@ -15,8 +16,6 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
 }
-
-export type UserRoom = Omit<User, 'password' | 'createdAt' | 'updatedAt'>;
 
 export interface LoginRequest {
   email: string;
@@ -57,19 +56,12 @@ export interface GetUserResponse {
   role: number;
   phone: string;
   cccd?: string;
+  assignBuilding: string[];
 }
 
 export interface GetUserByIdResponse {
   message: string;
   data: GetUserResponse;
-}
-
-export interface GetNonTenantUsersRequest {
-  email?: string;
-  name?: string;
-  phone?: string;
-  page?: number;
-  limit?: number;
 }
 
 export interface Pagination {
@@ -81,12 +73,7 @@ export interface Pagination {
   hasPrev: boolean;
 }
 
-export interface GetNonTenantUsersResponse {
-  data: GetUserResponse[];
-  pagination: Pagination;
-}
-
-export interface UpdateTenantRequest {
+export interface UpdateUserRequest {
   email: string;
   name: string;
   role: UserRole;
@@ -94,10 +81,6 @@ export interface UpdateTenantRequest {
   cccd: string;
   cccdImagesFront: string | File;
   cccdImagesBack: string | File;
-  // roomId: string;
-  // occupation: string;
-  // contractStartDate: string;
-  // contractEndDate: string;
 }
 
 export interface UserResponse {
@@ -118,10 +101,21 @@ export interface UserResponse {
   phone: string;
   cccd?: string;
   status: TenantStatus;
+  assignBuilding: Building[];
 }
 
-export interface GetTenantListResponse {
+export interface GetUserListResponse {
   message: string;
   data: UserResponse[];
   pagination: Pagination;
+}
+
+export interface GetAllUserRequest {
+  page: number;
+  limit: number;
+  searchCondition: {
+    email?: string;
+    name?: string;
+    phone?: string;
+  };
 }

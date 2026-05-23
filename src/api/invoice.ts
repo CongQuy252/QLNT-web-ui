@@ -6,15 +6,6 @@ import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
 import type { GetInvoiceByIdResponse, GetInvoiceResponse } from '@/types/invoice';
 
-export const getBuildings = async () => {
-  try {
-    const response = await http.get('/buildings');
-    return Array.isArray(response.data?.data) ? response.data.data : [];
-  } catch {
-    return [];
-  }
-};
-
 export const getInvoicePreview = async (month: number, year: number) => {
   try {
     const params = new URLSearchParams({
@@ -68,6 +59,7 @@ export const useGetInvoices = (
   isEnabled?: boolean,
 ) => {
   const handleHttpError = useHandleHttpError();
+
   const params = new URLSearchParams({
     page: options.page.toString(),
     limit: options.limit.toString(),
@@ -111,21 +103,14 @@ export const useGetInvoices = (
   });
 };
 
-export const getInvoiceById = async (invoiceId: string) => {
-  // eslint-disable-next-line no-useless-catch
-  try {
-    const response = await http.get<GetInvoiceByIdResponse>(`/invoices/${invoiceId}`);
-    return response.data.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const useGetInvoiceById = (invoiceId: string, enabled?: boolean) => {
   const handleHttpError = useHandleHttpError();
   return useQuery({
     queryKey: [QueriesKey.invoice, invoiceId],
-    queryFn: async () => getInvoiceById(invoiceId),
+    queryFn: async () => {
+      const response = await http.get<GetInvoiceByIdResponse>(`/invoices/${invoiceId}`);
+      return response.data.data;
+    },
     meta: {
       handleError: handleHttpError,
     },
@@ -133,15 +118,17 @@ export const useGetInvoiceById = (invoiceId: string, enabled?: boolean) => {
   });
 };
 
-// Delete invoice by ID
-export const deleteInvoice = async (invoiceId: string) => {
-  const response = await http.delete(`/invoices/${invoiceId}`);
-  return response.data;
+export const getInvoiceById = async (invoiceId: string) => {
+  const response = await http.get<GetInvoiceByIdResponse>(`/invoices/${invoiceId}`);
+  return response.data.data;
 };
 
 export const useDeleteInvoice = () => {
   return useMutation({
-    mutationFn: (invoiceId: string) => deleteInvoice(invoiceId),
+    mutationFn: async (invoiceId: string) => {
+      const response = await http.delete(`/invoices/${invoiceId}`);
+      return response.data;
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueriesKey.invoices] });

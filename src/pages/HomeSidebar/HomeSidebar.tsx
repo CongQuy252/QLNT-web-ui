@@ -4,31 +4,33 @@ import { FaHome } from 'react-icons/fa';
 import { RiExpandRightFill } from 'react-icons/ri';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { useUserQuery } from '@/api/user';
+import { useUserByIdQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
 import { LocalStorageKey, UserRole } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
-import { ownerListFunctions, tenantListFunctions } from '@/pages/home/HomeContants';
+import { useToast } from '@/hooks/useToast';
+import { managerListFunctions, ownerListFunctions } from '@/pages/home/HomeContants';
 
 const HomeSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useMobile();
+  const toast = useToast();
 
   const [open, setOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const userId = localStorage.getItem(LocalStorageKey.userId);
 
-  const { data: user, isLoading } = useUserQuery(userId!, !!userId);
+  const { data: user, isLoading } = useUserByIdQuery(userId!, !!userId);
 
   const isReady = !!userId && !!user && !isLoading;
 
   const navigationItems = useMemo(() => {
     if (!isReady) return [];
 
-    return user.role === UserRole.admin ? ownerListFunctions : tenantListFunctions;
+    return user.role === UserRole.admin ? ownerListFunctions : managerListFunctions;
   }, [isReady, user]);
 
   const updatedNavigationItems = useMemo(() => {
@@ -147,6 +149,7 @@ const HomeSidebar = () => {
       </main>
 
       <ChangePasswordDialog
+        toast={toast}
         isOpen={isChangePasswordOpen}
         onClose={() => setIsChangePasswordOpen(false)}
       />

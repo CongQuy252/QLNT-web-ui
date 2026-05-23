@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { getInvoiceById } from '@/api/invoice';
 import { confirmPayment } from '@/api/paymentTransaction';
-import { useUserQuery } from '@/api/user';
+import { useUserByIdQuery } from '@/api/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -23,17 +23,12 @@ export default function PaymentDetail() {
   const { paymentId } = useParams();
   const navigator = useNavigate();
   const { show, hide } = useLoading();
-
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
-
-  const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
-
-  // Direct API call instead of hook
+  const { data: user, isLoading, isError } = useUserByIdQuery(userId, !!userId);
   const [invoice, setInvoice] = useState<any>(null);
   const [invoiceLoading, setInvoiceLoading] = useState(true);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
 
-  // Fetch invoice data directly
   useEffect(() => {
     const fetchInvoice = async () => {
       if (!paymentId) return;
@@ -127,7 +122,6 @@ export default function PaymentDetail() {
     return null;
   }
 
-  // Show loading state
   if (invoiceLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -136,7 +130,6 @@ export default function PaymentDetail() {
     );
   }
 
-  // Show error state
   if (invoiceError || !invoice) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -538,16 +531,17 @@ export default function PaymentDetail() {
           )}
         </div>
 
-        {user.role === UserRole.admin && payment?.status !== PaymentStatus.PAID && (
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              className="bg-slate-900 hover:bg-slate-800 text-white px-8 gap-2"
-              onClick={handleMarkAsPaid}
-            >
-              Đánh dấu đã thanh toán
-            </Button>
-          </div>
-        )}
+        {[UserRole.admin, UserRole.manager].includes(user.role) &&
+          payment?.status !== PaymentStatus.PAID && (
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                className="bg-slate-900 hover:bg-slate-800 text-white px-8 gap-2"
+                onClick={handleMarkAsPaid}
+              >
+                Đánh dấu đã thanh toán
+              </Button>
+            </div>
+          )}
 
         {payment?.status === PaymentStatus.PAID && (
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

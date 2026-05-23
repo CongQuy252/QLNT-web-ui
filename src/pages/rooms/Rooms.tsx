@@ -6,11 +6,12 @@ import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { ToastContainer } from '@/components/ui/toast/Toast';
-import { Path } from '@/constants/appConstants';
+import { Path, ROOMSTATUS } from '@/constants/appConstants';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { useToast } from '@/hooks/useToast';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/RoomsConstants';
 import { useRooms } from '@/pages/rooms/useRooms';
-import { ROOMSTATUS, type Room } from '@/types/room';
+import { type Room } from '@/types/room';
 import { formatCurrency } from '@/utils/utils';
 
 const Rooms = () => {
@@ -25,14 +26,19 @@ const Rooms = () => {
     setSearchTerm,
     filterStatus,
     setFilterStatus,
-    setCurrentPage,
     deleteRoomMutation,
     setConfirmOpen,
     handleConfirmDelete,
-    handleAskDeleteRoom,
     confirmMessage,
     confirmOpen,
+    handleAskDeleteRoom,
+    currentPage,
+    setCurrentPage,
+    pagination,
+    pageSize,
   } = useRooms();
+
+  const { isAdmin } = useAuthUser();
 
   const handleEditRoom = (room: Room) => {
     navigate(`/rooms/${room._id}/edit`);
@@ -64,7 +70,7 @@ const Rooms = () => {
                   transition-all duration-200
                   bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap"
           >
-            Nhập số phòng hoặc tên tòa nhà để tìm kiếm
+            Nhập tên phòng để tìm kiếm
             <div
               className="absolute left-1/2 top-full -translate-x-1/2
                     border-6 border-transparent border-t-gray-900"
@@ -189,7 +195,7 @@ const Rooms = () => {
                         Xem thông tin phòng
                       </Button>
 
-                      {room.status !== ROOMSTATUS.OCCUPIED && (
+                      {isAdmin && room.status !== ROOMSTATUS.OCCUPIED && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -207,6 +213,39 @@ const Rooms = () => {
                 </Card>
               );
             })}
+        </div>
+      )}
+
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between mt-3">
+          <div className="text-sm text-slate-600">
+            {(currentPage - 1) * pageSize + 1} -{' '}
+            {Math.min(currentPage * pageSize, pagination.total)} / {pagination.total}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+              disabled={!pagination.hasPrev || isLoading}
+            >
+              Trước
+            </Button>
+
+            <span className="text-sm text-slate-600">
+              {currentPage} / {pagination.totalPages}
+            </span>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              disabled={!pagination.hasNext || isLoading}
+            >
+              Tiếp
+            </Button>
+          </div>
         </div>
       )}
 

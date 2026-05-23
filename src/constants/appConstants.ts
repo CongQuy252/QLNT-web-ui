@@ -8,21 +8,12 @@ export enum Path {
   tenants = 'tenants',
   payments = 'payments',
   statistics = 'statistics',
-  createpayment = 'payments/createpayment',
+  createpayment = 'createpayment',
   buildingId = ':buildingId',
   roomId = ':roomId',
   userId = ':userId',
   paymentId = ':paymentId',
   users = 'users',
-}
-
-export enum Breadcrumb {
-  home = 'Home',
-  buildings = 'Quản Lý Tòa Nhà',
-  rooms = 'Quản Lý Phòng',
-  tenants = 'Quản Lý Người Thuê',
-  payments = 'Quản Lý Thanh Toán',
-  statistics = 'Thống Kê',
 }
 
 export enum QueriesKey {
@@ -41,6 +32,7 @@ export enum QueriesKey {
   roomsWithMeterReadings = 'roomsWithMeterReadings',
   invoices = 'invoices',
   invoice = 'invoice',
+  searchBuilding = 'searchBuilding',
 }
 
 export enum RoomStatus {
@@ -50,14 +42,10 @@ export enum RoomStatus {
   maintenance = 'maintenance',
 }
 
-export enum Mode {
-  owner = 'owner',
-  tenant = 'tenant',
-}
-
 export enum UserRole {
   admin = 1,
-  tenant = 0,
+  noRole = 0,
+  manager = 2,
 }
 
 export enum LocalStorageKey {
@@ -80,4 +68,32 @@ export enum PaymentStatus {
 export enum WaterType {
   person = 'person',
   m3 = 'm3',
+}
+
+export enum SortOrder {
+  asc = 'asc',
+  desc = 'desc',
+}
+
+export enum Operator {
+  equal = 'eq', // =
+  notEqual = 'ne', // !=
+  greaterThan = 'gt', // >
+  greaterThanOrEqual = 'gte', // >=
+  lessThan = 'lt', // <
+  lessThanOrEqual = 'lte', // <=
+  in = 'in', // in array
+  regex = 'regex', // like / contains
+}
+
+export enum InvoiceStatus {
+  UNPAID = 'unpaid',
+  PAID = 'paid',
+  OVERDUE = 'overdue',
+}
+
+export enum ROOMSTATUS {
+  AVAILABLE = 'available',
+  OCCUPIED = 'occupied',
+  MAINTENANCE = 'maintenance',
 }

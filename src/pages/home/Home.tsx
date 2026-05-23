@@ -1,26 +1,24 @@
-import { queryClient } from '@/lib/reactQuery';
 import { ArrowRight, LogOut } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useGetBuildingQueries } from '@/api/building';
-import { useGetPaymentByUserId } from '@/api/payment';
-import { useGetRoomByUserIDQuery, useGetRoomsQueries } from '@/api/room';
-import { useUserQuery } from '@/api/user';
+import { useGetBuildingQueries, useSearchBuildingQuery } from '@/api/building';
 import LockCircleIcon from '@/assets/Icon/LockCircleIcon';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
-import { LocalStorageKey, Path, UserRole } from '@/constants/appConstants';
-import { useLoading } from '@/hooks/useLoading';
+import { ToastContainer } from '@/components/ui/toast/Toast';
+import { Operator } from '@/constants/appConstants';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { useMobile } from '@/hooks/useMobile';
+import { useToast } from '@/hooks/useToast';
 import {
-  getPaymentStatus,
+  managerListFunctions,
   ownerIcon,
   ownerListFunctions,
-  tenantListFunctions,
   welcomeMessages,
 } from '@/pages/home/HomeContants';
+import { maxItemPerPage } from '@/pages/payment/paymentConstants';
 
 import styles from './Home.module.css';
 
@@ -32,81 +30,70 @@ export interface Infomation {
 const Home = () => {
   const navigator = useNavigate();
   const isMobile = useMobile();
-  const { show, hide } = useLoading();
+  const { user, isAdmin, isManager, logout } = useAuthUser();
+  const toast = useToast();
 
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
-  const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
+  const getBuildingForAdmin = useGetBuildingQueries(
+    { page: 0, limit: 100, searchCondition: { name: undefined, address: undefined } },
+    !!user && isAdmin,
+  );
 
-  const { data: user, isLoading, isError } = useUserQuery(userId, !!userId);
+  const getBuildingForManager = useSearchBuildingQuery(
+    {
+      page: 1,
+      limit: maxItemPerPage,
+      conditions: [
+        {
+          fieldName: '_id',
+          searchValue: user?.assignBuilding ?? [],
+          operator: Operator.in,
+        },
+      ],
+    },
+    isManager,
+  );
 
-  const isOwner = user?.role === UserRole.admin;
+  const getBuildingQueries = useMemo(
+    () => (isAdmin ? getBuildingForAdmin : getBuildingForManager),
+    [isAdmin, getBuildingForAdmin, getBuildingForManager],
+  );
 
-  const getBuildings = useGetBuildingQueries(!!user && isOwner);
+  const buildingPagination = useMemo(() => {
+    return (
+      getBuildingQueries.data?.pagination ?? {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      }
+    );
+  }, [getBuildingQueries.data?.pagination]);
 
-  const getRooms = useGetRoomsQueries({
-    isEnabled: !!user && isOwner,
-  });
+  const buildings = useMemo(() => {
+    return (
+      getBuildingQueries.data?.data.map((b) => ({
+        ...b,
+        id: b._id,
+      })) ?? []
+    );
+  }, [getBuildingQueries.data?.data]);
 
-  const roomTenant = useGetRoomByUserIDQuery(userId, !!user && !isOwner);
+  const navigationItems = isAdmin ? ownerListFunctions : managerListFunctions;
 
-  const getPayment = useGetPaymentByUserId(userId, !!user && !isOwner);
-
-  const handleNavigate = (path: string) => navigator(path);
-
-  const handleLogout = useCallback(() => {
-    queryClient.clear();
-    localStorage.clear();
-    navigator(Path.login, { replace: true });
-  }, [navigator]);
-
-  useEffect(() => {
-    if (
-      isLoading ||
-      getBuildings.isLoading ||
-      getRooms.isLoading ||
-      getPayment.isLoading ||
-      roomTenant.isLoading
-    ) {
-      show();
-    } else {
-      hide();
-    }
-  }, [
-    isLoading,
-    getBuildings.isLoading,
-    getRooms.isLoading,
-    getPayment.isLoading,
-    roomTenant.isLoading,
-    show,
-    hide,
-  ]);
-
-  useEffect(() => {
-    if (!isLoading && isError) {
-      handleLogout();
-    }
-  }, [handleLogout, isError, isLoading]);
-
-  if (!user) {
-    return null;
-  }
-
-  // const isOwner = user.role === UserRole.admin;
-
-  const navigationItems = isOwner ? ownerListFunctions : tenantListFunctions;
+  const roomCount = useMemo(() => {
+    return buildings.reduce((total, building) => {
+      return total + building.totalRooms;
+    }, 0);
+  }, [buildings]);
 
   const infomations: Infomation[] = [
-    { label: 'Email', value: user.email },
-    isOwner
-      ? { label: 'Số tòa nhà', value: getBuildings.data?.pagination.total.toString() ?? '0' }
-      : { label: 'Toà nhà', value: roomTenant.data?.room.buildingId.name ?? '0' },
-    isOwner
-      ? { label: 'Tổng số phòng', value: getRooms.data?.pagination.total.toString() ?? '0' }
-      : { label: 'Phòng', value: roomTenant.data?.room.number ?? '0' },
-    !isOwner
-      ? { label: 'Tình trạng tiền', value: getPaymentStatus(getPayment.data?.status) }
-      : { label: '', value: '' },
+    { label: 'Email', value: user?.email ?? '' },
+    { label: 'Số tòa nhà', value: buildingPagination.total.toString() ?? '0' },
+    { label: 'Tổng số phòng', value: roomCount.toString() ?? '0' },
   ];
 
   const renderInfomationCards = () => {
@@ -127,6 +114,10 @@ const Home = () => {
     });
   };
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className={styles.container}>
       {/* Header */}
@@ -145,7 +136,7 @@ const Home = () => {
                 icon={<LockCircleIcon className="w-4 h-4" />}
               />
               <Button
-                onClick={handleLogout}
+                onClick={logout}
                 variant="outline"
                 className="gap-2 bg-transparent"
                 icon={<LogOut className="w-4 h-4" />}
@@ -166,16 +157,18 @@ const Home = () => {
                   {welcomeMessages()} {user.name}!
                 </h2>
                 <p className="text-slate-600 text-base sm:text-lg">
-                  {isOwner
+                  {isAdmin
                     ? 'Quản lý các tòa nhà và phòng trọ của bạn'
                     : 'Xem thông tin phòng và quản lý thanh toán'}
                 </p>
               </div>
               <div className="text-right">
                 <p className={`text-lg font-semibold text-slate-900`}>
-                  {isOwner
+                  {isAdmin
                     ? `${ownerIcon.owner} ${isMobile ? '' : 'Chủ nhà'}`
-                    : `${ownerIcon.tenant} ${isMobile ? '' : 'Người thuê'}`}
+                    : isManager
+                      ? `${ownerIcon.owner} ${isMobile ? '' : 'Quản lý'}`
+                      : `${ownerIcon.tenant} ${isMobile ? '' : 'Người thuê'}`}
                 </p>
               </div>
             </div>
@@ -188,7 +181,7 @@ const Home = () => {
         {/* Navigation Cards */}
         <div className="mt-12">
           <h3 className="text-xl font-bold text-slate-900 mb-6">
-            {isOwner ? 'Chức năng quản lý' : 'Chức năng người thuê'}
+            {isAdmin ? 'Chức năng quản lý' : 'Chức năng người thuê'}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {navigationItems.map((item, index) => {
@@ -201,11 +194,7 @@ const Home = () => {
                   key={item.path}
                   className={`w-full group overflow-hidden cursor-pointer ${isLastOdd ? 'md:col-span-2' : ''}`}
                   onClick={() => {
-                    if (!isOwner && getPayment.data?._id) {
-                      navigator(`/${Path.payments}/${getPayment.data._id}`);
-                    } else {
-                      handleNavigate(item.path);
-                    }
+                    navigator(item.path);
                   }}
                 >
                   <div className="p-6 space-y-4 h-full flex flex-col">
@@ -235,7 +224,9 @@ const Home = () => {
       <ChangePasswordDialog
         isOpen={isChangePasswordOpen}
         onClose={() => setIsChangePasswordOpen(false)}
+        toast={toast}
       />
+      {toast.toasts.length > 0 && <ToastContainer toasts={toast.toasts} />}
     </div>
   );
 };

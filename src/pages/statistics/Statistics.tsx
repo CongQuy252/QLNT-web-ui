@@ -17,12 +17,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ToastContainer } from '@/components/ui/toast/Toast';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { useToast } from '@/hooks/useToast';
+import { useStatisticsConstants } from '@/pages/statistics/statisticsConstants';
 import type { BulkMeterReadingDto } from '@/types/meterReading';
 
-import Dashboard from './components/Dashboard';
-import DashboardSummary from './components/DashboardSummary';
-import MeterReadingTable from './components/Table';
+import DoanhThu from './components/DoanhThu';
+import Expenses from './components/Expenses';
+import MeterReading from './components/MeterReading';
 
 const Statistics = () => {
   const [buildingInput, setBuildingInput] = useState('');
@@ -44,6 +46,9 @@ const Statistics = () => {
   >({});
   const { error: toastError, toasts, success } = useToast();
   const { mutateAsync } = useBulkUpsertMeterReadings();
+  const { isAdmin } = useAuthUser();
+
+  const { tab } = useStatisticsConstants(isAdmin);
 
   const getMonthYearFromSelection = () => {
     const month = parseInt(selectedMonth) || currentMonth;
@@ -142,15 +147,11 @@ const Statistics = () => {
             {/* Tabs: Hỗ trợ cuộn ngang trên mobile */}
             <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
               <nav className="flex overflow-x-auto no-scrollbar" aria-label="Tabs">
-                {[
-                  { id: 'table', label: 'Danh sách' },
-                  { id: 'dashboard', label: 'Chi Phí' },
-                  { id: 'summary', label: 'Tổng Quan' },
-                ].map((tab) => (
+                {tab.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 min-w-25 py-4 px-1 text-center text-sm font-medium border-b-2 transition-all ${
+                    className={`cursor-pointer flex-1 min-w-25 py-4 px-1 text-center text-sm font-medium border-b-2 transition-all ${
                       activeTab === tab.id
                         ? 'text-blue-600 border-blue-500'
                         : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -201,7 +202,7 @@ const Statistics = () => {
                     <div className="flex flex-wrap sm:flex-nowrap items-end gap-2 sm:justify-between">
                       {/* BÊN TRÁI */}
                       <div className="flex flex-wrap sm:flex-nowrap gap-2">
-                        <div className="flex-1 sm:flex-none sm:w-[140px] min-w-[120px]">
+                        <div className="flex-1 sm:flex-none sm:w-35 min-w-30">
                           <Label className="text-xs font-semibold uppercase text-gray-400 mb-2 block">
                             Tháng
                           </Label>
@@ -219,7 +220,7 @@ const Statistics = () => {
                           </Select>
                         </div>
 
-                        <div className="flex-1 sm:flex-none sm:w-[100px] min-w-[100px]">
+                        <div className="flex-1 sm:flex-none sm:w-25 min-w-25">
                           <Label className="text-xs font-semibold uppercase text-gray-400 mb-2 block">
                             Năm
                           </Label>
@@ -341,7 +342,7 @@ const Statistics = () => {
                     tránh dữ liệu được lưu không đúng.
                   </div>
                   <div className="overflow-x-auto">
-                    <MeterReadingTable
+                    <MeterReading
                       rooms={rooms}
                       isLoading={isLoading}
                       error={error}
@@ -358,13 +359,13 @@ const Statistics = () => {
 
               {activeTab === 'dashboard' && (
                 <div className="animate-in fade-in duration-300">
-                  <Dashboard />
+                  <Expenses />
                 </div>
               )}
 
               {activeTab === 'summary' && (
                 <div className="animate-in fade-in duration-300">
-                  <DashboardSummary />
+                  <DoanhThu />
                 </div>
               )}
             </div>

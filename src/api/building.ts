@@ -3,10 +3,10 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
-import type { Building, BuildingListResponse, GetBuildingByIdResponse } from '@/types/building';
+import type { BuildingFormInput } from '@/pages/dialogs/updateBuildingDialog/schema/updateSchema';
+import type { Building, BuildingListResponse } from '@/types/building';
+import type { SearchQuery } from '@/types/searchQuery';
 
-// Simple API function for direct usage
 export const getBuildings = async (): Promise<Building[]> => {
   // eslint-disable-next-line no-useless-catch
   try {
@@ -17,29 +17,39 @@ export const getBuildings = async (): Promise<Building[]> => {
   }
 };
 
-export const useGetBuildingQueries = (isEnabled = true) => {
-  return useQuery({
-    queryKey: [QueriesKey.buildings],
-    queryFn: async () => {
-      const response = await http.get<BuildingListResponse>(`/buildings`);
-      return response.data;
-    },
-    enabled: isEnabled,
-  });
-};
+export interface GetAllBuildingRequest {
+  page: number;
+  limit: number;
+  searchCondition?: {
+    name?: string;
+    address?: string;
+  };
+}
 
-export const useGetBuildingById = (buildingId?: string, isEnable = true) => {
+export const useGetBuildingQueries = (condition: GetAllBuildingRequest, enable?: boolean) => {
   const handleHttpError = useHandleHttpError();
+
+  const { page, limit } = condition;
+
   return useQuery({
-    queryKey: [QueriesKey.building, buildingId],
+    queryKey: [QueriesKey.buildings, page, limit],
+
     queryFn: async () => {
-      const response = await http.get<GetBuildingByIdResponse>(`/buildings/${buildingId}`);
+      const response = await http.get<BuildingListResponse>('/buildings', {
+        params: {
+          page,
+          limit,
+        },
+      });
+
       return response.data;
     },
+
     meta: {
       handleError: handleHttpError,
     },
-    enabled: isEnable || !!buildingId,
+
+    enabled: enable,
   });
 };
 
@@ -66,6 +76,23 @@ export const useDeleteBuildingMutation = () => {
     mutationFn: async (id: string) => {
       const response = await http.delete(`/buildings/${id}`);
       return response.data;
+    },
+  });
+};
+
+export const useSearchBuildingQuery = (condition: SearchQuery, enable?: boolean) => {
+  const handleHttpError = useHandleHttpError();
+
+  const { conditions, limit, page, sort } = condition;
+  return useQuery({
+    queryKey: [QueriesKey.searchBuilding, conditions, limit, page, sort, condition],
+    queryFn: async () => {
+      const response = await http.post<BuildingListResponse>('/buildings/search', condition);
+      return response.data;
+    },
+    enabled: enable,
+    meta: {
+      handleError: handleHttpError,
     },
   });
 };

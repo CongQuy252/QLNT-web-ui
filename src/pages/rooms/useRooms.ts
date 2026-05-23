@@ -29,9 +29,9 @@ export const useRooms = () => {
   }, [searchTerm]);
 
   const { data, isLoading, error } = useGetRoomsQueries({
-    initialPage: currentPage,
-    initialLimit: pageSize,
-    search: debouncedSearchTerm,
+    page: currentPage,
+    limit: pageSize,
+    roomNumber: debouncedSearchTerm,
     status: filterStatus,
     buildingId: params.buildingId || '',
   });
@@ -39,7 +39,7 @@ export const useRooms = () => {
   const rooms = data?.rooms || [];
   const pagination = data?.pagination;
   const deleteRoomMutation = useDeleteRoomMutation();
-  const filteredRooms = rooms.map((room) => {
+  const normalizedRooms = rooms.map((room) => {
     const buildingId =
       typeof room.buildingId === 'object' && room.buildingId !== null
         ? room.buildingId._id
@@ -82,23 +82,36 @@ export const useRooms = () => {
     }
   };
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, filterStatus, params.buildingId]);
+
   return {
     totalItems,
     isLoading,
     error,
-    filteredRooms,
+    filteredRooms: normalizedRooms,
+
     searchTerm,
     setSearchTerm,
+
     filterStatus,
     setFilterStatus,
+
+    currentPage,
     setCurrentPage,
+
+    pageSize,
+    pagination,
+
     deleteRoomMutation,
+
     setConfirmOpen,
     handleConfirmDelete,
+
     confirmMessage,
     confirmOpen,
+
     handleAskDeleteRoom,
-    setRoomSelected,
-    roomSelected,
   };
 };

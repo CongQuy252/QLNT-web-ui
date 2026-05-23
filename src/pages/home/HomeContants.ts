@@ -1,4 +1,5 @@
 import { BarChart3, CreditCard, DoorOpen } from 'lucide-react';
+import { FaUserCog } from 'react-icons/fa';
 // import { FaUserCog } from 'react-icons/fa';
 import type { IconType } from 'react-icons/lib';
 import { MdApartment } from 'react-icons/md';
@@ -47,24 +48,48 @@ export const ownerListFunctions: NavigationItem[] = [
     path: `/${Path.statistics}`,
     color: 'from-pink-500 to-pink-600',
   },
-  // {
-  //   rowId: '6',
-  //   title: 'Quản lý',
-  //   description: 'Xem danh sách các toà nhà được gán cho người dùng quản lý',
-  //   icon: FaUserCog,
-  //   path: `/${Path.users}`,
-  //   color: 'bg-[#546B41]',
-  // },
+  {
+    rowId: '6',
+    title: 'Quản lý',
+    description: 'Xem danh sách các toà nhà được gán cho người dùng quản lý',
+    icon: FaUserCog,
+    path: `/${Path.users}`,
+    color: 'bg-[#546B41]',
+  },
 ];
 
-export const tenantListFunctions: NavigationItem[] = [
+export const managerListFunctions: NavigationItem[] = [
   {
     rowId: '2',
-    title: 'Thanh Toán Tiền Phòng',
-    description: 'Xem và quản lý các khoản thanh toán',
+    title: 'Quản lý Toà Nhà',
+    description: 'Xem danh toà nhà, căn hộ cho thuê',
+    icon: MdApartment,
+    path: `/${Path.buildings}`,
+    color: 'from-orange-500 to-orange-600',
+  },
+  {
+    rowId: '3',
+    title: 'Quản lý Phòng',
+    description: 'Xem danh sách phòng, trạng thái, giá thuê',
+    icon: DoorOpen,
+    path: `/${Path.rooms}`,
+    color: 'from-blue-500 to-blue-600',
+  },
+  {
+    rowId: '4',
+    title: 'Thanh Toán',
+    description: 'Theo dõi khoản thanh toán, doanh thu',
     icon: CreditCard,
     path: `/${Path.payments}`,
     color: 'from-green-500 to-green-600',
+  },
+  {
+    rowId: '5',
+    title: 'Thống Kê',
+    description: 'Xem báo cáo doanh thu, thống kê',
+    icon: BarChart3,
+    path: `/${Path.statistics}`,
+    color: 'from-pink-500 to-pink-600',
   },
 ];
 

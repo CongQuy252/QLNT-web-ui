@@ -1,10 +1,6 @@
-import type { GetRoom } from './room';
+import type { InvoiceStatus } from '@/constants/appConstants';
 
-export enum InvoiceStatus {
-  UNPAID = 'unpaid',
-  PAID = 'paid',
-  OVERDUE = 'overdue',
-}
+import type { GetRoom } from './room';
 
 export interface TenantInfo {
   _id: string;
@@ -35,8 +31,6 @@ export interface Invoice {
   createdAt: string;
   updatedAt: string;
 }
-
-export type PaymentOrInvoice = import('./payment').Payment | Invoice;
 
 export interface Pagination {
   currentPage: number;
