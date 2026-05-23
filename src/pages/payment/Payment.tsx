@@ -121,9 +121,9 @@ export default function Payment() {
     year: selectedYear,
   });
 
-  const displayInvoices = useMemo(() => {
+  const displayInvoices: Invoice[] = useMemo(() => {
     if (!debouncedSearch) {
-      return invoices;
+      return invoices ?? [];
     }
 
     return searchedInvoice ? [searchedInvoice] : [];
@@ -357,7 +357,7 @@ export default function Payment() {
       </div>
 
       <div className="overflow-x-auto">
-        {displayInvoices && displayInvoices.length > 0 ? (
+        {displayInvoices && displayInvoices?.length > 0 ? (
           <Table className="border border-slate-200">
             <TableHeader>
               <TableRow>
