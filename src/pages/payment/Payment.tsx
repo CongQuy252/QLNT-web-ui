@@ -53,7 +53,7 @@ export default function Payment() {
   const getBuildingForManager = useSearchBuildingQuery(
     {
       page: 1,
-      limit: user?.assignBuilding.length,
+      limit: user?.assignBuilding.length ?? 0,
       conditions: [
         {
           fieldName: '_id',
