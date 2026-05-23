@@ -10,8 +10,8 @@ import {
   useUpdateBuildingMutation,
 } from '@/api/building';
 import { Operator, QueriesKey, RoomStatus } from '@/constants/appConstants';
-import { useAuthUser } from '@/hooks/useCurrentUser';
-import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
+import { useAuthUser } from '@/hooks/useAuthUser';
+import type { BuildingFormInput } from '@/pages/dialogs/updateBuildingDialog/schema/updateSchema';
 import { maxItemPerPage } from '@/pages/payment/paymentConstants';
 import type { Building } from '@/types/building';
 

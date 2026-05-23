@@ -117,22 +117,6 @@ export const useUpdateRoomMutation = () => {
   });
 };
 
-export const useAssignTenantMutation = () => {
-  const queryClient = useQueryClient();
-  const handleHttpError = useHandleHttpError();
-
-  return useMutation({
-    mutationFn: async ({ roomId, userId }: { roomId: string; userId: string }) => {
-      const response = await http.post(`/rooms/${roomId}/assign-tenant`, { userId });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
-    },
-    onError: handleHttpError,
-  });
-};
-
 export const useDeleteRoomMutation = () => {
   const queryClient = useQueryClient();
   const handleHttpError = useHandleHttpError();
@@ -149,19 +133,6 @@ export const useDeleteRoomMutation = () => {
       queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
     },
     onError: handleHttpError,
-  });
-};
-
-export const useGetRoomByUserIDQuery = (userId?: string, isEnabled = true) => {
-  const handleHttpError = useHandleHttpError();
-  return useQuery({
-    queryKey: [QueriesKey.room, userId],
-    queryFn: async () => {
-      const response = await http.get<GetRoomByIdResponse>(`/rooms/tenant/${userId}`);
-      return response.data;
-    },
-    enabled: isEnabled && !!userId,
-    meta: { handleError: handleHttpError },
   });
 };
 

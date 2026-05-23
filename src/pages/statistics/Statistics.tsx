@@ -17,14 +17,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ToastContainer } from '@/components/ui/toast/Toast';
-import { useAuthUser } from '@/hooks/useCurrentUser';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { useToast } from '@/hooks/useToast';
 import { useStatisticsConstants } from '@/pages/statistics/statisticsConstants';
 import type { BulkMeterReadingDto } from '@/types/meterReading';
 
-import Dashboard from './components/Dashboard';
-import DashboardSummary from './components/DashboardSummary';
-import MeterReadingTable from './components/Table';
+import DoanhThu from './components/DoanhThu';
+import Expenses from './components/Expenses';
+import MeterReading from './components/MeterReading';
 
 const Statistics = () => {
   const [buildingInput, setBuildingInput] = useState('');
@@ -202,7 +202,7 @@ const Statistics = () => {
                     <div className="flex flex-wrap sm:flex-nowrap items-end gap-2 sm:justify-between">
                       {/* BÊN TRÁI */}
                       <div className="flex flex-wrap sm:flex-nowrap gap-2">
-                        <div className="flex-1 sm:flex-none sm:w-[140px] min-w-[120px]">
+                        <div className="flex-1 sm:flex-none sm:w-35 min-w-30">
                           <Label className="text-xs font-semibold uppercase text-gray-400 mb-2 block">
                             Tháng
                           </Label>
@@ -220,7 +220,7 @@ const Statistics = () => {
                           </Select>
                         </div>
 
-                        <div className="flex-1 sm:flex-none sm:w-[100px] min-w-[100px]">
+                        <div className="flex-1 sm:flex-none sm:w-25 min-w-25">
                           <Label className="text-xs font-semibold uppercase text-gray-400 mb-2 block">
                             Năm
                           </Label>
@@ -342,7 +342,7 @@ const Statistics = () => {
                     tránh dữ liệu được lưu không đúng.
                   </div>
                   <div className="overflow-x-auto">
-                    <MeterReadingTable
+                    <MeterReading
                       rooms={rooms}
                       isLoading={isLoading}
                       error={error}
@@ -359,13 +359,13 @@ const Statistics = () => {
 
               {activeTab === 'dashboard' && (
                 <div className="animate-in fade-in duration-300">
-                  <Dashboard />
+                  <Expenses />
                 </div>
               )}
 
               {activeTab === 'summary' && (
                 <div className="animate-in fade-in duration-300">
-                  <DashboardSummary />
+                  <DoanhThu />
                 </div>
               )}
             </div>

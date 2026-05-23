@@ -23,17 +23,12 @@ export default function PaymentDetail() {
   const { paymentId } = useParams();
   const navigator = useNavigate();
   const { show, hide } = useLoading();
-
   const userId = localStorage.getItem(LocalStorageKey.userId) ?? undefined;
-
   const { data: user, isLoading, isError } = useUserByIdQuery(userId, !!userId);
-
-  // Direct API call instead of hook
   const [invoice, setInvoice] = useState<any>(null);
   const [invoiceLoading, setInvoiceLoading] = useState(true);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
 
-  // Fetch invoice data directly
   useEffect(() => {
     const fetchInvoice = async () => {
       if (!paymentId) return;
@@ -127,7 +122,6 @@ export default function PaymentDetail() {
     return null;
   }
 
-  // Show loading state
   if (invoiceLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -136,7 +130,6 @@ export default function PaymentDetail() {
     );
   }
 
-  // Show error state
   if (invoiceError || !invoice) {
     return (
       <div className="flex items-center justify-center min-h-screen">

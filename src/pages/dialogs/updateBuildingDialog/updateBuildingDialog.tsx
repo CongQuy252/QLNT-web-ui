@@ -25,14 +25,14 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useMobile } from '@/hooks/useMobile';
-import { useProvinceOptions } from '@/pages/dialogs/createOrUpdateBuildingDialog/hooks/getAddress';
+import { useProvinceOptions } from '@/pages/dialogs/updateBuildingDialog/hooks/getAddress';
 import {
   type BuildingFormInput,
   buildingSchema,
-} from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
+} from '@/pages/dialogs/updateBuildingDialog/schema/updateSchema';
 import type { Province, Ward } from '@/types/address';
 
-interface CreateOrUpdateBuildingDialogProps {
+interface UpdateBuildingDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   handleSave: (data: BuildingFormInput) => void;
@@ -58,7 +58,7 @@ const defaultFormValues: BuildingFormInput = {
   waterCalculationType: 'm3',
 };
 
-const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> = ({
+const UpdateBuildingDialog: React.FC<UpdateBuildingDialogProps> = ({
   isOpen,
   setIsOpen,
   handleSave,
@@ -364,4 +364,4 @@ const CreateOrUpdateBuildingDialog: React.FC<CreateOrUpdateBuildingDialogProps> 
   );
 };
 
-export default CreateOrUpdateBuildingDialog;
+export default UpdateBuildingDialog;

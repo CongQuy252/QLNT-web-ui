@@ -6,12 +6,12 @@ import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { ToastContainer } from '@/components/ui/toast/Toast';
-import { Path } from '@/constants/appConstants';
-import { useAuthUser } from '@/hooks/useCurrentUser';
+import { Path, ROOMSTATUS } from '@/constants/appConstants';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { useToast } from '@/hooks/useToast';
 import { getStatusBadge, getStatusLabel } from '@/pages/rooms/RoomsConstants';
 import { useRooms } from '@/pages/rooms/useRooms';
-import { ROOMSTATUS, type Room } from '@/types/room';
+import { type Room } from '@/types/room';
 import { formatCurrency } from '@/utils/utils';
 
 const Rooms = () => {

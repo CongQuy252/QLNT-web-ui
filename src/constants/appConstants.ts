@@ -16,15 +16,6 @@ export enum Path {
   users = 'users',
 }
 
-export enum Breadcrumb {
-  home = 'Home',
-  buildings = 'Quản Lý Tòa Nhà',
-  rooms = 'Quản Lý Phòng',
-  tenants = 'Quản Lý Người Thuê',
-  payments = 'Quản Lý Thanh Toán',
-  statistics = 'Thống Kê',
-}
-
 export enum QueriesKey {
   provinces = 'provinces',
   districts = 'districts',
@@ -93,4 +84,16 @@ export enum Operator {
   lessThanOrEqual = 'lte', // <=
   in = 'in', // in array
   regex = 'regex', // like / contains
+}
+
+export enum InvoiceStatus {
+  UNPAID = 'unpaid',
+  PAID = 'paid',
+  OVERDUE = 'overdue',
+}
+
+export enum ROOMSTATUS {
+  AVAILABLE = 'available',
+  OCCUPIED = 'occupied',
+  MAINTENANCE = 'maintenance',
 }

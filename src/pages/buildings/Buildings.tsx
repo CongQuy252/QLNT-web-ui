@@ -7,7 +7,7 @@ import { ConfirmDialog } from '@/components/ui/confirmDialog/ConfirmDialog';
 import { InfoDialog } from '@/components/ui/infoDialog/InfoDialog';
 import { Path, RoomStatus } from '@/constants/appConstants';
 import { useBuildings } from '@/pages/buildings/useBuildings';
-import CreateOrUpdateBuildingDialog from '@/pages/dialogs/createOrUpdateBuildingDialog/CreateOrUpdateBuildingDialog';
+import UpdateBuildingDialog from '@/pages/dialogs/updateBuildingDialog/updateBuildingDialog';
 import { maxItemPerPage } from '@/pages/payment/paymentConstants';
 
 const Buildings = () => {
@@ -105,7 +105,7 @@ const Buildings = () => {
         )}
       </div>
       {isOpen && (
-        <CreateOrUpdateBuildingDialog
+        <UpdateBuildingDialog
           isOpen={isOpen}
           setIsOpen={setIsOpen}
           handleSave={handleSave}

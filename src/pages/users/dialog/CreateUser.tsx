@@ -19,12 +19,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { QueriesKey, UserRole } from '@/constants/appConstants';
 import { useLoading } from '@/hooks/useLoading';
-import type { UpdateTenantRequest } from '@/types/user';
+import type { UpdateUserRequest } from '@/types/user';
 
 interface CreateUserProps {
   isOpen: boolean;
   onClose: () => void;
-  tenant?: UpdateTenantRequest;
+  tenant?: UpdateUserRequest;
 }
 
 enum TenantFormField {

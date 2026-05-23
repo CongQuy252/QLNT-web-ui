@@ -31,12 +31,12 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Path, QueriesKey, WaterType } from '@/constants/appConstants';
 import { useToast } from '@/hooks/useToast';
-import { useProvinceOptions } from '@/pages/dialogs/createOrUpdateBuildingDialog/hooks/getAddress';
+import { useProvinceOptions } from '@/pages/dialogs/updateBuildingDialog/hooks/getAddress';
 import {
   type BuildingFormInput,
   type RoomInput,
   buildingSchema,
-} from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
+} from '@/pages/dialogs/updateBuildingDialog/schema/updateSchema';
 import type { Province, Ward } from '@/types/address';
 import { parseNumber } from '@/utils/utils';
 

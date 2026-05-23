@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import { ToastContainer } from '@/components/ui/toast/Toast';
 import { Operator, Path, QueriesKey } from '@/constants/appConstants';
-import { useAuthUser } from '@/hooks/useCurrentUser';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { useToast } from '@/hooks/useToast';
 import { formatCurrency } from '@/utils/utils';
 

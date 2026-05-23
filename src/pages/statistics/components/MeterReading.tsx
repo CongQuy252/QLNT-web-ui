@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input';
 import type { RoomWithMeterReading } from '@/types/room';
 
-type Props = {
+type MeterReadingProps = {
   rooms: RoomWithMeterReading[];
   isLoading: boolean;
   error: Error | null;
@@ -14,7 +14,7 @@ type Props = {
   errorRoomIds?: string[];
 };
 
-const MeterReadingTable = ({
+const MeterReading = ({
   rooms,
   isLoading,
   error,
@@ -25,7 +25,7 @@ const MeterReadingTable = ({
   selectedMonth,
   selectedYear,
   errorRoomIds,
-}: Props) => {
+}: MeterReadingProps) => {
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth() + 1;
   const currentYear = currentDate.getFullYear();
@@ -187,4 +187,4 @@ const MeterReadingTable = ({
   );
 };
 
-export default MeterReadingTable;
+export default MeterReading;

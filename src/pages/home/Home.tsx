@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card';
 import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
 import { ToastContainer } from '@/components/ui/toast/Toast';
 import { Operator } from '@/constants/appConstants';
-import { useAuthUser } from '@/hooks/useCurrentUser';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { useMobile } from '@/hooks/useMobile';
 import { useToast } from '@/hooks/useToast';
 import {

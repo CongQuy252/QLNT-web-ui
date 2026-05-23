@@ -25,7 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Operator, Path, UserRole } from '@/constants/appConstants';
-import { useAuthUser } from '@/hooks/useCurrentUser';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
 import { maxItemPerPage } from '@/pages/payment/paymentConstants';

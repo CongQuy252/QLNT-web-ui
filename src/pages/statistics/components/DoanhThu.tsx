@@ -6,14 +6,13 @@ import { useEffect, useState } from 'react';
 import { type DashboardSummary, getDashboardSummary } from '@/api/paymentTransaction';
 import { useToast } from '@/hooks/useToast';
 
-export default function DashboardSummary() {
+export default function DoanhThu() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const { error } = useToast();
 
-  // Fetch dashboard summary data from API
   const fetchDashboardSummary = async () => {
     try {
       setIsLoading(true);

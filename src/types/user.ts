@@ -17,8 +17,6 @@ export interface User {
   updatedAt: Date;
 }
 
-export type UserRoom = Omit<User, 'password' | 'createdAt' | 'updatedAt'>;
-
 export interface LoginRequest {
   email: string;
   password: string;
@@ -66,14 +64,6 @@ export interface GetUserByIdResponse {
   data: GetUserResponse;
 }
 
-export interface GetNonTenantUsersRequest {
-  email?: string;
-  name?: string;
-  phone?: string;
-  page?: number;
-  limit?: number;
-}
-
 export interface Pagination {
   page: number;
   limit: number;
@@ -83,12 +73,7 @@ export interface Pagination {
   hasPrev: boolean;
 }
 
-export interface GetNonTenantUsersResponse {
-  data: GetUserResponse[];
-  pagination: Pagination;
-}
-
-export interface UpdateTenantRequest {
+export interface UpdateUserRequest {
   email: string;
   name: string;
   role: UserRole;
@@ -96,10 +81,6 @@ export interface UpdateTenantRequest {
   cccd: string;
   cccdImagesFront: string | File;
   cccdImagesBack: string | File;
-  // roomId: string;
-  // occupation: string;
-  // contractStartDate: string;
-  // contractEndDate: string;
 }
 
 export interface UserResponse {
@@ -123,7 +104,7 @@ export interface UserResponse {
   assignBuilding: Building[];
 }
 
-export interface GetTenantListResponse {
+export interface GetUserListResponse {
   message: string;
   data: UserResponse[];
   pagination: Pagination;

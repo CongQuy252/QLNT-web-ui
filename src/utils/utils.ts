@@ -6,13 +6,6 @@ export const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-export const formatDate = (isoString: string): string => {
-  if (!isoString) return '';
-
-  const date = new Date(isoString);
-  return date.toLocaleDateString('vi-VN');
-};
-
 // Chuyển số thành chuỗi có phân cách (1000 -> 1,000)
 export const formatNumber = (value: string | number) => {
   if (!value) return '';

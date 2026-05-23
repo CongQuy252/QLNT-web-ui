@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Fragment } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
@@ -20,12 +19,10 @@ const PrivateRoute = ({ allowedRoles }: PrivateRouteProps) => {
 
   useGlobalQueryLoading();
 
-  // ❌ Chưa đăng nhập
   if (!isAuthenticated) {
     return <Navigate to={Path.login} replace />;
   }
 
-  // ❌ Không đủ quyền
   if (allowedRoles && (role == null || !allowedRoles.includes(role))) {
     return <Navigate to="/" replace />;
   }

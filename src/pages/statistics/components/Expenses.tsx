@@ -20,12 +20,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Operator } from '@/constants/appConstants';
-import { useAuthUser } from '@/hooks/useCurrentUser';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import { useToast } from '@/hooks/useToast';
 import type { CreateExpenseInput, Expense } from '@/types/expense';
 import { formatCurrency } from '@/utils/utils';
 
-export default function Dashboard() {
+export default function Expenses() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);

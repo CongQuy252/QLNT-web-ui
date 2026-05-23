@@ -4,18 +4,10 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { useSnackbar } from 'notistack';
 
-import { LocalStorageKey, QueriesKey } from '@/constants/appConstants';
+import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type {
-  GetAllUserRequest,
-  GetNonTenantUsersRequest,
-  GetNonTenantUsersResponse,
-  GetTenantListResponse,
-  GetUserByIdResponse,
-  LoginRequest,
-  LoginResponse,
-} from '@/types/user';
+import type { GetAllUserRequest, GetUserByIdResponse, GetUserListResponse } from '@/types/user';
 
 export const useUserByIdQuery = (userId?: string, enable?: boolean) => {
   return useQuery({
@@ -43,7 +35,7 @@ export const useUsersQuery = (condition: GetAllUserRequest, enable?: boolean) =>
     ],
 
     queryFn: async () => {
-      const response = await http.get<GetTenantListResponse>('/users', {
+      const response = await http.get<GetUserListResponse>('/users', {
         params: {
           page,
           limit,
@@ -59,33 +51,6 @@ export const useUsersQuery = (condition: GetAllUserRequest, enable?: boolean) =>
       handleError: handleHttpError,
     },
     enabled: enable,
-  });
-};
-
-export function useLoginMutation() {
-  const handleHttpError = useHandleHttpError();
-
-  return useMutation({
-    mutationFn: async (data: LoginRequest) => {
-      const response = await http.post<LoginResponse>('/auth/login', data);
-      return response.data;
-    },
-    onSuccess: (res) => {
-      localStorage.setItem(LocalStorageKey.token, res.token);
-      localStorage.setItem(LocalStorageKey.userId, res.user.id);
-    },
-    onError: handleHttpError,
-  });
-}
-
-export const useNonTenantUsersQuery = (params?: GetNonTenantUsersRequest, enabled?: boolean) => {
-  return useQuery({
-    queryKey: [QueriesKey.users, params],
-    queryFn: async () => {
-      const response = await http.get<GetNonTenantUsersResponse>('/users/non-tenants', { params });
-      return response.data;
-    },
-    enabled,
   });
 };
 
@@ -115,7 +80,6 @@ export const useChangePasswordMutation = () => {
       const response = await http.put('/auth/change-password', data);
       return response.data;
     },
-    // onError: handleHttpError,
     onError: (error: unknown) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === HttpStatusCode.BadRequest) {
