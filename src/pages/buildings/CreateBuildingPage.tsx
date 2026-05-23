@@ -61,6 +61,7 @@ const CreateBuildingPage = () => {
     defaultValues: {
       waterCalculationType: WaterType.m3,
       rooms: [],
+      city: '79',
     },
     mode: 'onChange',
   });
@@ -130,7 +131,7 @@ const CreateBuildingPage = () => {
     reset({
       name: '',
       address: '',
-      city: '',
+      city: '79',
       district: '',
       totalRooms: undefined,
       description: '',
@@ -545,6 +546,7 @@ const CreateBuildingPage = () => {
               control={control}
               render={({ field }) => (
                 <Textarea
+                  {...field}
                   value={(field.value as string | number | undefined) ?? ''}
                   placeholder="Mô tả chi tiết về tòa nhà..."
                   className="mt-1 min-h-24 resize-none"
