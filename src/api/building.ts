@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { QueriesKey } from '@/constants/appConstants';
 import { useHandleHttpError } from '@/hooks/exceptions/handleHttpError';
 import { http } from '@/lib/axios';
-import type { BuildingFormInput } from '@/pages/dialogs/createOrUpdateBuildingDialog/schema/createOrUpdateSchema';
+import type { BuildingFormInput } from '@/pages/dialogs/updateBuildingDialog/schema/updateSchema';
 import type { Building, BuildingListResponse } from '@/types/building';
 import type { SearchQuery } from '@/types/searchQuery';
 

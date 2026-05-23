@@ -9,12 +9,14 @@ import { Button } from '@/components/ui/button';
 import ChangePasswordDialog from '@/components/ui/changePassword/ChangePasswordDialog';
 import { LocalStorageKey, UserRole } from '@/constants/appConstants';
 import { useMobile } from '@/hooks/useMobile';
+import { useToast } from '@/hooks/useToast';
 import { managerListFunctions, ownerListFunctions } from '@/pages/home/HomeContants';
 
 const HomeSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useMobile();
+  const toast = useToast();
 
   const [open, setOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
@@ -147,6 +149,7 @@ const HomeSidebar = () => {
       </main>
 
       <ChangePasswordDialog
+        toast={toast}
         isOpen={isChangePasswordOpen}
         onClose={() => setIsChangePasswordOpen(false)}
       />
