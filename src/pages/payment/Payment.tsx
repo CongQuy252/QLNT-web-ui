@@ -53,7 +53,7 @@ export default function Payment() {
   const getBuildingForManager = useSearchBuildingQuery(
     {
       page: 1,
-      limit: user?.assignBuilding.length ?? 0,
+      limit: user?.assignBuilding?.length ?? 0,
       conditions: [
         {
           fieldName: '_id',
@@ -66,7 +66,8 @@ export default function Payment() {
   );
 
   const buildings = useMemo(
-    () => (isAdmin ? getBuildingForAdmin.data : getBuildingForManager.data),
+    () =>
+      isAdmin ? (getBuildingForAdmin.data?.data ?? []) : (getBuildingForManager.data?.data ?? []),
     [isAdmin, getBuildingForAdmin.data, getBuildingForManager.data],
   );
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
@@ -281,7 +282,7 @@ export default function Payment() {
           <SelectContent>
             <SelectItem value="all">Tất cả tòa nhà</SelectItem>
 
-            {buildings?.data?.map((building) => (
+            {buildings.map((building) => (
               <SelectItem key={building._id} value={building._id}>
                 {building.name}
               </SelectItem>
