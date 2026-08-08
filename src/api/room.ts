@@ -55,8 +55,6 @@ export const useGetRoomsQueries = ({
     },
     enabled: isEnabled,
     meta: { handleError: handleHttpError },
-    placeholderData: (prev) => prev,
-    staleTime: 1000 * 60 * 5,
   });
 };
 
@@ -155,7 +153,7 @@ export const useRoomsWithMeterReadings = (
 
   return useQuery<RoomsWithMeterReadingsResponse>({
     queryKey: [
-      'roomsWithMeterReadings',
+      QueriesKey.roomsWithMeterReadings,
       month,
       year,
       searchParams?.buildingId,
