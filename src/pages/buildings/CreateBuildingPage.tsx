@@ -35,9 +35,9 @@ import { Path, QueriesKey, WaterType } from '@/constants/appConstants';
 import { useToast } from '@/hooks/useToast';
 import { useProvinceOptions } from '@/pages/dialogs/updateBuildingDialog/hooks/getAddress';
 import {
-  type BuildingFormInput,
+  type CreateBuildingFormInput,
   type RoomInput,
-  buildingSchema,
+  createBuildingSchema,
 } from '@/pages/dialogs/updateBuildingDialog/schema/updateSchema';
 import type { Province, Ward } from '@/types/address';
 import { parseNumber } from '@/utils/utils';
@@ -58,8 +58,8 @@ const CreateBuildingPage = () => {
     watch,
     setValue,
     control,
-  } = useForm<BuildingFormInput>({
-    resolver: zodResolver(buildingSchema),
+  } = useForm<CreateBuildingFormInput>({
+    resolver: zodResolver(createBuildingSchema),
     defaultValues: {
       waterCalculationType: WaterType.m3,
       rooms: [],
@@ -148,7 +148,7 @@ const CreateBuildingPage = () => {
     });
   }, [reset]);
 
-  const onSubmit = useCallback<SubmitHandler<BuildingFormInput>>(
+  const onSubmit = useCallback<SubmitHandler<CreateBuildingFormInput>>(
     async (data) => {
       const cityName = getCityName(data.city);
       const districtName =
@@ -172,7 +172,7 @@ const CreateBuildingPage = () => {
       };
 
       try {
-        const parsed = buildingSchema.parse(processedData);
+        const parsed = createBuildingSchema.parse(processedData);
         await createBuildingMutation.mutateAsync(parsed);
         queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
         queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });

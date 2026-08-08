@@ -32,50 +32,6 @@ const roomSchema = z.object({
   description: z.string().optional(),
 });
 
-// const roomSchema = z
-//   .object({
-//     number: z.string().min(1, { error: 'Tên phòng không được để trống' }),
-
-//     area: z.coerce.number().min(1, { error: 'Diện tích phải lớn hơn 0' }),
-
-//     price: z.coerce.number().min(0, { error: 'Giá thuê phải lớn hơn hoặc bằng 0' }),
-
-//     electricityUnitPrice: z.coerce.number().min(0, { error: 'Giá điện phải lớn hơn hoặc bằng 0' }),
-
-//     waterUnitPrice: z.coerce
-//       .number()
-//       .min(0, { error: 'Giá nước phải lớn hơn hoặc bằng 0' })
-//       .optional(),
-
-//     waterPricePerPerson: z.coerce
-//       .number()
-//       .min(0, { error: 'Giá nước/người phải lớn hơn hoặc bằng 0' })
-//       .optional(),
-
-//     waterPricePerCubicMeter: z.coerce
-//       .number()
-//       .min(0, { error: 'Giá nước/m³ phải lớn hơn hoặc bằng 0' })
-//       .optional(),
-
-//     internetFee: z.coerce
-//       .number()
-//       .min(0, { error: 'Phí internet phải lớn hơn hoặc bằng 0' })
-//       .optional(),
-
-//     parkingFee: z.coerce.number().min(0, { error: 'Phí gửi xe phải lớn hơn hoặc bằng 0' }),
-
-//     livingFee: z.coerce.number().min(0, { error: 'Phí sinh hoạt phải lớn hơn hoặc bằng 0' }),
-
-//     description: z.string().optional(),
-//   })
-//   .refine(
-//     (data) => data.waterPricePerPerson !== undefined || data.waterPricePerCubicMeter !== undefined,
-//     {
-//       message: 'Phải nhập giá nước',
-//       path: ['waterPricePerPerson'],
-//     },
-//   );
-
 export const buildingSchema = z.object({
   name: z.string().min(1, { error: 'Tên tòa nhà không được để trống' }),
   address: z.string().min(1, { error: 'Địa chỉ không được để trống' }),
@@ -113,9 +69,16 @@ export const buildingSchema = z.object({
     .min(0, { error: 'Phí sinh hoạt phải lớn hơn hoặc bằng 0' })
     .optional(),
   defaultArea: z.coerce.number().min(0, { error: 'Diện tích phải lớn hơn 0' }).optional(),
+  rooms: z.array(roomSchema).optional(),
+});
+
+export const createBuildingSchema = buildingSchema.extend({
   rooms: z.array(roomSchema).min(1, { error: 'Phải có ít nhất 1 phòng' }),
 });
 
 export type BuildingFormInput = z.input<typeof buildingSchema>;
 export type BuildingFormOutput = z.output<typeof buildingSchema>;
 export type RoomInput = z.input<typeof roomSchema>;
+
+export type CreateBuildingFormInput = z.input<typeof createBuildingSchema>;
+export type CreateBuildingFormOutput = z.output<typeof createBuildingSchema>;
