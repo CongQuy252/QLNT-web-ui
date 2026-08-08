@@ -4,6 +4,7 @@ import { Controller, type SubmitHandler, useFieldArray, useForm, useWatch } from
 import { useNavigate } from 'react-router-dom';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { AxiosError } from 'axios';
 
 import { useDistrictsQuery } from '@/api/address';
 import { useCreateBuildingMutation } from '@/api/building';
@@ -29,20 +30,21 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { ToastContainer } from '@/components/ui/toast/Toast';
 import { Path, QueriesKey, WaterType } from '@/constants/appConstants';
 import { useToast } from '@/hooks/useToast';
 import { useProvinceOptions } from '@/pages/dialogs/updateBuildingDialog/hooks/getAddress';
 import {
-  type BuildingFormInput,
+  type CreateBuildingFormInput,
   type RoomInput,
-  buildingSchema,
+  createBuildingSchema,
 } from '@/pages/dialogs/updateBuildingDialog/schema/updateSchema';
 import type { Province, Ward } from '@/types/address';
 import { parseNumber } from '@/utils/utils';
 
 const CreateBuildingPage = () => {
   const navigate = useNavigate();
-  const { success, error: showError } = useToast();
+  const { toasts, success, error: showError, warning: showWarning } = useToast();
   const cities = useProvinceOptions();
   const createBuildingMutation = useCreateBuildingMutation();
   const queryClient = useQueryClient();
@@ -56,8 +58,8 @@ const CreateBuildingPage = () => {
     watch,
     setValue,
     control,
-  } = useForm<BuildingFormInput>({
-    resolver: zodResolver(buildingSchema),
+  } = useForm<CreateBuildingFormInput>({
+    resolver: zodResolver(createBuildingSchema),
     defaultValues: {
       waterCalculationType: WaterType.m3,
       rooms: [],
@@ -146,7 +148,7 @@ const CreateBuildingPage = () => {
     });
   }, [reset]);
 
-  const onSubmit = useCallback<SubmitHandler<BuildingFormInput>>(
+  const onSubmit = useCallback<SubmitHandler<CreateBuildingFormInput>>(
     async (data) => {
       const cityName = getCityName(data.city);
       const districtName =
@@ -154,6 +156,11 @@ const CreateBuildingPage = () => {
 
       if (!districtName.trim()) {
         showError('Vui lòng chọn xã/phường hợp lệ');
+        return;
+      }
+
+      if (data.rooms?.length === 0) {
+        showWarning('Toà nhà yêu cầu phải có ít nhất 1 phòng. Vui lòng thêm phòng.');
         return;
       }
 
@@ -165,17 +172,35 @@ const CreateBuildingPage = () => {
       };
 
       try {
-        const parsed = buildingSchema.parse(processedData);
+        const parsed = createBuildingSchema.parse(processedData);
         await createBuildingMutation.mutateAsync(parsed);
         queryClient.invalidateQueries({ queryKey: [QueriesKey.buildings] });
         queryClient.invalidateQueries({ queryKey: [QueriesKey.rooms] });
         success('Tòa nhà đã được tạo thành công!');
         navigate(`/${Path.buildings}`);
-      } catch {
-        showError('Có lỗi xảy ra khi tạo tòa nhà. Vui lòng kiểm tra lại thông tin.');
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          const errors = error.response?.data.errors as string[];
+          if (errors && errors.includes('rooms must be an array')) {
+            showWarning('Toà nhà yêu cầu phải có ít nhất 1 phòng. Vui lòng thêm phòng.');
+            return;
+          }
+          showError(
+            'Cần nhập đầy đủ 「Tên phòng・Diện tích・Giá thuê・Giá điện・Giá nước・Phí gửi xe・Phí sinh hoạt」. Vui lòng kiểm tra lại.',
+          );
+        }
       }
     },
-    [getCityName, wards, showError, success, navigate, createBuildingMutation, queryClient],
+    [
+      getCityName,
+      wards,
+      showError,
+      showWarning,
+      createBuildingMutation,
+      queryClient,
+      success,
+      navigate,
+    ],
   );
 
   return (
@@ -628,13 +653,22 @@ const CreateBuildingPage = () => {
                         <Controller
                           control={control}
                           name={`rooms.${index}.number`}
+                          rules={{ required: 'Bắt buộc' }}
                           render={({ field }) => (
-                            <Input
-                              {...field}
-                              value={(field.value as string | number | undefined) ?? ''}
-                              onChange={(e) => field.onChange(e.target.value)}
-                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
-                            />
+                            <>
+                              <Input
+                                {...field}
+                                value={(field.value as string | number | undefined) ?? ''}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                              />
+
+                              {errors.rooms?.[index]?.number && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.rooms[index]?.number?.message}
+                                </p>
+                              )}
+                            </>
                           )}
                         />
                       </TableCell>
@@ -642,18 +676,27 @@ const CreateBuildingPage = () => {
                         <Controller
                           control={control}
                           name={`rooms.${index}.area`}
+                          rules={{ required: 'Bắt buộc' }}
                           render={({ field }) => (
-                            <Input
-                              {...field}
-                              value={(field.value as string | number | undefined) ?? ''}
-                              onChange={(e) => {
-                                const parsed = parseNumber(e.target.value);
-                                field.onChange(parsed);
-                              }}
-                              numericOnly
-                              formatComma
-                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
-                            />
+                            <>
+                              <Input
+                                {...field}
+                                value={(field.value as string | number | undefined) ?? ''}
+                                onChange={(e) => {
+                                  const parsed = parseNumber(e.target.value);
+                                  field.onChange(Number.isNaN(parsed) ? undefined : parsed);
+                                }}
+                                numericOnly
+                                formatComma
+                                className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                              />
+
+                              {errors.rooms?.[index]?.area && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.rooms[index]?.area?.message}
+                                </p>
+                              )}
+                            </>
                           )}
                         />
                       </TableCell>
@@ -661,18 +704,26 @@ const CreateBuildingPage = () => {
                         <Controller
                           control={control}
                           name={`rooms.${index}.price`}
+                          rules={{ required: 'Bắt buộc' }}
                           render={({ field }) => (
-                            <Input
-                              {...field}
-                              value={(field.value as string | number | undefined) ?? ''}
-                              onChange={(e) => {
-                                const parsed = parseNumber(e.target.value);
-                                field.onChange(parsed);
-                              }}
-                              numericOnly
-                              formatComma
-                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
-                            />
+                            <>
+                              <Input
+                                {...field}
+                                value={(field.value as string | number | undefined) ?? ''}
+                                onChange={(e) => {
+                                  const parsed = parseNumber(e.target.value);
+                                  field.onChange(Number.isNaN(parsed) ? undefined : parsed);
+                                }}
+                                numericOnly
+                                formatComma
+                                className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                              />
+                              {errors.rooms?.[index]?.price && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.rooms[index]?.price?.message}
+                                </p>
+                              )}
+                            </>
                           )}
                         />
                       </TableCell>
@@ -680,18 +731,27 @@ const CreateBuildingPage = () => {
                         <Controller
                           control={control}
                           name={`rooms.${index}.electricityUnitPrice`}
+                          rules={{ required: 'Bắt buộc' }}
                           render={({ field }) => (
-                            <Input
-                              {...field}
-                              value={(field.value as string | number | undefined) ?? ''}
-                              onChange={(e) => {
-                                const parsed = parseNumber(e.target.value);
-                                field.onChange(parsed);
-                              }}
-                              numericOnly
-                              formatComma
-                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
-                            />
+                            <>
+                              <Input
+                                {...field}
+                                value={(field.value as string | number | undefined) ?? ''}
+                                onChange={(e) => {
+                                  const parsed = parseNumber(e.target.value);
+                                  field.onChange(Number.isNaN(parsed) ? undefined : parsed);
+                                }}
+                                numericOnly
+                                formatComma
+                                className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                              />
+
+                              {errors.rooms?.[index]?.electricityUnitPrice && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.rooms[index]?.electricityUnitPrice?.message}
+                                </p>
+                              )}
+                            </>
                           )}
                         />
                       </TableCell>
@@ -707,7 +767,7 @@ const CreateBuildingPage = () => {
                               value={(field.value as string | number | undefined) ?? ''}
                               onChange={(e) => {
                                 const parsed = parseNumber(e.target.value);
-                                field.onChange(parsed);
+                                field.onChange(Number.isNaN(parsed) ? undefined : parsed);
                               }}
                               numericOnly
                               formatComma
@@ -730,7 +790,7 @@ const CreateBuildingPage = () => {
                               value={(field.value as string | number | undefined) ?? ''}
                               onChange={(e) => {
                                 const parsed = parseNumber(e.target.value);
-                                field.onChange(parsed);
+                                field.onChange(Number.isNaN(parsed) ? undefined : parsed);
                               }}
                               numericOnly
                               formatComma
@@ -744,18 +804,27 @@ const CreateBuildingPage = () => {
                         <Controller
                           control={control}
                           name={`rooms.${index}.parkingFee`}
+                          rules={{ required: 'Bắt buộc' }}
                           render={({ field }) => (
-                            <Input
-                              {...field}
-                              value={(field.value as string | number | undefined) ?? ''}
-                              onChange={(e) => {
-                                const parsed = parseNumber(e.target.value);
-                                field.onChange(parsed);
-                              }}
-                              numericOnly
-                              formatComma
-                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
-                            />
+                            <>
+                              <Input
+                                {...field}
+                                value={(field.value as string | number | undefined) ?? ''}
+                                onChange={(e) => {
+                                  const parsed = parseNumber(e.target.value);
+                                  field.onChange(Number.isNaN(parsed) ? undefined : parsed);
+                                }}
+                                numericOnly
+                                formatComma
+                                className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                              />
+
+                              {errors.rooms?.[index]?.parkingFee && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.rooms[index]?.parkingFee?.message}
+                                </p>
+                              )}
+                            </>
                           )}
                         />
                       </TableCell>
@@ -763,18 +832,26 @@ const CreateBuildingPage = () => {
                         <Controller
                           control={control}
                           name={`rooms.${index}.livingFee`}
+                          rules={{ required: 'Bắt buộc' }}
                           render={({ field }) => (
-                            <Input
-                              {...field}
-                              value={(field.value as string | number | undefined) ?? ''}
-                              onChange={(e) => {
-                                const parsed = parseNumber(e.target.value);
-                                field.onChange(parsed);
-                              }}
-                              numericOnly
-                              formatComma
-                              className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
-                            />
+                            <>
+                              <Input
+                                {...field}
+                                value={(field.value as string | number | undefined) ?? ''}
+                                onChange={(e) => {
+                                  const parsed = parseNumber(e.target.value);
+                                  field.onChange(Number.isNaN(parsed) ? undefined : parsed);
+                                }}
+                                numericOnly
+                                formatComma
+                                className="w-full border-0 rounded-none shadow-none p-0 h-8 text-center focus:ring-0 focus:outline-none"
+                              />
+                              {errors.rooms?.[index]?.livingFee && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.rooms[index]?.livingFee?.message}
+                                </p>
+                              )}
+                            </>
                           )}
                         />
                       </TableCell>
@@ -825,6 +902,7 @@ const CreateBuildingPage = () => {
           </div>
         </form>
       </div>
+      <ToastContainer toasts={toasts} />
     </div>
   );
 };

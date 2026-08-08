@@ -1,7 +1,7 @@
 import { queryClient } from '@/lib/reactQuery';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { AxiosError, HttpStatusCode } from 'axios';
+import axios, { AxiosError, HttpStatusCode } from 'axios';
 import { useSnackbar } from 'notistack';
 
 import { QueriesKey } from '@/constants/appConstants';
@@ -10,6 +10,9 @@ import { http } from '@/lib/axios';
 import type { GetAllUserRequest, GetUserByIdResponse, GetUserListResponse } from '@/types/user';
 
 export const useUserByIdQuery = (userId?: string, enable?: boolean) => {
+  const handleHttpError = useHandleHttpError();
+  const { enqueueSnackbar } = useSnackbar();
+
   return useQuery({
     queryKey: [QueriesKey.user, userId],
     queryFn: async () => {
@@ -17,6 +20,22 @@ export const useUserByIdQuery = (userId?: string, enable?: boolean) => {
       return response.data.data;
     },
     enabled: enable || !!userId,
+    meta: {
+      handleError: (error: Error) => {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            return;
+          } else if (error.response?.status === 403) {
+            enqueueSnackbar('Người dùng không có quyền trong hệ thống', { variant: 'error' });
+            return;
+          }
+        }
+
+        return handleHttpError(error);
+      },
+    },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 };
 

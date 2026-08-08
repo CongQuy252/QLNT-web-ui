@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,12 +31,13 @@ import {
   buildingSchema,
 } from '@/pages/dialogs/updateBuildingDialog/schema/updateSchema';
 import type { Province, Ward } from '@/types/address';
+import type { Building } from '@/types/building';
 
 interface UpdateBuildingDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   handleSave: (data: BuildingFormInput) => void;
-  building?: BuildingFormInput;
+  building?: BuildingFormInput | Building;
   isSaving?: boolean;
 }
 
@@ -45,6 +46,7 @@ const defaultFormValues: BuildingFormInput = {
   address: '',
   city: '',
   district: '',
+  rooms: [],
   totalRooms: undefined,
   description: '',
   defaultRoomPrice: undefined,
@@ -67,6 +69,7 @@ const UpdateBuildingDialog: React.FC<UpdateBuildingDialogProps> = ({
 }) => {
   const isMobile = useMobile();
   const cities = useProvinceOptions();
+  const initializedRef = useRef<string | null>(null);
 
   const [search, setSearch] = useState('');
 
@@ -96,9 +99,51 @@ const UpdateBuildingDialog: React.FC<UpdateBuildingDialogProps> = ({
     [cities],
   );
 
+  // useEffect(() => {
+  //   if (!isOpen || !building || !cities?.length) {
+  //     return;
+  //   }
+
+  //   const city = cities.find(
+  //     (c) => c.name.trim().toLowerCase() === building.city.trim().toLowerCase(),
+  //   );
+
+  //   if (!city) {
+  //     return;
+  //   }
+
+  //   reset({
+  //     ...defaultFormValues,
+  //     ...building,
+  //     city: city.code.toString(),
+  //     district: '',
+  //     // waterCalculationType: building.defaultWaterPricePerPerson ? 'person' : 'm3',
+  //   });
+  // }, [isOpen, building, cities, reset]);
+
+  // useEffect(() => {
+  //   if (!isOpen || !building || !districtsQuery.data?.wards?.length) {
+  //     return;
+  //   }
+
+  //   const ward = districtsQuery.data.wards.find(
+  //     (w) => w.name.trim().toLowerCase() === building.district.trim().toLowerCase(),
+  //   );
+
+  //   if (ward) {
+  //     setValue('district', ward.code.toString());
+  //   }
+  // }, [isOpen, building, districtsQuery.data?.wards, setValue]);
+
   useEffect(() => {
     if (!isOpen || !building || !cities?.length) {
       return;
+    }
+
+    const buildingKey = `${building.name}|${building.address}|${building.city}|${building.district}`;
+
+    if (initializedRef.current === buildingKey) {
+      return; // đã init rồi, không reset lại nữa
     }
 
     const city = cities.find(
@@ -114,22 +159,26 @@ const UpdateBuildingDialog: React.FC<UpdateBuildingDialogProps> = ({
       ...building,
       city: city.code.toString(),
       district: '',
-      waterCalculationType: building.defaultWaterPricePerPerson ? 'person' : 'm3',
     });
+
+    initializedRef.current = buildingKey;
   }, [isOpen, building, cities, reset]);
 
   useEffect(() => {
-    if (!isOpen || !building || !districtsQuery.data?.wards?.length) {
-      return;
-    }
+    if (!isOpen || !building || !districtsQuery.data?.wards?.length) return;
+
+    console.log('building.district:', building.district);
+    console.log(
+      'wards available:',
+      districtsQuery.data.wards.map((w) => w.name),
+    );
 
     const ward = districtsQuery.data.wards.find(
       (w) => w.name.trim().toLowerCase() === building.district.trim().toLowerCase(),
     );
+    console.log('matched ward:', ward);
 
-    if (ward) {
-      setValue('district', ward.code.toString());
-    }
+    if (ward) setValue('district', ward.code.toString());
   }, [isOpen, building, districtsQuery.data?.wards, setValue]);
 
   const onSubmit = useCallback<SubmitHandler<BuildingFormInput>>(
@@ -161,6 +210,7 @@ const UpdateBuildingDialog: React.FC<UpdateBuildingDialogProps> = ({
 
         if (!open) {
           reset(defaultFormValues);
+          initializedRef.current = null;
         }
       }}
     >

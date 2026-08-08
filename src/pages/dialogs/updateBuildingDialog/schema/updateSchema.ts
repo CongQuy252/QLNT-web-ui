@@ -72,6 +72,13 @@ export const buildingSchema = z.object({
   rooms: z.array(roomSchema).optional(),
 });
 
+export const createBuildingSchema = buildingSchema.extend({
+  rooms: z.array(roomSchema).min(1, { error: 'Phải có ít nhất 1 phòng' }),
+});
+
 export type BuildingFormInput = z.input<typeof buildingSchema>;
 export type BuildingFormOutput = z.output<typeof buildingSchema>;
 export type RoomInput = z.input<typeof roomSchema>;
+
+export type CreateBuildingFormInput = z.input<typeof createBuildingSchema>;
+export type CreateBuildingFormOutput = z.output<typeof createBuildingSchema>;

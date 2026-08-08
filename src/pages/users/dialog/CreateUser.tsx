@@ -99,7 +99,7 @@ const CreateUser: React.FC<CreateUserProps> = ({ isOpen, onClose, tenant }) => {
       <DialogContent className="w-screen h-screen max-w-none rounded-none p-0 flex flex-col sm:w-full sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
         <div className={'flex items-center justify-between h-14 px-4 border-b'}>
           <DialogHeader className={'p-0'}>
-            <DialogTitle>{tenant ? 'Cập nhật người thuê' : 'Thêm người thuê mới'}</DialogTitle>
+            <DialogTitle>{tenant ? 'Cập nhật user' : 'Thêm user mới'}</DialogTitle>
           </DialogHeader>
         </div>
 
@@ -180,7 +180,7 @@ const CreateUser: React.FC<CreateUserProps> = ({ isOpen, onClose, tenant }) => {
                 Hủy
               </Button>
               <Button type="submit" className="flex-1">
-                {tenant ? 'Cập nhật' : 'Thêm người thuê'}
+                {tenant ? 'Cập nhật' : 'Thêm'}
               </Button>
             </div>
           </form>
