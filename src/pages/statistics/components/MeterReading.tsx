@@ -12,6 +12,16 @@ type MeterReadingProps = {
   selectedMonth: number;
   selectedYear: number;
   errorRoomIds?: string[];
+
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  onPageChange: (page: number) => void;
 };
 
 const MeterReading = ({
@@ -25,6 +35,8 @@ const MeterReading = ({
   selectedMonth,
   selectedYear,
   errorRoomIds,
+  pagination,
+  onPageChange,
 }: MeterReadingProps) => {
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth() + 1;
@@ -182,6 +194,34 @@ const MeterReading = ({
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex items-center justify-between border-t px-4 py-2 bg-white">
+        <div className="text-sm text-gray-600">Tổng: {pagination.total} phòng</div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={!pagination.hasPrev || isLoading}
+            onClick={() => onPageChange(pagination.page - 1)}
+            className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Trước
+          </button>
+
+          <span className="text-sm">
+            Trang {pagination.page} / {pagination.totalPages}
+          </span>
+
+          <button
+            type="button"
+            disabled={!pagination.hasNext || isLoading}
+            onClick={() => onPageChange(pagination.page + 1)}
+            className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Sau
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -47,6 +47,8 @@ const Statistics = () => {
   const { error: toastError, toasts, success } = useToast();
   const { mutateAsync } = useBulkUpsertMeterReadings();
   const { isAdmin } = useAuthUser();
+  const [page, setPage] = useState(1);
+  const [limit] = useState(50);
 
   const { tab } = useStatisticsConstants(isAdmin);
 
@@ -71,10 +73,14 @@ const Statistics = () => {
       roomNumber: selectedRoom,
     },
     {
-      page: 1,
-      limit: 50,
+      page,
+      limit,
     },
   );
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedBuilding, selectedRoom, selectedMonth, selectedYear]);
 
   const rooms = roomsData?.data || [];
 
@@ -167,7 +173,7 @@ const Statistics = () => {
               {activeTab === 'table' && (
                 <div className="space-y-6">
                   {/* Khu vực Filters */}
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-4 mb-1.5">
                     {/* Tìm kiếm: 2 cột trên PC, 1 cột trên Mobile */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -334,7 +340,7 @@ const Statistics = () => {
                       </div>
                     )}
                   </div>
-                  <div className="text-red-400">
+                  <div className="text-red-400 mb-0.5">
                     ※ Danh sách đang hiển thị là chỉ số của tháng {selectedMonth} năm {selectedYear}
                     . Để xem chỉ số của các tháng cũ hơn, vui lòng chọn tháng muốn hiển thị tại phía
                     trên.
@@ -352,6 +358,17 @@ const Statistics = () => {
                       onChange={handleInputChange}
                       selectedMonth={parseInt(selectedMonth)}
                       selectedYear={parseInt(selectedYear)}
+                      pagination={
+                        roomsData?.pagination ?? {
+                          page: 1,
+                          limit: 10,
+                          total: 0,
+                          totalPages: 0,
+                          hasNext: false,
+                          hasPrev: false,
+                        }
+                      }
+                      onPageChange={setPage}
                     />
                   </div>
                 </div>
