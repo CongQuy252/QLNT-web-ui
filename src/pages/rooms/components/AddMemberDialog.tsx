@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { type Member } from '@/types/room';
+import { compressImage } from '@/utils/utils';
 
 const memberSchema = z.object({
   name: z.string().min(1, 'Vui lòng nhập tên thành viên'),
@@ -89,14 +90,9 @@ const AddMemberDialog = ({
     reset();
   };
 
-  const handleImageUpload = (file: File, type: 'front' | 'back') => {
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      setValue(`cccdImages.${type}.url`, reader.result as string);
-    };
-
-    reader.readAsDataURL(file);
+  const handleImageUpload = async (file: File, type: 'front' | 'back') => {
+    const dataUrl = await compressImage(file);
+    setValue(`cccdImages.${type}.url`, dataUrl);
   };
 
   const formatPlate = (value: string) => {
