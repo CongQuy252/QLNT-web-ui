@@ -15,7 +15,7 @@ export const useHandleHttpError = () => {
       else if (status === 403) message = 'Người dùng không có quyền trong hệ thống';
       else if (status === 500) message = 'Lỗi server';
       else if (status === 401) message = 'Không có quyền truy cập';
-      else if (status === 413) message = 'Dung lượng ảnh quá lớn, vui lòng chọn ảnh nhỏ hơn 5MB';
+      else if (status === 413) message = 'Dữ liệu gửi lên quá lớn';
       else if (messageFromServer) message = messageFromServer;
     } else if (error instanceof Error) {
       message = error.message;
