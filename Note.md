@@ -2,7 +2,7 @@
   
    ⇒ T/H tính theo đầu người thì thực hiện tính tổng và hiển thị trên màn hình luôn.
 
-- [ ] Trong room có thể thực hiện update __`ảnh cccd, số cccd, SĐT`__ của người thuê phòng.
+- [ ] Trong room có thể thực hiện update __`số cccd, SĐT`__ của người thuê phòng.
 
 - [ ] Cập nhật thêm số điện của tháng cũ, số điện của tháng mới.
       

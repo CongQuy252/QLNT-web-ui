@@ -1,4 +1,4 @@
-import { Car, IdCard, Phone, User } from 'lucide-react';
+import { Car, Phone, User } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -10,23 +10,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { type Member } from '@/types/room';
-import { compressImage } from '@/utils/utils';
 
 const memberSchema = z.object({
   name: z.string().min(1, 'Vui lòng nhập tên thành viên'),
   phone: z.string().regex(/^\d{10}$/, 'Số điện thoại phải gồm đúng 10 chữ số'),
   licensePlate: z.string().optional(),
   isRepresentative: z.boolean(),
-  cccdImages: z.object({
-    front: z.object({
-      url: z.string(),
-      publicId: z.string(),
-    }),
-    back: z.object({
-      url: z.string(),
-      publicId: z.string(),
-    }),
-  }),
 });
 type FormValues = z.infer<typeof memberSchema>;
 interface AddMemberDialogProps {
@@ -41,10 +30,6 @@ const defaultRoomValues = {
   phone: '',
   licensePlate: '',
   isRepresentative: false,
-  cccdImages: {
-    front: { url: '', publicId: '' },
-    back: { url: '', publicId: '' },
-  },
 };
 
 const AddMemberDialog = ({
@@ -57,8 +42,6 @@ const AddMemberDialog = ({
     control,
     handleSubmit,
     reset,
-    setValue,
-    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(memberSchema),
@@ -73,7 +56,6 @@ const AddMemberDialog = ({
           phone: editingMember.phone,
           licensePlate: editingMember.licensePlate ?? '',
           isRepresentative: editingMember.isRepresentative,
-          cccdImages: editingMember.cccdImages,
         });
       } else {
         reset(defaultRoomValues);
@@ -90,11 +72,6 @@ const AddMemberDialog = ({
     reset();
   };
 
-  const handleImageUpload = async (file: File, type: 'front' | 'back') => {
-    const dataUrl = await compressImage(file);
-    setValue(`cccdImages.${type}.url`, dataUrl);
-  };
-
   const formatPlate = (value: string) => {
     const cleaned = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
 
@@ -105,7 +82,6 @@ const AddMemberDialog = ({
     return cleaned.slice(0, 4) + '―' + cleaned.slice(4);
   };
 
-  const cccdImages = watch('cccdImages');
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-screen h-screen max-w-none rounded-none sm:h-auto sm:max-w-2xl sm:rounded-lg flex flex-col max-h-screen">
@@ -202,108 +178,6 @@ const AddMemberDialog = ({
                 </div>
               )}
             />
-          </div>
-          <div className="space-y-4">
-            <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-              <IdCard className="w-4 h-4" />
-              Ảnh CCCD
-            </Label>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-slate-600">Mặt trước</Label>
-                <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center">
-                  {cccdImages.front.url ? (
-                    <div className="space-y-2">
-                      <img
-                        src={cccdImages.front.url}
-                        alt="CCCD mặt trước"
-                        className="w-full h-32 object-cover rounded"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setValue('cccdImages.front.url', '')}
-                      >
-                        Xóa ảnh
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            handleImageUpload(file, 'front');
-                          }
-                        }}
-                        className="hidden"
-                        id="frontImageInput"
-                        aria-label="Tải ảnh CCCD mặt trước"
-                      />
-                      <IdCard className="w-8 h-8 mx-auto text-slate-400" />
-                      <p className="text-sm text-slate-500">Nhấn để tải ảnh mặt trước</p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => document.getElementById('frontImageInput')?.click()}
-                      >
-                        Chọn ảnh
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-slate-600">Mặt sau</Label>
-                <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center">
-                  {cccdImages.back.url ? (
-                    <div className="space-y-2">
-                      <img
-                        src={cccdImages.back.url}
-                        alt="CCCD mặt sau"
-                        className="w-full h-32 object-cover rounded"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setValue('cccdImages.back.url', '')}
-                      >
-                        Xóa ảnh
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            handleImageUpload(file, 'back');
-                          }
-                        }}
-                        className="hidden"
-                        id="backImageInput"
-                        aria-label="Tải ảnh CCCD mặt sau"
-                      />
-                      <IdCard className="w-8 h-8 mx-auto text-slate-400" />
-                      <p className="text-sm text-slate-500">Nhấn để tải ảnh mặt sau</p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => document.getElementById('backImageInput')?.click()}
-                      >
-                        Chọn ảnh
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 

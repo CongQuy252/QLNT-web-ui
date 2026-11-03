@@ -93,7 +93,6 @@ const EditRoom = () => {
         name: member.name,
         phone: member.phone,
         licensePlate: member.licensePlate,
-        cccdImages: member.cccdImages,
         isRepresentative: member.isRepresentative,
       })),
       description: editRoom.description,

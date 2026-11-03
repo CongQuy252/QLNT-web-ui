@@ -9,10 +9,6 @@ export interface User {
   role: UserRole;
   phone: string;
   cccd?: string;
-  cccdImages: {
-    front: { url: string; publicId: string };
-    back: { url: string; publicId: string };
-  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,23 +29,9 @@ export interface GetUserLoginResponse {
   name: string;
   role: UserRole;
   phone: string;
-  cccdImages: {
-    front: { url: string; publicId: string };
-    back: { url: string; publicId: string };
-  };
 }
 
 export interface GetUserResponse {
-  cccdImages: {
-    front: {
-      url: string;
-      publicId: string;
-    };
-    back: {
-      url: string;
-      publicId: string;
-    };
-  };
   _id: string;
   email: string;
   name: string;
@@ -79,21 +61,9 @@ export interface UpdateUserRequest {
   role: UserRole;
   phone: string;
   cccd: string;
-  cccdImagesFront: string | File;
-  cccdImagesBack: string | File;
 }
 
 export interface UserResponse {
-  cccdImages: {
-    front: {
-      url: string;
-      publicId: string;
-    };
-    back: {
-      url: string;
-      publicId: string;
-    };
-  };
   _id: string;
   email: string;
   name: string;

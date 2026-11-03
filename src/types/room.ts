@@ -6,16 +6,6 @@ export interface Member {
   name: string;
   phone: string;
   licensePlate?: string;
-  cccdImages: {
-    front: {
-      url: string;
-      publicId: string;
-    };
-    back: {
-      url: string;
-      publicId: string;
-    };
-  };
   isRepresentative: boolean;
 }
 
